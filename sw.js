@@ -2,7 +2,7 @@
    - 앱 셸(HTML·아이콘)만 캐시해 오프라인/재방문 로딩을 빠르게.
    - Supabase·포트원·Netlify 함수 등 동적/외부 호출은 캐시하지 않음(항상 네트워크).
    앱을 새로 배포하면 CACHE 버전을 올려주세요(예: v1 → v2). */
-const CACHE = "sales-training-v1";
+const CACHE = "sales-training-v2";
 const ASSETS = [
   "./index.html",
   "./manifest.json",
