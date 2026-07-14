@@ -1604,6 +1604,7 @@ bootAuth();
   var ua=navigator.userAgent;
   var isIOS=/iphone|ipad|ipod/i.test(ua);
   var isAndroid=/android/i.test(ua);
+  var isMobile=isIOS||isAndroid;   // 데스크톱/웹에서는 설치 UI 숨김
   var inApp=/KAKAOTALK|Instagram|FBAN|FBAV|FB_IAB|Line\/|NAVER|DaumApps|everytimeApp|; wv\)/i.test(ua);
   var deferred=null;
   function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true; }
@@ -1646,7 +1647,7 @@ bootAuth();
   function closeGuide(){ if(guide) guide.classList.remove('on'); }
   if(igClose) igClose.onclick=closeGuide;
   if(guide) guide.addEventListener('click', function(e){ if(e.target.id==='installGuide') closeGuide(); });
-  if(gateInstall){ gateInstall.onclick=openGuide; if(isStandalone()) gateInstall.style.display='none'; }
+  if(gateInstall){ gateInstall.onclick=openGuide; if(isStandalone() || !isMobile) gateInstall.style.display='none'; }
 
   /* ---- 하단 설치 배너 (자동, 보조) ---- */
   var banner=document.getElementById('pwaBanner'), goBtn=document.getElementById('pwaInstall'),
@@ -1659,7 +1660,7 @@ bootAuth();
     if(deferred){ deferred.prompt(); deferred.userChoice.finally(function(){ deferred=null; hideBanner(); }); }
     else { openGuide(); }   // iOS·인앱 등: 가이드 모달 열기
   };
-  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred=e; if(!inApp) showBanner(); });
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred=e; if(!inApp && isMobile) showBanner(); });
   window.addEventListener('appinstalled', function(){ hideBanner(); closeGuide(); if(gateInstall) gateInstall.style.display='none'; });
   if(!isStandalone()){
     if(inApp){ if(txt) txt.innerHTML='<b>앱 설치는 기본 브라우저에서</b><br>눌러서 여는 방법 보기'; if(goBtn) goBtn.textContent='방법'; setTimeout(showBanner,1000); }
