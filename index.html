@@ -1270,7 +1270,7 @@ async function startSubscribe(){
   try{
     // 1) 빌링키 발급 (카드 등록 창)
     var issue=await window.PortOne.requestIssueBillingKey({
-      storeId:PORTONE_STORE_ID, channelKey:PORTONE_CHANNEL_KEY, billingKeyMethod:"CARD",
+      storeId:PORTONE_STORE_ID, channelKey:PORTONE_CHANNEL_KEY, billingKeyMethod:"EASY_PAY",
       issueId:"issue-"+(crypto.randomUUID?crypto.randomUUID():Date.now()),
       issueName:"세일즈 훈련 구독",
       customer:{ customerId:AUTH_USER.id, email:AUTH_USER.email }
