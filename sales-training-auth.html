@@ -6,6 +6,8 @@
 <title>세일즈 거절 극복 훈련</title>
 <!-- Supabase 인증 SDK (v2) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- 포트원 결제 SDK (V2) -->
+<script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 <style>
 /* ===== 로그인 게이트 (Supabase 인증) ===== */
 #gate{position:fixed;inset:0;z-index:9000;background:linear-gradient(160deg,#0f2447,#1d4ed8 60%,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px}
@@ -26,6 +28,19 @@
 .gmsg.err{color:#dc2626}.gmsg.ok{color:#16a34a}
 .gnote{font-size:11.5px;color:#94a3b8;text-align:center;margin-top:16px;line-height:1.5}
 #logoutBtn{position:fixed;top:10px;right:12px;z-index:60;background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#5b6472;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
+/* 사용량 표시 + 구독 유도 모달 */
+#useTag{position:fixed;top:10px;right:96px;z-index:60;background:#eff4ff;border:1px solid #cfe0fb;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;font-weight:700;color:#1d4ed8;display:none}
+#paywall{position:fixed;inset:0;z-index:9500;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px}
+#paywall.on{display:flex}
+.pw-card{background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.35);max-width:420px;width:100%;padding:30px 28px;text-align:center}
+.pw-card .pw-ic{font-size:40px}
+.pw-card h2{font-size:21px;font-weight:800;color:#161b26;margin:8px 0 6px}
+.pw-card p{font-size:14px;color:#5b6472;margin-bottom:6px}
+.pw-price{background:#eff4ff;border:1px solid #cfe0fb;border-radius:12px;padding:14px;margin:16px 0 8px}
+.pw-price .amt{font-size:24px;font-weight:800;color:#1d4ed8}
+.pw-price .amt small{font-size:13px;color:#5b6472;font-weight:600}
+.pw-btn{width:100%;border:none;background:#2563eb;color:#fff;border-radius:12px;padding:14px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
+.pw-close{background:none;border:none;color:#94a3b8;font:inherit;font-size:13px;cursor:pointer;margin-top:12px}
 </style>
 <style>
 :root{
@@ -343,6 +358,21 @@ textarea:focus{border-color:var(--brand)}
   </div>
 </div>
 <button id="logoutBtn" type="button">로그아웃</button>
+<div id="useTag"></div>
+
+<!-- 구독 유도 모달 -->
+<div id="paywall">
+  <div class="pw-card">
+    <div class="pw-ic">🚀</div>
+    <h2>무료 훈련을 다 쓰셨어요</h2>
+    <p id="pwMsg">이번 달 무료 세션을 모두 사용했습니다.<br>구독하면 <b>무제한</b>으로 훈련할 수 있어요.</p>
+    <div class="pw-price">
+      <div class="amt">월 9,900원 <small>· VAT 포함</small></div>
+    </div>
+    <button class="pw-btn" id="pwSub" type="button">구독하고 무제한 훈련하기</button>
+    <button class="pw-close" id="pwClose" type="button">나중에</button>
+  </div>
+</div>
 
 <div class="wrap">
   <h1>🎯 세일즈 거절 극복 훈련</h1>
@@ -732,7 +762,7 @@ function renderPicker(){
     d.innerHTML=`<span class="diff d${p.diff}">${["","쉬움","보통","어려움"][p.diff]}</span>
       <div class="emoji">${p.emoji}</div><h3>${p.name}</h3>
       <span class="tag">${p.tag}</span><p>${p.desc}</p>${rec}`;
-    d.onclick=()=>startChat(p);
+    d.onclick=()=>tryStart(p);
     picker.appendChild(d);
   });
   ctrl.classList.add("on");
@@ -872,6 +902,7 @@ function persistSession(){
   if(state.axisCount){ AXES.forEach(function(a){ axisAvg[a.k]=Math.round((state.axisSum[a.k]||0)/state.axisCount); }); }
   recordSession({personaId:state.persona.id,scores:sc,best:state.best,won:passed,axisAvg:axisAvg});
   saveCloud({personaId:state.persona.id,cold:state.cold,passLine:state.passLine,turns:state.turns,avg:avg,best:state.best,trend:trend,passed:passed,grade:gr.g,axisAvg:axisAvg});
+  saveSessionToDB({persona:state.persona.id,cold:state.cold,turns:state.turns,avg:avg,best:state.best,trend:trend,passed:passed,grade:gr.g,axisAvg:axisAvg});
   state.committed=true;
 }
 function finish(won){
@@ -1108,6 +1139,15 @@ function applyBranding(){
 const SUPABASE_URL="https://pzotfitbuxwoaenvdfju.supabase.co";       // Project URL
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6b3RmaXRidXh3b2FlbnZkZmp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5OTU4ODksImV4cCI6MjA5OTU3MTg4OX0.A-2Buu9hKLW_2ORgxFfMQcL9u9vzKLWZBf3R4v0XAQc";  // anon public key
 
+/* ===== 포트원 결제 설정 (프론트에 넣어도 안전한 공개 식별자) =====
+   포트원 콘솔 → 결제연동에서 확인:
+   - PORTONE_STORE_ID   : 상점 ID (store-... 로 시작)
+   - PORTONE_CHANNEL_KEY: 채널 키 (channel-key-... 로 시작, 빌링/정기결제 지원 채널)
+   실제 결제(빌링키 발급→서버 결제)는 아래 SUBSCRIBE_ENDPOINT(Netlify 함수)에서 처리됩니다. */
+const PORTONE_STORE_ID="store-018275b1-081a-4e67-a61a-fc19ef94a97a";       // 포트원 상점 ID
+const PORTONE_CHANNEL_KEY="channel-key-4510052f-68c2-4b20-9e6c-2f3db5c0adf5";    // 포트원 채널 키
+const SUBSCRIBE_ENDPOINT="/.netlify/functions/subscribe"; // 구독 결제 백엔드
+
 let sb=null, AUTH_USER=null, gMode="login";
 function gq(id){return document.getElementById(id);}
 function bootApp(){ syncCold(); dashEl.classList.add("on"); renderStats(); renderPicker(); }
@@ -1168,6 +1208,95 @@ function bootAuth(){
   });
 }
 function skipAuthDemo(){ gq("gate").classList.add("hide"); bootApp(); }
+
+/* ============================================================
+   ===== Phase 2 · 사용량 미터링 / 무료 한도 / 구독 유도 =====
+   세션 시작 시 Supabase RPC(check_and_bump_usage)를 호출해
+   무료 한도를 세고, 초과하면 구독 모달을 띄웁니다.
+   로그인 안 한 데모 모드에서는 제한 없이 통과합니다.
+   ============================================================ */
+function meterYM(){ var d=new Date(Date.now()+9*3600*1000); return d.toISOString().slice(0,7); } // KST 'YYYY-MM'
+
+async function tryStart(p){
+  // 로그인/백엔드 없으면 그냥 진행(데모)
+  if(!sb || !AUTH_USER){ startChat(p); return; }
+  try{
+    var r=await sb.rpc('check_and_bump_usage',{ p_ym:meterYM(), add_session:1, add_turns:0 });
+    if(r.error){ console.warn('meter error', r.error); startChat(p); return; } // 오류 시 막지 않음
+    var row=Array.isArray(r.data)?r.data[0]:r.data;
+    if(row && row.allowed===false && row.reason==='free_limit_reached'){ showPaywall(row); return; }
+    updateUseTag(row);
+    startChat(p);
+  }catch(e){ console.warn(e); startChat(p); }
+}
+function updateUseTag(row){
+  var el=gq("useTag"); if(!el||!row) return;
+  if(row.limit_===-1){ el.textContent="구독 · 무제한"; }
+  else if(typeof row.sessions_used==='number'){ el.textContent="이번 달 "+row.sessions_used+" / "+row.limit_+"회"; }
+  el.style.display="block";
+}
+function showPaywall(row){
+  var m=gq("pwMsg");
+  if(m && row && typeof row.limit_==='number'){
+    m.innerHTML="이번 달 무료 세션 "+row.limit_+"회를 모두 사용했습니다.<br>구독하면 <b>무제한</b>으로 훈련할 수 있어요.";
+  }
+  gq("paywall").classList.add("on");
+}
+function closePaywall(){ gq("paywall").classList.remove("on"); }
+
+async function saveSessionToDB(d){
+  if(!sb || !AUTH_USER) return;
+  var a=d.axisAvg||{};
+  try{
+    await sb.from('training_sessions').insert({
+      user_id:AUTH_USER.id, persona:d.persona, cold:d.cold, turns:d.turns,
+      avg_score:d.avg, best_score:d.best, trend:d.trend, passed:d.passed, grade:d.grade,
+      empathy:a.empathy, needs:a.needs, evidence:a.evidence, delivery:a.delivery, rebuttal:a.rebuttal, closing:a.closing
+    });
+  }catch(e){ console.warn('session save', e); }
+}
+
+/* ============================================================
+   ===== Phase 3 · 포트원 구독 결제 =====
+   1) 프론트: 포트원 SDK로 빌링키(카드) 발급
+   2) 백엔드(subscribe 함수): 빌링키로 첫 결제 + Supabase 구독 활성 + 다음달 예약
+   ============================================================ */
+async function startSubscribe(){
+  if(!sb || !AUTH_USER){ alert("로그인이 필요합니다."); return; }
+  if(!PORTONE_STORE_ID || !PORTONE_CHANNEL_KEY || !window.PortOne){
+    alert("결제 설정(포트원 상점ID·채널키)이 아직 입력되지 않았습니다."); return;
+  }
+  var btn=gq("pwSub"); btn.disabled=true; var old=btn.textContent; btn.textContent="카드 등록 중…";
+  try{
+    // 1) 빌링키 발급 (카드 등록 창)
+    var issue=await window.PortOne.requestIssueBillingKey({
+      storeId:PORTONE_STORE_ID, channelKey:PORTONE_CHANNEL_KEY, billingKeyMethod:"CARD",
+      issueId:"issue-"+(crypto.randomUUID?crypto.randomUUID():Date.now()),
+      issueName:"세일즈 훈련 구독",
+      customer:{ customerId:AUTH_USER.id, email:AUTH_USER.email }
+    });
+    if(!issue || issue.code){ alert("카드 등록 실패: "+((issue&&issue.message)||"취소됨")); btn.disabled=false; btn.textContent=old; return; }
+    // 2) 서버에 구독 결제 요청 (로그인 토큰 함께 전달)
+    btn.textContent="결제 처리 중…";
+    var sess=(await sb.auth.getSession()).data.session;
+    var r=await fetch(SUBSCRIBE_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ billingKey:issue.billingKey, accessToken:sess&&sess.access_token })});
+    var j=await r.json();
+    if(r.ok && j.ok){
+      alert("구독 완료! 이제 무제한으로 이용하실 수 있어요. 🎉");
+      closePaywall();
+      var t=gq("useTag"); if(t){ t.textContent="구독 · 무제한"; t.style.display="block"; }
+    }else{
+      alert("결제 처리 실패: "+((j&&(j.error||j.message))||("HTTP "+r.status))+"\n다시 시도하거나 다른 카드를 사용해 주세요.");
+      btn.disabled=false; btn.textContent=old;
+    }
+  }catch(e){ alert("결제 중 오류가 발생했습니다. 잠시 후 다시 시도하세요."); btn.disabled=false; btn.textContent=old; }
+}
+(function(){
+  var s=gq("pwSub"), c=gq("pwClose");
+  if(s) s.onclick=startSubscribe;
+  if(c) c.onclick=closePaywall;
+})();
 
 applyBranding();
 bootAuth();
