@@ -1,0 +1,17 @@
+{
+  "name": "세일즈 거절 극복 훈련",
+  "short_name": "세일즈훈련",
+  "description": "AI 고객과 실전처럼 대화하며 거절 극복·소개 요청을 연습하는 세일즈 트레이닝 앱.",
+  "lang": "ko",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f6f8",
+  "theme_color": "#2563eb",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
