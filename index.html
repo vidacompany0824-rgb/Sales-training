@@ -35,6 +35,11 @@
 .gmsg{font-size:13px;text-align:center;margin-top:13px;min-height:18px}
 .gmsg.err{color:#dc2626}.gmsg.ok{color:#16a34a}
 .gnote{font-size:11.5px;color:#94a3b8;text-align:center;margin-top:16px;line-height:1.5}
+.glink{display:block;width:100%;background:none;border:none;color:#6b7280;font:inherit;font-size:12.5px;cursor:pointer;margin-top:11px;text-decoration:underline}
+.gdiv{display:flex;align-items:center;gap:10px;margin:16px 0 12px;color:#9ca3af;font-size:12px}
+.gdiv::before,.gdiv::after{content:"";flex:1;height:1px;background:#e5e7eb}
+.gkakao{width:100%;border:none;background:#FEE500;color:#191600;border-radius:10px;padding:12px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+.gkakao .gk-ic{font-size:16px}
 #logoutBtn{position:fixed;top:10px;right:12px;z-index:60;background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#5b6472;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
 /* 사용량 표시 + 구독 유도 모달 */
 #useTag{position:fixed;top:10px;right:96px;z-index:60;background:#eff4ff;border:1px solid #cfe0fb;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;font-weight:700;color:#1d4ed8;display:none}
@@ -431,14 +436,18 @@ textarea:focus{border-color:var(--brand)}
 <div id="gate">
   <div class="gate-card">
     <h2>🎯 세일즈 거절 극복 훈련</h2>
-    <div class="gsub">로그인하고 훈련을 시작하세요</div>
+    <div class="gsub" id="gsubText">로그인하고 훈련을 시작하세요</div>
     <div class="gtabs">
       <button class="gtab on" id="gtabLogin" type="button">로그인</button>
       <button class="gtab" id="gtabSignup" type="button">회원가입</button>
     </div>
     <div class="gfield"><label>이메일</label><input id="gEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
     <div class="gfield"><label>비밀번호</label><input id="gPw" type="password" autocomplete="current-password" placeholder="6자 이상"></div>
+    <div class="gfield" id="gPwConfirmField" style="display:none"><label>비밀번호 확인</label><input id="gPwConfirm" type="password" autocomplete="new-password" placeholder="비밀번호를 한 번 더 입력"></div>
     <button class="gbtn" id="gSubmit" type="button">로그인</button>
+    <button class="glink" id="gForgot" type="button">비밀번호를 잊으셨나요?</button>
+    <div class="gdiv" id="gDivider">또는</div>
+    <button class="gkakao" id="gKakao" type="button"><span class="gk-ic">💬</span> 카카오로 시작하기</button>
     <div class="gmsg" id="gMsg"></div>
     <div class="gnote" id="gNote"></div>
     <button class="gate-install" id="gateInstall" type="button">📲 이 앱을 홈 화면에 설치하기</button>
@@ -1365,12 +1374,25 @@ function bootApp(){
 
 function setGateMode(m){
   gMode=m;
-  gq("gtabLogin").classList.toggle("on",m==="login");
-  gq("gtabSignup").classList.toggle("on",m==="signup");
-  gq("gSubmit").textContent = m==="login" ? "로그인" : "회원가입";
-  gq("gPw").setAttribute("autocomplete", m==="login"?"current-password":"new-password");
+  var isLogin=m==="login", isSignup=m==="signup", isRecovery=m==="recovery";
+  gq("gtabLogin").classList.toggle("on",isLogin);
+  gq("gtabSignup").classList.toggle("on",isSignup);
+  function disp(id,on){ var el=gq(id); if(el) el.style.display = on?"":"none"; }
+  disp("gtabsWrap", !isRecovery);                 // 탭
+  var tabs=document.querySelector('.gtabs'); if(tabs) tabs.style.display=isRecovery?"none":"flex";
+  var emailField=gq("gEmail")?gq("gEmail").parentNode:null; if(emailField) emailField.style.display=isRecovery?"none":"block";
+  disp("gForgot", isLogin);
+  disp("gDivider", !isRecovery);
+  disp("gKakao", !isRecovery);
+  gq("gSubmit").textContent = isLogin?"로그인":(isSignup?"회원가입":"비밀번호 변경");
+  gq("gsubText") && (gq("gsubText").textContent = isRecovery?"새 비밀번호를 설정하세요":"로그인하고 훈련을 시작하세요");
+  gq("gPw").setAttribute("autocomplete", isLogin?"current-password":"new-password");
+  gq("gPw").setAttribute("placeholder", isLogin?"비밀번호":(isRecovery?"새 비밀번호 (6자 이상)":"6자 이상"));
+  var cf=gq("gPwConfirmField"); if(cf) cf.style.display = (isSignup||isRecovery)?"block":"none";
+  var c=gq("gPwConfirm"); if(c) c.value="";
   gq("gMsg").textContent=""; gq("gMsg").className="gmsg";
 }
+function enterRecovery(){ gq("gate").classList.remove("hide"); setGateMode("recovery"); gq("gPw").value=""; }
 function gateMsg(t,ok){ var e=gq("gMsg"); e.textContent=t; e.className="gmsg "+(ok?"ok":"err"); }
 
 function onAuthed(user){
@@ -1383,8 +1405,28 @@ function onAuthed(user){
 }
 
 async function gateSubmit(){
+  // 비밀번호 재설정 모드
+  if(gMode==="recovery"){
+    var np=gq("gPw").value, np2=gq("gPwConfirm")?gq("gPwConfirm").value:"";
+    if(np.length<6){ gateMsg("비밀번호는 6자 이상이어야 합니다."); return; }
+    if(np!==np2){ gateMsg("비밀번호가 일치하지 않습니다."); return; }
+    gq("gSubmit").disabled=true;
+    try{
+      var ur=await sb.auth.updateUser({password:np});
+      if(ur.error){ gateMsg(ur.error.message); gq("gSubmit").disabled=false; }
+      else{ gateMsg("비밀번호가 변경되었습니다. 새 비밀번호로 로그인하세요.",true);
+        try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){}
+        setTimeout(function(){ location.reload(); }, 1200); }
+    }catch(e){ gateMsg("변경 중 오류가 발생했습니다."); gq("gSubmit").disabled=false; }
+    return;
+  }
   var email=gq("gEmail").value.trim(), pw=gq("gPw").value;
   if(!email||!pw){ gateMsg("이메일과 비밀번호를 입력하세요."); return; }
+  if(gMode==="signup"){
+    if(pw.length<6){ gateMsg("비밀번호는 6자 이상이어야 합니다."); return; }
+    var pw2=gq("gPwConfirm")?gq("gPwConfirm").value:"";
+    if(pw!==pw2){ gateMsg("비밀번호가 일치하지 않습니다. 다시 확인해 주세요."); return; }
+  }
   gq("gSubmit").disabled=true;
   try{
     if(gMode==="signup"){
@@ -1406,7 +1448,10 @@ function bootAuth(){
   gq("gtabSignup").onclick=function(){setGateMode("signup");};
   gq("gSubmit").onclick=gateSubmit;
   gq("gPw").addEventListener("keydown",function(e){ if(e.key==="Enter") gateSubmit(); });
+  var _c=gq("gPwConfirm"); if(_c) _c.addEventListener("keydown",function(e){ if(e.key==="Enter") gateSubmit(); });
   gq("logoutBtn").onclick=async function(){ try{ if(sb) await sb.auth.signOut(); }catch(e){} location.reload(); };
+  var fb=gq("gForgot"); if(fb) fb.onclick=forgotPassword;
+  var kb=gq("gKakao"); if(kb) kb.onclick=kakaoLogin;
 
   if(!SUPABASE_URL || !SUPABASE_ANON_KEY || !window.supabase){
     // 설정 전: 로그인 없이 데모로 진입할 수 있게 안내
@@ -1416,9 +1461,32 @@ function bootAuth(){
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   trackVisit();
   gq("gNote").textContent="가입 시 이메일·비밀번호(6자 이상)만 있으면 됩니다.";
+  // 비밀번호 재설정 메일 링크로 들어온 경우
+  sb.auth.onAuthStateChange(function(event){ if(event==="PASSWORD_RECOVERY"){ enterRecovery(); } });
+  var isRecoveryLink = (location.hash||"").indexOf("type=recovery")>=0;
   sb.auth.getSession().then(function(res){
+    if(isRecoveryLink){ enterRecovery(); return; }         // 재설정 링크면 자동로그인 대신 새 비번 설정
     if(res.data && res.data.session){ onAuthed(res.data.session.user); }
   });
+}
+async function forgotPassword(){
+  var email=gq("gEmail").value.trim();
+  if(!email){ gateMsg("먼저 이메일을 입력한 뒤 눌러주세요."); gq("gEmail").focus(); return; }
+  if(!sb){ gateMsg("연결 준비 중입니다. 잠시 후 다시 시도하세요."); return; }
+  var fb=gq("gForgot"); if(fb) fb.disabled=true;
+  try{
+    var r=await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+    if(r.error){ gateMsg(r.error.message); }
+    else{ gateMsg("비밀번호 재설정 메일을 보냈어요. 메일함(스팸함 포함)을 확인해 링크를 눌러주세요.",true); }
+  }catch(e){ gateMsg("메일 발송 중 오류가 발생했습니다."); }
+  if(fb) fb.disabled=false;
+}
+async function kakaoLogin(){
+  if(!sb){ gateMsg("연결 준비 중입니다. 잠시 후 다시 시도하세요."); return; }
+  try{
+    var r=await sb.auth.signInWithOAuth({ provider:"kakao", options:{ redirectTo: location.origin + location.pathname } });
+    if(r.error){ gateMsg("카카오 로그인 오류: "+r.error.message); }
+  }catch(e){ gateMsg("카카오 로그인을 시작하지 못했습니다."); }
 }
 function skipAuthDemo(){ gq("gate").classList.add("hide"); bootApp(); }
 
