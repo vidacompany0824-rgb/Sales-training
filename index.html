@@ -41,6 +41,24 @@
 .pw-price .amt small{font-size:13px;color:#5b6472;font-weight:600}
 .pw-btn{width:100%;border:none;background:#2563eb;color:#fff;border-radius:12px;padding:14px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
 .pw-close{background:none;border:none;color:#94a3b8;font:inherit;font-size:13px;cursor:pointer;margin-top:12px}
+/* 내 계정 대시보드 */
+#acctBtn{position:fixed;top:10px;right:96px;z-index:60;background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#1d4ed8;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
+#acct{position:fixed;inset:0;z-index:9400;background:rgba(15,23,42,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+#acct.on{display:flex}
+.acct-card{background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.32);max-width:520px;width:100%;padding:24px 24px 26px}
+.acct-h{display:flex;align-items:center;margin-bottom:14px}
+.acct-h h2{font-size:19px;font-weight:800}
+.acct-h .x{margin-left:auto;border:none;background:#f1f3f6;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:15px;color:#6b7280}
+.acct-sec{border:1px solid #eef1f5;border-radius:12px;padding:14px 15px;margin-bottom:12px}
+.acct-sec h4{font-size:12.5px;font-weight:800;color:#1d4ed8;margin-bottom:9px;letter-spacing:.02em}
+.acct-row{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;color:#111827}
+.acct-row .l{color:#6b7280}
+.acct-badge{display:inline-block;font-size:11.5px;font-weight:800;border-radius:20px;padding:2px 10px}
+.acct-badge.on{background:#e8f7ee;color:#15803d}.acct-badge.off{background:#f1f3f6;color:#6b7280}
+.acct-hist{font-size:12.5px;color:#374151;max-height:170px;overflow-y:auto}
+.acct-hist .h{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6}
+.acct-cancel{width:100%;border:1px solid #f6c9c9;background:#fff;color:#b91c1c;border-radius:10px;padding:11px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;margin-top:6px}
+.acct-cancel:disabled{opacity:.5}
 </style>
 <style>
 :root{
@@ -358,7 +376,16 @@ textarea:focus{border-color:var(--brand)}
   </div>
 </div>
 <button id="logoutBtn" type="button">로그아웃</button>
+<button id="acctBtn" type="button">👤 내 계정</button>
 <div id="useTag"></div>
+
+<!-- 내 계정 대시보드 -->
+<div id="acct">
+  <div class="acct-card">
+    <div class="acct-h"><h2>👤 내 계정</h2><button class="x" id="acctClose" type="button">✕</button></div>
+    <div id="acctBody"><div style="color:#6b7280;font-size:13px;padding:20px;text-align:center">불러오는 중…</div></div>
+  </div>
+</div>
 
 <!-- 구독 유도 모달 -->
 <div id="paywall">
@@ -1147,6 +1174,7 @@ const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const PORTONE_STORE_ID="store-018275b1-081a-4e67-a61a-fc19ef94a97a";       // 포트원 상점 ID
 const PORTONE_CHANNEL_KEY="channel-key-4510052f-68c2-4b20-9e6c-2f3db5c0adf5";    // 포트원 채널 키
 const SUBSCRIBE_ENDPOINT="/.netlify/functions/subscribe"; // 구독 결제 백엔드
+const CANCEL_ENDPOINT="/.netlify/functions/cancel-subscription"; // 구독 해지 백엔드
 
 let sb=null, AUTH_USER=null, gMode="login";
 function gq(id){return document.getElementById(id);}
@@ -1167,6 +1195,7 @@ function onAuthed(user){
   try{ localStorage.setItem("trainee_name",(user.user_metadata&&user.user_metadata.name)||user.email||""); }catch(e){}
   gq("gate").classList.add("hide");
   gq("logoutBtn").style.display="block";
+  gq("acctBtn").style.display="block";
   bootApp();
 }
 
@@ -1202,6 +1231,7 @@ function bootAuth(){
     return;
   }
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  trackVisit();
   gq("gNote").textContent="가입 시 이메일·비밀번호(6자 이상)만 있으면 됩니다.";
   sb.auth.getSession().then(function(res){
     if(res.data && res.data.session){ onAuthed(res.data.session.user); }
@@ -1300,6 +1330,83 @@ async function startSubscribe(){
   if(s) s.onclick=startSubscribe;
   if(c) c.onclick=closePaywall;
 })();
+
+/* ============================================================
+   ===== 내 계정 대시보드 (정보 · 이용내역 · 구독관리) =====
+   ============================================================ */
+function fmtDate(s){ if(!s) return "-"; try{ return new Date(s).toLocaleDateString('ko-KR'); }catch(e){ return String(s).slice(0,10); } }
+function openAccount(){ gq("acct").classList.add("on"); loadAccount(); }
+function closeAccount(){ gq("acct").classList.remove("on"); }
+async function loadAccount(){
+  if(!sb || !AUTH_USER){ gq("acctBody").innerHTML='<div style="padding:20px;color:#6b7280">로그인이 필요합니다.</div>'; return; }
+  var email=AUTH_USER.email||"-", joined=fmtDate(AUTH_USER.created_at);
+  // 이용량 (RPC로 이번 달 사용량/한도 조회 — 증가 없이)
+  var used="-", limit="-";
+  try{ var u=await sb.rpc('check_and_bump_usage',{p_ym:meterYM(),add_session:0,add_turns:0}); var row=Array.isArray(u.data)?u.data[0]:u.data; if(row){ used=row.sessions_used; limit=(row.limit_===-1?"무제한":row.limit_); } }catch(e){}
+  // 구독
+  var subHtml='<div class="acct-row"><span class="l">상태</span><span class="acct-badge off">미구독</span></div>';
+  var isSub=false, sub=null;
+  try{ var sr=await sb.from('subscriptions').select('status,current_period_end,plan').eq('user_id',AUTH_USER.id).maybeSingle(); sub=sr.data; }catch(e){}
+  if(sub && sub.current_period_end && new Date(sub.current_period_end).getTime()>Date.now() && (sub.status==='active'||sub.status==='canceled')){
+    isSub=true;
+    var canceled=sub.status==='canceled';
+    subHtml='<div class="acct-row"><span class="l">상태</span><span class="acct-badge on">'+(canceled?'해지 예정':'구독 중')+' · 무제한</span></div>'+
+            '<div class="acct-row"><span class="l">'+(canceled?'이용 종료일':'다음 결제일')+'</span><span>'+fmtDate(sub.current_period_end)+'</span></div>'+
+            (canceled?'<div class="acct-row"><span class="l" style="color:#b45309">해지되어 기간 종료 후 자동 갱신되지 않습니다.</span></div>'
+                     :'<button class="acct-cancel" id="cancelSubBtn" type="button">구독 해지하기</button>');
+  }
+  // 최근 세션
+  var hist='<div style="color:#6b7280">기록 없음</div>';
+  try{
+    var hs=await sb.from('training_sessions').select('persona,avg_score,grade,passed,created_at').eq('user_id',AUTH_USER.id).order('created_at',{ascending:false}).limit(10);
+    if(hs.data && hs.data.length){
+      hist=hs.data.map(function(s){ return '<div class="h"><span>'+fmtDate(s.created_at)+' · '+esc(s.persona||'')+'</span><span>'+(s.avg_score||0)+'점 '+(s.passed?'✓':'')+'</span></div>'; }).join("");
+    }
+  }catch(e){}
+
+  gq("acctBody").innerHTML=
+    '<div class="acct-sec"><h4>내 정보</h4>'+
+      '<div class="acct-row"><span class="l">이메일</span><span>'+esc(email)+'</span></div>'+
+      '<div class="acct-row"><span class="l">가입일</span><span>'+joined+'</span></div></div>'+
+    '<div class="acct-sec"><h4>이번 달 이용</h4>'+
+      '<div class="acct-row"><span class="l">사용한 세션</span><span>'+used+' / '+limit+'</span></div></div>'+
+    '<div class="acct-sec"><h4>구독 관리</h4>'+subHtml+'</div>'+
+    '<div class="acct-sec"><h4>최근 훈련 내역</h4><div class="acct-hist">'+hist+'</div></div>';
+
+  var cb=gq("cancelSubBtn");
+  if(cb) cb.onclick=cancelSubscription;
+}
+async function cancelSubscription(){
+  if(!confirm("정말 구독을 해지할까요?\n현재 이용 기간이 끝나면 자동 갱신되지 않습니다.")) return;
+  var btn=gq("cancelSubBtn"); if(btn){ btn.disabled=true; btn.textContent="처리 중…"; }
+  try{
+    var sess=(await sb.auth.getSession()).data.session;
+    var r=await fetch(CANCEL_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessToken:sess&&sess.access_token})});
+    var j=await r.json();
+    if(r.ok && j.ok){ alert(j.message||"구독이 해지되었습니다."); loadAccount(); }
+    else{ alert("해지 처리 실패: "+((j&&j.error)||("HTTP "+r.status))); if(btn){btn.disabled=false;btn.textContent="구독 해지하기";} }
+  }catch(e){ alert("해지 중 오류가 발생했습니다."); if(btn){btn.disabled=false;btn.textContent="구독 해지하기";} }
+}
+gq("acctBtn").onclick=openAccount;
+gq("acctClose").onclick=closeAccount;
+gq("acct").addEventListener("click",function(e){ if(e.target.id==="acct") closeAccount(); });
+
+/* ============================================================
+   ===== 방문 분석 추적 (방문자 · 체류시간 · 이탈페이지) =====
+   ============================================================ */
+function trackVisit(){
+  if(!sb) return;
+  var vid; try{ vid=sessionStorage.getItem('visit_id'); if(!vid){ vid=(crypto.randomUUID?crypto.randomUUID():String(Date.now())); sessionStorage.setItem('visit_id',vid); } }catch(e){ vid=String(Date.now()); }
+  var page=(location.pathname||'/')+(location.hash||''); var start=Date.now(), sent=false;
+  try{ sb.from('analytics_events').insert({visit_id:vid,user_id:(AUTH_USER?AUTH_USER.id:null),type:'pageview',page:page}).then(function(){},function(){}); }catch(e){}
+  function exit(){ if(sent)return; sent=true; var dur=Math.round((Date.now()-start)/1000);
+    try{ fetch(SUPABASE_URL+'/rest/v1/analytics_events',{method:'POST',keepalive:true,
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY},
+      body:JSON.stringify({visit_id:vid,user_id:(AUTH_USER?AUTH_USER.id:null),type:'exit',page:page,duration_sec:dur})}).catch(function(){}); }catch(e){}
+  }
+  document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden') exit(); });
+  window.addEventListener('pagehide',exit);
+}
 
 applyBranding();
 bootAuth();
