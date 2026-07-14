@@ -1275,7 +1275,7 @@ async function startSubscribe(){
       issueName:"세일즈 훈련 구독",
       customer:{ customerId:AUTH_USER.id, email:AUTH_USER.email }
     });
-    if(!issue || issue.code){ alert("카드 등록 실패: "+((issue&&issue.message)||"취소됨")); btn.disabled=false; btn.textContent=old; return; }
+    if(!issue || issue.code){ alert("카드 등록 실패 ["+((issue&&issue.code)||"")+"]: "+((issue&&issue.message)||"취소됨")); btn.disabled=false; btn.textContent=old; return; }
     // 2) 서버에 구독 결제 요청 (로그인 토큰 함께 전달)
     btn.textContent="결제 처리 중…";
     var sess=(await sb.auth.getSession()).data.session;
@@ -1290,7 +1290,10 @@ async function startSubscribe(){
       alert("결제 처리 실패: "+((j&&(j.error||j.message))||("HTTP "+r.status))+"\n다시 시도하거나 다른 카드를 사용해 주세요.");
       btn.disabled=false; btn.textContent=old;
     }
-  }catch(e){ alert("결제 중 오류가 발생했습니다. 잠시 후 다시 시도하세요."); btn.disabled=false; btn.textContent=old; }
+  }catch(e){
+    var em=(e&&(e.message||e.code))?(("["+((e&&e.code)||"")+"] ")+(e.message||"")):String(e);
+    alert("결제 오류: "+em); btn.disabled=false; btn.textContent=old;
+  }
 }
 (function(){
   var s=gq("pwSub"), c=gq("pwClose");
