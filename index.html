@@ -96,13 +96,29 @@
 .modechip.off{color:#6b7280}
 .modechip.on{background:#eff4ff;border-color:#2563eb;color:#2563eb}
 /* PWA 설치 배너 */
-#pwaBanner{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:8000;background:#111827;color:#fff;border-radius:14px;padding:12px 14px;display:none;align-items:center;gap:11px;box-shadow:0 12px 34px rgba(0,0,0,.34)}
+#pwaBanner{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9700;background:#111827;color:#fff;border-radius:14px;padding:12px 14px;display:none;align-items:center;gap:11px;box-shadow:0 12px 34px rgba(0,0,0,.34)}
 #pwaBanner.on{display:flex}
 #pwaBanner .pi-ic{font-size:22px;flex:none}
 #pwaBanner .pi-t{flex:1;font-size:12.8px;line-height:1.4}
 #pwaBanner .pi-t b{font-weight:700}
 #pwaBanner .pi-go{flex:none;border:none;background:#2563eb;color:#fff;border-radius:9px;padding:8px 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
 #pwaBanner .pi-x{flex:none;border:none;background:transparent;color:#9ca3af;font-size:16px;cursor:pointer;padding:2px 4px}
+/* 로그인 화면 '앱 설치' 버튼 + 설치 가이드 모달 */
+.gate-install{width:100%;margin-top:14px;border:1px solid #cfe0fb;background:#eff4ff;color:#1d4ed8;border-radius:10px;padding:11px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+#installGuide{position:fixed;inset:0;z-index:9800;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:18px}
+#installGuide.on{display:flex}
+.ig-card{background:#fff;border-radius:18px;max-width:400px;width:100%;padding:22px 22px 24px;box-shadow:0 24px 60px rgba(0,0,0,.34);max-height:88vh;overflow-y:auto}
+.ig-h{display:flex;align-items:center;margin-bottom:6px}
+.ig-h h2{font-size:18px;font-weight:800}
+.ig-h .x{margin-left:auto;border:none;background:#f1f3f6;border-radius:8px;width:30px;height:30px;font-size:15px;color:#6b7280;cursor:pointer}
+.ig-sub{font-size:12.8px;color:#6b7280;margin-bottom:16px;line-height:1.5}
+.ig-step{display:flex;gap:11px;align-items:flex-start;margin-bottom:14px}
+.ig-step .n{flex:none;width:24px;height:24px;border-radius:50%;background:#2563eb;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.ig-step .t{font-size:14px;color:#161b26;line-height:1.5}
+.ig-step .t b{font-weight:700}
+.ig-ic{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px;background:#eff4ff;color:#1d4ed8;font-size:14px;vertical-align:-5px;margin:0 2px;padding:0 4px;font-weight:700}
+.ig-btn{width:100%;border:none;background:#2563eb;color:#fff;border-radius:11px;padding:13px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
+.ig-note{font-size:12px;color:#5b6472;margin-top:14px;background:#f8fafc;border:1px solid #eef1f5;border-radius:10px;padding:11px 12px;line-height:1.55}
 </style>
 <style>
 :root{
@@ -425,6 +441,15 @@ textarea:focus{border-color:var(--brand)}
     <button class="gbtn" id="gSubmit" type="button">로그인</button>
     <div class="gmsg" id="gMsg"></div>
     <div class="gnote" id="gNote"></div>
+    <button class="gate-install" id="gateInstall" type="button">📲 이 앱을 홈 화면에 설치하기</button>
+  </div>
+</div>
+
+<!-- 설치 가이드 모달 (기기별 단계 안내) -->
+<div id="installGuide">
+  <div class="ig-card">
+    <div class="ig-h"><h2>📲 앱 설치</h2><button class="x" id="igClose" type="button">✕</button></div>
+    <div id="igBody"></div>
   </div>
 </div>
 <button id="logoutBtn" type="button">로그아웃</button>
@@ -1570,33 +1595,75 @@ applyBranding();
 bootAuth();
 </script>
 
-<!-- ===== PWA: 서비스 워커 등록 + 설치 안내 ===== -->
+<!-- ===== PWA: 서비스 워커 + 설치 배너 + 항상 열 수 있는 설치 가이드 ===== -->
 <script>
 (function(){
   if('serviceWorker' in navigator){
     window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
   }
-  var banner=document.getElementById('pwaBanner'), goBtn=document.getElementById('pwaInstall'),
-      xBtn=document.getElementById('pwaClose'), txt=document.getElementById('pwaText'), deferred=null;
+  var ua=navigator.userAgent;
+  var isIOS=/iphone|ipad|ipod/i.test(ua);
+  var isAndroid=/android/i.test(ua);
+  var inApp=/KAKAOTALK|Instagram|FBAN|FBAV|FB_IAB|Line\/|NAVER|DaumApps|everytimeApp|; wv\)/i.test(ua);
+  var deferred=null;
   function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true; }
+
+  /* ---- 설치 가이드 모달 (기기별 단계) ---- */
+  var guide=document.getElementById('installGuide'), igBody=document.getElementById('igBody'),
+      igClose=document.getElementById('igClose'), gateInstall=document.getElementById('gateInstall');
+  function step(n,html){ return '<div class="ig-step"><span class="n">'+n+'</span><span class="t">'+html+'</span></div>'; }
+  function renderGuide(){
+    if(!igBody) return;
+    if(isStandalone()){ igBody.innerHTML='<div class="ig-sub">이미 홈 화면에 설치되어 있어요. 홈 화면의 🎯 아이콘으로 실행하세요.</div>'; return; }
+    if(inApp){
+      igBody.innerHTML='<div class="ig-sub">지금은 카카오톡 같은 <b>인앱 브라우저</b>예요. 설치하려면 먼저 기본 브라우저로 열어야 해요.</div>'+
+        step(1,'화면 <b>오른쪽 아래(또는 위) 메뉴</b>(<span class="ig-ic">⋯</span>)를 누르세요.')+
+        step(2,'<b>"다른 브라우저로 열기"</b> ('+(isIOS?'Safari':'Chrome')+')를 선택하세요.')+
+        step(3,'열린 화면에서 이 <b>"앱 설치"</b> 버튼을 다시 누르면 방법이 나와요.')+
+        '<div class="ig-note">인앱 브라우저에서는 홈 화면 추가가 지원되지 않습니다.</div>';
+      return;
+    }
+    if(isIOS){
+      igBody.innerHTML='<div class="ig-sub">Safari에서 아래 순서로 설치하세요.</div>'+
+        step(1,'화면 <b>하단 가운데 공유 버튼</b> <span class="ig-ic">⬆︎</span> 을 누르세요.')+
+        step(2,'목록을 아래로 내려 <b>"홈 화면에 추가"</b>를 누르세요.')+
+        step(3,'오른쪽 위 <b>"추가"</b>를 누르면 완료!')+
+        '<div class="ig-note">홈 화면에 🎯 아이콘이 생기고, 누르면 주소창 없이 전체화면 앱으로 실행돼요.</div>';
+      return;
+    }
+    if(deferred){
+      igBody.innerHTML='<div class="ig-sub">한 번만 누르면 설치돼요.</div><button class="ig-btn" id="igNative" type="button">지금 설치하기</button>';
+      var b=document.getElementById('igNative');
+      if(b) b.onclick=async function(){ try{ deferred.prompt(); await deferred.userChoice; }catch(e){} deferred=null; closeGuide(); };
+      return;
+    }
+    igBody.innerHTML='<div class="ig-sub">브라우저 메뉴에서 설치하세요.</div>'+
+      step(1,'오른쪽 위 <b>메뉴</b>(<span class="ig-ic">⋮</span>)를 누르세요.')+
+      step(2,'<b>"앱 설치"</b> 또는 <b>"홈 화면에 추가"</b>를 누르세요.')+
+      step(3,'안내에 따라 <b>설치</b>를 누르면 완료!');
+  }
+  function openGuide(){ renderGuide(); if(guide) guide.classList.add('on'); }
+  function closeGuide(){ if(guide) guide.classList.remove('on'); }
+  if(igClose) igClose.onclick=closeGuide;
+  if(guide) guide.addEventListener('click', function(e){ if(e.target.id==='installGuide') closeGuide(); });
+  if(gateInstall){ gateInstall.onclick=openGuide; if(isStandalone()) gateInstall.style.display='none'; }
+
+  /* ---- 하단 설치 배너 (자동, 보조) ---- */
+  var banner=document.getElementById('pwaBanner'), goBtn=document.getElementById('pwaInstall'),
+      xBtn=document.getElementById('pwaClose'), txt=document.getElementById('pwaText');
   function dismissed(){ try{ return localStorage.getItem('pwa_banner_dismissed')==='1'; }catch(e){ return false; } }
-  function hide(){ if(banner) banner.classList.remove('on'); }
-  function show(){ if(banner && !dismissed() && !isStandalone()) banner.classList.add('on'); }
-  if(xBtn) xBtn.onclick=function(){ try{ localStorage.setItem('pwa_banner_dismissed','1'); }catch(e){} hide(); };
-  // Android/Chrome: 네이티브 설치 프롬프트
-  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred=e; show(); });
-  if(goBtn) goBtn.onclick=async function(){
-    if(deferred){ deferred.prompt(); try{ await deferred.userChoice; }catch(e){} deferred=null; hide(); }
-    else { alert('설치 방법: 브라우저 메뉴 또는 공유 버튼 → "홈 화면에 추가"를 눌러주세요.'); }
+  function hideBanner(){ if(banner) banner.classList.remove('on'); }
+  function showBanner(){ if(banner && !dismissed() && !isStandalone()) banner.classList.add('on'); }
+  if(xBtn) xBtn.onclick=function(){ try{ localStorage.setItem('pwa_banner_dismissed','1'); }catch(e){} hideBanner(); };
+  if(goBtn) goBtn.onclick=function(){
+    if(deferred){ deferred.prompt(); deferred.userChoice.finally(function(){ deferred=null; hideBanner(); }); }
+    else { openGuide(); }   // iOS·인앱 등: 가이드 모달 열기
   };
-  window.addEventListener('appinstalled', hide);
-  // iOS Safari: 설치 프롬프트 미지원 → 수동 안내
-  var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
-  var isSafari=isIOS && !/crios|fxios|edgios/i.test(navigator.userAgent);
-  if(isIOS && isSafari && !isStandalone()){
-    if(txt) txt.innerHTML='<b>홈 화면에 앱 설치</b><br>공유 <span style="font-weight:700">⬆︎</span> → "홈 화면에 추가"';
-    if(goBtn) goBtn.style.display='none';
-    setTimeout(show, 1400);
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred=e; if(!inApp) showBanner(); });
+  window.addEventListener('appinstalled', function(){ hideBanner(); closeGuide(); if(gateInstall) gateInstall.style.display='none'; });
+  if(!isStandalone()){
+    if(inApp){ if(txt) txt.innerHTML='<b>앱 설치는 기본 브라우저에서</b><br>눌러서 여는 방법 보기'; if(goBtn) goBtn.textContent='방법'; setTimeout(showBanner,1000); }
+    else if(isIOS){ if(txt) txt.innerHTML='<b>홈 화면에 앱 설치</b><br>눌러서 설치 방법 보기'; if(goBtn) goBtn.textContent='방법'; setTimeout(showBanner,1400); }
   }
 })();
 </script>
