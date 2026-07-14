@@ -49,9 +49,10 @@
 .gkakao .gk-ic{font-size:16px}
 .ggoogle{width:100%;border:1px solid #dadce0;background:#fff;color:#3c4043;border-radius:10px;padding:12px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:9px}
 .ggoogle .gg-ic{font-weight:800;color:#4285F4;font-size:16px}
-#logoutBtn{position:fixed;top:10px;right:12px;z-index:60;background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#5b6472;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
+#topctl{position:fixed;top:10px;right:12px;z-index:60;display:flex;gap:8px;align-items:center}
+#logoutBtn{background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#5b6472;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
 /* 사용량 표시 + 구독 유도 모달 */
-#useTag{position:fixed;top:10px;right:96px;z-index:60;background:#EAF3DE;border:1px solid #C0DD97;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;font-weight:700;color:#2f5a0e;display:none}
+#useTag{background:#EAF3DE;border:1px solid #C0DD97;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;font-weight:700;color:#2f5a0e;display:none;white-space:nowrap}
 #paywall{position:fixed;inset:0;z-index:9500;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px}
 #paywall.on{display:flex}
 .pw-card{background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.35);max-width:420px;width:100%;padding:30px 28px;text-align:center}
@@ -64,7 +65,7 @@
 .pw-btn{width:100%;border:none;background:#3B6D11;color:#fff;border-radius:12px;padding:14px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
 .pw-close{background:none;border:none;color:#94a3b8;font:inherit;font-size:13px;cursor:pointer;margin-top:12px}
 /* 내 계정 대시보드 */
-#acctBtn{position:fixed;top:10px;right:96px;z-index:60;background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#2f5a0e;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
+#acctBtn{background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#2f5a0e;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none;white-space:nowrap}
 #acct{position:fixed;inset:0;z-index:9400;background:rgba(15,23,42,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
 #acct.on{display:flex}
 .acct-card{background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.32);max-width:520px;width:100%;padding:24px 24px 26px}
@@ -472,9 +473,11 @@ textarea:focus{border-color:var(--brand)}
     <div id="igBody"></div>
   </div>
 </div>
-<button id="logoutBtn" type="button">로그아웃</button>
-<button id="acctBtn" type="button">👤 내 계정</button>
-<div id="useTag"></div>
+<div id="topctl">
+  <div id="useTag"></div>
+  <button id="acctBtn" type="button">👤 내 계정</button>
+  <button id="logoutBtn" type="button">로그아웃</button>
+</div>
 
 <!-- 내 계정 대시보드 -->
 <div id="acct">
@@ -553,8 +556,8 @@ textarea:focus{border-color:var(--brand)}
   </div>
 
   <p class="footnote"><span id="brandFoot"></span>AI가 고객 연기와 답변 평가를 동시에 수행 · 훈련 기록은 이 브라우저에 저장됩니다</p>
-  <div class="applinks"><a href="terms.html">이용약관</a><span>·</span><a href="privacy.html">개인정보처리방침</a><span>·</span><a href="mailto:vidacompany0824@gmail.com">문의</a></div>
-  <div class="bizinfo">주식회사 비다코퍼레이션 · 대표 김신천 · 사업자등록번호 285-81-04061<br>서울특별시 영등포구 국제금융로6길 33, 919호 · 통신판매업 [신고 후 기재] · 문의 vidacompany0824@gmail.com</div>
+  <div class="applinks"><a href="terms.html">이용약관</a><span>·</span><a href="privacy.html">개인정보처리방침</a><span>·</span><a href="mailto:vidacorp.ceo@gmail.com">문의</a></div>
+  <div class="bizinfo">(주)비다코퍼레이션 · 대표이사 김신천 · 사업자등록번호 285-81-04061 · 통신판매업 신고번호 제2026-서울영등포-0567<br>서울특별시 영등포구 국제금융로6길 33, 919호 씨307(여의도동, 맨하탄빌딩)<br>대표전화 02-695-8006 · 이메일 vidacorp.ceo@gmail.com · 개인정보보호책임자 김신천</div>
 </div>
 
 <div id="printArea"></div>
