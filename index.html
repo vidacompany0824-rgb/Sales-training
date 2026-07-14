@@ -3,38 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>세일즈 거절 극복 훈련</title>
+<title>쑥쑥 AI</title>
 <!-- Supabase 인증 SDK (v2) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- 포트원 결제 SDK (V2) -->
 <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 <!-- PWA (홈 화면에 추가하면 앱처럼 실행) -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2563eb">
+<meta name="theme-color" content="#3B6D11">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="세일즈훈련">
+<meta name="apple-mobile-web-app-title" content="쑥쑥AI">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 /* ===== 로그인 게이트 (Supabase 인증) ===== */
-#gate{position:fixed;inset:0;z-index:9000;background:linear-gradient(160deg,#0f2447,#1d4ed8 60%,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px}
+#gate{position:fixed;inset:0;z-index:9000;background:linear-gradient(160deg,#163a0a,#2f5a0e 60%,#3B6D11);display:flex;align-items:center;justify-content:center;padding:20px}
 #gate.hide{display:none}
 .gate-card{background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.32);width:100%;max-width:400px;padding:28px 26px}
 .gate-card h2{font-size:21px;font-weight:800;color:#161b26;margin-bottom:4px;text-align:center}
 .gate-card .gsub{font-size:13px;color:#5b6472;text-align:center;margin-bottom:20px}
 .gtabs{display:flex;background:#eef2f7;border-radius:10px;padding:4px;margin-bottom:18px}
 .gtab{flex:1;border:none;background:transparent;border-radius:8px;padding:9px;font:inherit;font-size:14px;font-weight:700;color:#5b6472;cursor:pointer}
-.gtab.on{background:#fff;color:#1d4ed8;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.gtab.on{background:#fff;color:#2f5a0e;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .gfield{margin-bottom:13px}
 .gfield label{display:block;font-size:12.5px;font-weight:700;color:#334155;margin-bottom:5px}
 .gfield input{width:100%;border:1px solid #d5dbe6;border-radius:10px;padding:12px 13px;font:inherit;font-size:15px;outline:none}
-.gfield input:focus{border-color:#2563eb}
-.gbtn{width:100%;border:none;background:#2563eb;color:#fff;border-radius:11px;padding:13px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px}
+.gfield input:focus{border-color:#3B6D11}
+.gbtn{width:100%;border:none;background:#3B6D11;color:#fff;border-radius:11px;padding:13px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px}
 .gbtn:disabled{opacity:.55;cursor:default}
 .gmsg{font-size:13px;text-align:center;margin-top:13px;min-height:18px}
 .gmsg.err{color:#dc2626}.gmsg.ok{color:#16a34a}
 .gnote{font-size:11.5px;color:#94a3b8;text-align:center;margin-top:16px;line-height:1.5}
+.gate-terms{font-size:11px;color:#94a3b8;text-align:center;margin-top:12px;line-height:1.5}
+.gate-terms a{color:#6b7280;text-decoration:underline}
+.applinks{text-align:center;font-size:12px;color:#9ca3af;margin-top:10px}
+.applinks a{color:#6b7280;text-decoration:none;margin:0 4px}
+.applinks a:hover{text-decoration:underline}
+.applinks span{color:#d1d5db}
+.bizinfo{text-align:center;font-size:10.5px;color:#b6bcc6;margin-top:8px;line-height:1.6}
 .glink{display:block;width:100%;background:none;border:none;color:#6b7280;font:inherit;font-size:12.5px;cursor:pointer;margin-top:11px;text-decoration:underline}
 .gdiv{display:flex;align-items:center;gap:10px;margin:16px 0 12px;color:#9ca3af;font-size:12px}
 .gdiv::before,.gdiv::after{content:"";flex:1;height:1px;background:#e5e7eb}
@@ -44,20 +51,20 @@
 .ggoogle .gg-ic{font-weight:800;color:#4285F4;font-size:16px}
 #logoutBtn{position:fixed;top:10px;right:12px;z-index:60;background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#5b6472;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
 /* 사용량 표시 + 구독 유도 모달 */
-#useTag{position:fixed;top:10px;right:96px;z-index:60;background:#eff4ff;border:1px solid #cfe0fb;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;font-weight:700;color:#1d4ed8;display:none}
+#useTag{position:fixed;top:10px;right:96px;z-index:60;background:#EAF3DE;border:1px solid #C0DD97;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;font-weight:700;color:#2f5a0e;display:none}
 #paywall{position:fixed;inset:0;z-index:9500;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px}
 #paywall.on{display:flex}
 .pw-card{background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.35);max-width:420px;width:100%;padding:30px 28px;text-align:center}
 .pw-card .pw-ic{font-size:40px}
 .pw-card h2{font-size:21px;font-weight:800;color:#161b26;margin:8px 0 6px}
 .pw-card p{font-size:14px;color:#5b6472;margin-bottom:6px}
-.pw-price{background:#eff4ff;border:1px solid #cfe0fb;border-radius:12px;padding:14px;margin:16px 0 8px}
-.pw-price .amt{font-size:24px;font-weight:800;color:#1d4ed8}
+.pw-price{background:#EAF3DE;border:1px solid #C0DD97;border-radius:12px;padding:14px;margin:16px 0 8px}
+.pw-price .amt{font-size:24px;font-weight:800;color:#2f5a0e}
 .pw-price .amt small{font-size:13px;color:#5b6472;font-weight:600}
-.pw-btn{width:100%;border:none;background:#2563eb;color:#fff;border-radius:12px;padding:14px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
+.pw-btn{width:100%;border:none;background:#3B6D11;color:#fff;border-radius:12px;padding:14px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
 .pw-close{background:none;border:none;color:#94a3b8;font:inherit;font-size:13px;cursor:pointer;margin-top:12px}
 /* 내 계정 대시보드 */
-#acctBtn{position:fixed;top:10px;right:96px;z-index:60;background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#1d4ed8;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
+#acctBtn{position:fixed;top:10px;right:96px;z-index:60;background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#2f5a0e;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
 #acct{position:fixed;inset:0;z-index:9400;background:rgba(15,23,42,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
 #acct.on{display:flex}
 .acct-card{background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.32);max-width:520px;width:100%;padding:24px 24px 26px}
@@ -65,7 +72,7 @@
 .acct-h h2{font-size:19px;font-weight:800}
 .acct-h .x{margin-left:auto;border:none;background:#f1f3f6;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:15px;color:#6b7280}
 .acct-sec{border:1px solid #eef1f5;border-radius:12px;padding:14px 15px;margin-bottom:12px}
-.acct-sec h4{font-size:12.5px;font-weight:800;color:#1d4ed8;margin-bottom:9px;letter-spacing:.02em}
+.acct-sec h4{font-size:12.5px;font-weight:800;color:#2f5a0e;margin-bottom:9px;letter-spacing:.02em}
 .acct-row{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;color:#111827}
 .acct-row .l{color:#6b7280}
 .acct-badge{display:inline-block;font-size:11.5px;font-weight:800;border-radius:20px;padding:2px 10px}
@@ -83,35 +90,35 @@
 .resume .rz-t{font-weight:700;font-size:14.5px}
 .resume .rz-s{font-size:12.5px;color:#6b7280;margin-top:3px}
 .resume .rz-btns{display:flex;gap:8px;margin-top:11px}
-.resume .rz-go{border:none;background:#2563eb;color:#fff;border-radius:10px;padding:9px 16px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.resume .rz-go{border:none;background:#3B6D11;color:#fff;border-radius:10px;padding:9px 16px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
 .resume .rz-new{border:1px solid #e5e7eb;background:#fff;border-radius:10px;padding:9px 14px;font:inherit;font-size:13.5px;color:#6b7280;cursor:pointer}
 /* 시작 위저드 */
 #wizard{margin-bottom:8px}
 .wstep-h{font-size:15px;font-weight:700;display:flex;align-items:center;gap:9px;margin:2px 2px 14px}
-.wstep-h .wnum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#2563eb;color:#fff;font-size:12px;font-weight:700;flex:none}
+.wstep-h .wnum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#3B6D11;color:#fff;font-size:12px;font-weight:700;flex:none}
 .wback{border:1px solid #e5e7eb;background:#fff;border-radius:8px;padding:5px 10px;font:inherit;font-size:12.5px;color:#6b7280;cursor:pointer}
-.wsel{font-size:13.5px;font-weight:600;color:#1f2430;background:#eff4ff;border:1px solid #dbe4f5;border-radius:10px;padding:9px 13px;margin-bottom:14px;display:inline-flex;align-items:center;gap:7px}
+.wsel{font-size:13.5px;font-weight:600;color:#1f2430;background:#EAF3DE;border:1px solid #C0DD97;border-radius:10px;padding:9px 13px;margin-bottom:14px;display:inline-flex;align-items:center;gap:7px}
 .wsel-emoji{font-size:17px}
 .coldgrid{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
 .coldcard{display:flex;align-items:center;gap:13px;text-align:left;border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:13px 15px;cursor:pointer;font:inherit;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:.15s;width:100%}
-.coldcard:hover{border-color:#2563eb;transform:translateY(-1px)}
+.coldcard:hover{border-color:#3B6D11;transform:translateY(-1px)}
 .coldcard .cc-n{flex:none;width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
 .coldcard .cc-t{flex:none;width:50px;font-weight:700;font-size:14px}
 .coldcard .cc-d{flex:1;font-size:12.5px;color:#6b7280;line-height:1.4}
 /* 놀리기 모드 칩 */
 .modechip{margin-top:2px;border:1px solid #e5e7eb;background:#fff;border-radius:20px;padding:7px 14px;font:inherit;font-size:12.5px;font-weight:600;color:#374151;cursor:pointer}
 .modechip.off{color:#6b7280}
-.modechip.on{background:#eff4ff;border-color:#2563eb;color:#2563eb}
+.modechip.on{background:#EAF3DE;border-color:#3B6D11;color:#3B6D11}
 /* PWA 설치 배너 */
 #pwaBanner{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9700;background:#111827;color:#fff;border-radius:14px;padding:12px 14px;display:none;align-items:center;gap:11px;box-shadow:0 12px 34px rgba(0,0,0,.34)}
 #pwaBanner.on{display:flex}
 #pwaBanner .pi-ic{font-size:22px;flex:none}
 #pwaBanner .pi-t{flex:1;font-size:12.8px;line-height:1.4}
 #pwaBanner .pi-t b{font-weight:700}
-#pwaBanner .pi-go{flex:none;border:none;background:#2563eb;color:#fff;border-radius:9px;padding:8px 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+#pwaBanner .pi-go{flex:none;border:none;background:#3B6D11;color:#fff;border-radius:9px;padding:8px 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
 #pwaBanner .pi-x{flex:none;border:none;background:transparent;color:#9ca3af;font-size:16px;cursor:pointer;padding:2px 4px}
 /* 로그인 화면 '앱 설치' 버튼 + 설치 가이드 모달 */
-.gate-install{width:100%;margin-top:14px;border:1px solid #cfe0fb;background:#eff4ff;color:#1d4ed8;border-radius:10px;padding:11px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.gate-install{width:100%;margin-top:14px;border:1px solid #C0DD97;background:#EAF3DE;color:#2f5a0e;border-radius:10px;padding:11px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
 #installGuide{position:fixed;inset:0;z-index:9800;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:18px}
 #installGuide.on{display:flex}
 .ig-card{background:#fff;border-radius:18px;max-width:400px;width:100%;padding:22px 22px 24px;box-shadow:0 24px 60px rgba(0,0,0,.34);max-height:88vh;overflow-y:auto}
@@ -120,18 +127,18 @@
 .ig-h .x{margin-left:auto;border:none;background:#f1f3f6;border-radius:8px;width:30px;height:30px;font-size:15px;color:#6b7280;cursor:pointer}
 .ig-sub{font-size:12.8px;color:#6b7280;margin-bottom:16px;line-height:1.5}
 .ig-step{display:flex;gap:11px;align-items:flex-start;margin-bottom:14px}
-.ig-step .n{flex:none;width:24px;height:24px;border-radius:50%;background:#2563eb;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.ig-step .n{flex:none;width:24px;height:24px;border-radius:50%;background:#3B6D11;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:1px}
 .ig-step .t{font-size:14px;color:#161b26;line-height:1.5}
 .ig-step .t b{font-weight:700}
-.ig-ic{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px;background:#eff4ff;color:#1d4ed8;font-size:14px;vertical-align:-5px;margin:0 2px;padding:0 4px;font-weight:700}
-.ig-btn{width:100%;border:none;background:#2563eb;color:#fff;border-radius:11px;padding:13px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
+.ig-ic{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px;background:#EAF3DE;color:#2f5a0e;font-size:14px;vertical-align:-5px;margin:0 2px;padding:0 4px;font-weight:700}
+.ig-btn{width:100%;border:none;background:#3B6D11;color:#fff;border-radius:11px;padding:13px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
 .ig-note{font-size:12px;color:#5b6472;margin-top:14px;background:#f8fafc;border:1px solid #eef1f5;border-radius:10px;padding:11px 12px;line-height:1.55}
 </style>
 <style>
 :root{
   color-scheme: light;
   --bg:#f5f6f8; --card:#ffffff; --line:#e5e7eb; --ink:#1f2430; --muted:#6b7280;
-  --brand:#2563eb; --brand-soft:#eff4ff; --cust:#f1f3f6;
+  --brand:#3B6D11; --brand-soft:#EAF3DE; --cust:#f1f3f6;
   --good:#16a34a; --warn:#d97706; --bad:#dc2626;
   --shadow:0 1px 3px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.05);
 }
@@ -198,7 +205,7 @@ table.rank td.rk{font-weight:700;width:46px}
 table.rank td.rf{text-align:left;font-weight:600}
 table.rank td.rf .rt{font-size:11px;color:var(--muted);font-weight:400;margin-left:4px}
 table.rank td.rv{font-weight:800;color:var(--brand)}
-tr.rrow.me td{background:#eff4ff}
+tr.rrow.me td{background:#EAF3DE}
 tr.rrow.me td.rf{color:var(--brand)}
 .rank-note{font-size:11.5px;color:var(--muted);margin-top:11px}
 .picker-head{margin:2px 2px 13px}
@@ -268,7 +275,7 @@ details.pbdetails[open]>summary{margin-bottom:10px}
 .rax .f{display:block;height:100%;border-radius:20px}
 .rax .v{width:26px;flex:none;text-align:right;font-weight:700}
 .rax.low .l{color:#dc2626;font-weight:700}
-.coach{background:linear-gradient(180deg,#fff,#f7faff);border:1px solid #dbe4f5;border-radius:10px;padding:13px 15px;margin-bottom:12px}
+.coach{background:linear-gradient(180deg,#fff,#f7faff);border:1px solid #C0DD97;border-radius:10px;padding:13px 15px;margin-bottom:12px}
 .coach h4{margin:0 0 8px;font-size:13.5px;display:flex;align-items:center;gap:6px}
 .coach-load{color:var(--muted);font-size:12.5px}
 .coach .cst{font-size:13px;margin:5px 0;line-height:1.5}
@@ -437,8 +444,8 @@ textarea:focus{border-color:var(--brand)}
 <!-- ===== 로그인 게이트 ===== -->
 <div id="gate">
   <div class="gate-card">
-    <h2>🎯 세일즈 거절 극복 훈련</h2>
-    <div class="gsub" id="gsubText">로그인하고 훈련을 시작하세요</div>
+    <h2>🌱 쑥쑥 AI</h2>
+    <div class="gsub" id="gsubText">조직이 쑥쑥, 실적이 쑥쑥</div>
     <div class="gtabs">
       <button class="gtab on" id="gtabLogin" type="button">로그인</button>
       <button class="gtab" id="gtabSignup" type="button">회원가입</button>
@@ -454,6 +461,7 @@ textarea:focus{border-color:var(--brand)}
     <div class="gmsg" id="gMsg"></div>
     <div class="gnote" id="gNote"></div>
     <button class="gate-install" id="gateInstall" type="button">📲 이 앱을 홈 화면에 설치하기</button>
+    <div class="gate-terms">가입 시 <a href="terms.html" target="_blank">이용약관</a> 및 <a href="privacy.html" target="_blank">개인정보처리방침</a>에 동의하는 것으로 간주됩니다.</div>
   </div>
 </div>
 
@@ -491,7 +499,7 @@ textarea:focus{border-color:var(--brand)}
 </div>
 
 <div class="wrap">
-  <h1>🎯 세일즈 거절 극복 훈련</h1>
+  <h1>🌱 쑥쑥 AI <span style="font-size:14px;font-weight:600;color:var(--muted)">· 세일즈 거절 극복 훈련</span></h1>
   <p class="sub">고객 유형과 냉담도를 정하면 AI가 그 고객이 되어 거절합니다. 대화를 이어가며 설득하세요. 코칭은 '💬 코칭 보기'로 원할 때 펼쳐보고, 세션 종료 시 종합 리포트를 확인하세요. <span id="brandTag"></span></p>
 
   <button id="dashToggle" class="dashToggle" onclick="toggleDash()">📊 내 훈련 기록 보기 ▾</button>
@@ -545,6 +553,8 @@ textarea:focus{border-color:var(--brand)}
   </div>
 
   <p class="footnote"><span id="brandFoot"></span>AI가 고객 연기와 답변 평가를 동시에 수행 · 훈련 기록은 이 브라우저에 저장됩니다</p>
+  <div class="applinks"><a href="terms.html">이용약관</a><span>·</span><a href="privacy.html">개인정보처리방침</a><span>·</span><a href="mailto:vidacompany0824@gmail.com">문의</a></div>
+  <div class="bizinfo">주식회사 비다코퍼레이션 · 대표 김신천 · 사업자등록번호 285-81-04061<br>서울특별시 영등포구 국제금융로6길 33, 919호 · 통신판매업 [신고 후 기재] · 문의 vidacompany0824@gmail.com</div>
 </div>
 
 <div id="printArea"></div>
@@ -1389,7 +1399,7 @@ function setGateMode(m){
   disp("gKakao", !isRecovery);
   disp("gGoogle", !isRecovery);
   gq("gSubmit").textContent = isLogin?"로그인":(isSignup?"회원가입":"비밀번호 변경");
-  gq("gsubText") && (gq("gsubText").textContent = isRecovery?"새 비밀번호를 설정하세요":"로그인하고 훈련을 시작하세요");
+  gq("gsubText") && (gq("gsubText").textContent = isRecovery?"새 비밀번호를 설정하세요":"조직이 쑥쑥, 실적이 쑥쑥");
   gq("gPw").setAttribute("autocomplete", isLogin?"current-password":"new-password");
   gq("gPw").setAttribute("placeholder", isLogin?"비밀번호":(isRecovery?"새 비밀번호 (6자 이상)":"6자 이상"));
   var cf=gq("gPwConfirmField"); if(cf) cf.style.display = (isSignup||isRecovery)?"block":"none";
