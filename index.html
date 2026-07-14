@@ -8,6 +8,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- 포트원 결제 SDK (V2) -->
 <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+<!-- PWA (홈 화면에 추가하면 앱처럼 실행) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="세일즈훈련">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 /* ===== 로그인 게이트 (Supabase 인증) ===== */
 #gate{position:fixed;inset:0;z-index:9000;background:linear-gradient(160deg,#0f2447,#1d4ed8 60%,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px}
@@ -87,6 +95,14 @@
 .modechip{margin-top:2px;border:1px solid #e5e7eb;background:#fff;border-radius:20px;padding:7px 14px;font:inherit;font-size:12.5px;font-weight:600;color:#374151;cursor:pointer}
 .modechip.off{color:#6b7280}
 .modechip.on{background:#eff4ff;border-color:#2563eb;color:#2563eb}
+/* PWA 설치 배너 */
+#pwaBanner{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:8000;background:#111827;color:#fff;border-radius:14px;padding:12px 14px;display:none;align-items:center;gap:11px;box-shadow:0 12px 34px rgba(0,0,0,.34)}
+#pwaBanner.on{display:flex}
+#pwaBanner .pi-ic{font-size:22px;flex:none}
+#pwaBanner .pi-t{flex:1;font-size:12.8px;line-height:1.4}
+#pwaBanner .pi-t b{font-weight:700}
+#pwaBanner .pi-go{flex:none;border:none;background:#2563eb;color:#fff;border-radius:9px;padding:8px 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+#pwaBanner .pi-x{flex:none;border:none;background:transparent;color:#9ca3af;font-size:16px;cursor:pointer;padding:2px 4px}
 </style>
 <style>
 :root{
@@ -386,6 +402,14 @@ textarea:focus{border-color:var(--brand)}
 </style>
 </head>
 <body>
+
+<!-- PWA 설치 안내 배너 -->
+<div id="pwaBanner">
+  <span class="pi-ic">📲</span>
+  <div class="pi-t" id="pwaText"><b>홈 화면에 앱 설치</b><br>설치하면 앱처럼 전체화면으로 쓸 수 있어요.</div>
+  <button class="pi-go" id="pwaInstall" type="button">설치</button>
+  <button class="pi-x" id="pwaClose" type="button">✕</button>
+</div>
 
 <!-- ===== 로그인 게이트 ===== -->
 <div id="gate">
@@ -1544,6 +1568,37 @@ function trackVisit(){
 
 applyBranding();
 bootAuth();
+</script>
+
+<!-- ===== PWA: 서비스 워커 등록 + 설치 안내 ===== -->
+<script>
+(function(){
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  }
+  var banner=document.getElementById('pwaBanner'), goBtn=document.getElementById('pwaInstall'),
+      xBtn=document.getElementById('pwaClose'), txt=document.getElementById('pwaText'), deferred=null;
+  function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true; }
+  function dismissed(){ try{ return localStorage.getItem('pwa_banner_dismissed')==='1'; }catch(e){ return false; } }
+  function hide(){ if(banner) banner.classList.remove('on'); }
+  function show(){ if(banner && !dismissed() && !isStandalone()) banner.classList.add('on'); }
+  if(xBtn) xBtn.onclick=function(){ try{ localStorage.setItem('pwa_banner_dismissed','1'); }catch(e){} hide(); };
+  // Android/Chrome: 네이티브 설치 프롬프트
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred=e; show(); });
+  if(goBtn) goBtn.onclick=async function(){
+    if(deferred){ deferred.prompt(); try{ await deferred.userChoice; }catch(e){} deferred=null; hide(); }
+    else { alert('설치 방법: 브라우저 메뉴 또는 공유 버튼 → "홈 화면에 추가"를 눌러주세요.'); }
+  };
+  window.addEventListener('appinstalled', hide);
+  // iOS Safari: 설치 프롬프트 미지원 → 수동 안내
+  var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  var isSafari=isIOS && !/crios|fxios|edgios/i.test(navigator.userAgent);
+  if(isIOS && isSafari && !isStandalone()){
+    if(txt) txt.innerHTML='<b>홈 화면에 앱 설치</b><br>공유 <span style="font-weight:700">⬆︎</span> → "홈 화면에 추가"';
+    if(goBtn) goBtn.style.display='none';
+    setTimeout(show, 1400);
+  }
+})();
 </script>
 </body>
 </html>
