@@ -40,6 +40,8 @@
 .gdiv::before,.gdiv::after{content:"";flex:1;height:1px;background:#e5e7eb}
 .gkakao{width:100%;border:none;background:#FEE500;color:#191600;border-radius:10px;padding:12px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
 .gkakao .gk-ic{font-size:16px}
+.ggoogle{width:100%;border:1px solid #dadce0;background:#fff;color:#3c4043;border-radius:10px;padding:12px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:9px}
+.ggoogle .gg-ic{font-weight:800;color:#4285F4;font-size:16px}
 #logoutBtn{position:fixed;top:10px;right:12px;z-index:60;background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#5b6472;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
 /* 사용량 표시 + 구독 유도 모달 */
 #useTag{position:fixed;top:10px;right:96px;z-index:60;background:#eff4ff;border:1px solid #cfe0fb;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;font-weight:700;color:#1d4ed8;display:none}
@@ -448,6 +450,7 @@ textarea:focus{border-color:var(--brand)}
     <button class="glink" id="gForgot" type="button">비밀번호를 잊으셨나요?</button>
     <div class="gdiv" id="gDivider">또는</div>
     <button class="gkakao" id="gKakao" type="button"><span class="gk-ic">💬</span> 카카오로 시작하기</button>
+    <button class="ggoogle" id="gGoogle" type="button"><span class="gg-ic">G</span> 구글로 시작하기</button>
     <div class="gmsg" id="gMsg"></div>
     <div class="gnote" id="gNote"></div>
     <button class="gate-install" id="gateInstall" type="button">📲 이 앱을 홈 화면에 설치하기</button>
@@ -1384,6 +1387,7 @@ function setGateMode(m){
   disp("gForgot", isLogin);
   disp("gDivider", !isRecovery);
   disp("gKakao", !isRecovery);
+  disp("gGoogle", !isRecovery);
   gq("gSubmit").textContent = isLogin?"로그인":(isSignup?"회원가입":"비밀번호 변경");
   gq("gsubText") && (gq("gsubText").textContent = isRecovery?"새 비밀번호를 설정하세요":"로그인하고 훈련을 시작하세요");
   gq("gPw").setAttribute("autocomplete", isLogin?"current-password":"new-password");
@@ -1452,6 +1456,7 @@ function bootAuth(){
   gq("logoutBtn").onclick=async function(){ try{ if(sb) await sb.auth.signOut(); }catch(e){} location.reload(); };
   var fb=gq("gForgot"); if(fb) fb.onclick=forgotPassword;
   var kb=gq("gKakao"); if(kb) kb.onclick=kakaoLogin;
+  var gb=gq("gGoogle"); if(gb) gb.onclick=googleLogin;
 
   if(!SUPABASE_URL || !SUPABASE_ANON_KEY || !window.supabase){
     // 설정 전: 로그인 없이 데모로 진입할 수 있게 안내
@@ -1487,6 +1492,13 @@ async function kakaoLogin(){
     var r=await sb.auth.signInWithOAuth({ provider:"kakao", options:{ redirectTo: location.origin + location.pathname } });
     if(r.error){ gateMsg("카카오 로그인 오류: "+r.error.message); }
   }catch(e){ gateMsg("카카오 로그인을 시작하지 못했습니다."); }
+}
+async function googleLogin(){
+  if(!sb){ gateMsg("연결 준비 중입니다. 잠시 후 다시 시도하세요."); return; }
+  try{
+    var r=await sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: location.origin + location.pathname } });
+    if(r.error){ gateMsg("구글 로그인 오류: "+r.error.message); }
+  }catch(e){ gateMsg("구글 로그인을 시작하지 못했습니다."); }
 }
 function skipAuthDemo(){ gq("gate").classList.add("hide"); bootApp(); }
 
