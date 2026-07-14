@@ -59,6 +59,34 @@
 .acct-hist .h{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6}
 .acct-cancel{width:100%;border:1px solid #f6c9c9;background:#fff;color:#b91c1c;border-radius:10px;padding:11px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;margin-top:6px}
 .acct-cancel:disabled{opacity:.5}
+/* 대시보드 토글 */
+.dashToggle{display:none;width:100%;text-align:left;border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:12px 15px;font:inherit;font-size:13.5px;font-weight:600;color:#374151;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:16px}
+.dashToggle:hover{border-color:#d1d5db}
+/* 이어서 하기 */
+.resumebar{display:none;margin-bottom:14px}
+.resume{background:linear-gradient(180deg,#fffdf5,#fff8e8);border:1px solid #f2e2b6;border-radius:14px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.resume .rz-t{font-weight:700;font-size:14.5px}
+.resume .rz-s{font-size:12.5px;color:#6b7280;margin-top:3px}
+.resume .rz-btns{display:flex;gap:8px;margin-top:11px}
+.resume .rz-go{border:none;background:#2563eb;color:#fff;border-radius:10px;padding:9px 16px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.resume .rz-new{border:1px solid #e5e7eb;background:#fff;border-radius:10px;padding:9px 14px;font:inherit;font-size:13.5px;color:#6b7280;cursor:pointer}
+/* 시작 위저드 */
+#wizard{margin-bottom:8px}
+.wstep-h{font-size:15px;font-weight:700;display:flex;align-items:center;gap:9px;margin:2px 2px 14px}
+.wstep-h .wnum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#2563eb;color:#fff;font-size:12px;font-weight:700;flex:none}
+.wback{border:1px solid #e5e7eb;background:#fff;border-radius:8px;padding:5px 10px;font:inherit;font-size:12.5px;color:#6b7280;cursor:pointer}
+.wsel{font-size:13.5px;font-weight:600;color:#1f2430;background:#eff4ff;border:1px solid #dbe4f5;border-radius:10px;padding:9px 13px;margin-bottom:14px;display:inline-flex;align-items:center;gap:7px}
+.wsel-emoji{font-size:17px}
+.coldgrid{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
+.coldcard{display:flex;align-items:center;gap:13px;text-align:left;border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:13px 15px;cursor:pointer;font:inherit;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:.15s;width:100%}
+.coldcard:hover{border-color:#2563eb;transform:translateY(-1px)}
+.coldcard .cc-n{flex:none;width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+.coldcard .cc-t{flex:none;width:50px;font-weight:700;font-size:14px}
+.coldcard .cc-d{flex:1;font-size:12.5px;color:#6b7280;line-height:1.4}
+/* 놀리기 모드 칩 */
+.modechip{margin-top:2px;border:1px solid #e5e7eb;background:#fff;border-radius:20px;padding:7px 14px;font:inherit;font-size:12.5px;font-weight:600;color:#374151;cursor:pointer}
+.modechip.off{color:#6b7280}
+.modechip.on{background:#eff4ff;border-color:#2563eb;color:#2563eb}
 </style>
 <style>
 :root{
@@ -405,23 +433,25 @@ textarea:focus{border-color:var(--brand)}
   <h1>🎯 세일즈 거절 극복 훈련</h1>
   <p class="sub">고객 유형과 냉담도를 정하면 AI가 그 고객이 되어 거절합니다. 대화를 이어가며 설득하세요. 코칭은 '💬 코칭 보기'로 원할 때 펼쳐보고, 세션 종료 시 종합 리포트를 확인하세요. <span id="brandTag"></span></p>
 
+  <button id="dashToggle" class="dashToggle" onclick="toggleDash()">📊 내 훈련 기록 보기 ▾</button>
   <div id="dash" class="dash">
     <div id="stats" class="stats on"></div>
   </div>
 
-  <div id="startHead" class="picker-head">
-    <div class="ph-t">🎯 고객을 골라 대화 훈련을 시작하세요</div>
-    <div class="ph-s">실전처럼 대화하며 거절 극복·소개 요청을 연습합니다. 냉담도를 정하고 아래 고객을 선택하세요.</div>
-  </div>
+  <div id="resumeBar" class="resumebar"></div>
 
-  <div id="ctrl" class="ctrl">
-    <div class="ttl">🌡️ 고객 냉담도 <span style="color:var(--muted);font-weight:400;font-size:12px">— 높을수록 거절이 완강하고 설득이 어렵습니다</span></div>
-    <div class="slval" id="coldVal"></div>
-    <input type="range" id="cold" class="cold-range" min="1" max="5" step="1" value="3">
-    <div class="ticks"><span>1 순함</span><span>2</span><span>3 보통</span><span>4</span><span>5 철벽</span></div>
+  <div id="wizard">
+    <div id="step1" class="wstep">
+      <div class="wstep-h"><span class="wnum">1</span> 어떤 고객을 상대해볼까요?</div>
+      <div id="picker" class="grid"></div>
+    </div>
+    <div id="step2" class="wstep" style="display:none">
+      <div class="wstep-h"><button class="wback" onclick="wizBack()">← 뒤로</button><span class="wnum">2</span> 냉담도를 정하세요</div>
+      <div class="wsel" id="step2Persona"></div>
+      <div id="coldCards" class="coldgrid"></div>
+      <button id="teaseBtn" class="modechip" onclick="toggleTease()">😜 놀리기 모드: 켜짐</button>
+    </div>
   </div>
-
-  <div id="picker" class="grid"></div>
 
   <div id="stage" class="stage">
     <div class="topbar">
@@ -693,7 +723,7 @@ function renderDemoCoaching(){
 
 let state=null, coldness=3;
 const $=s=>document.querySelector(s);
-const picker=$("#picker"),stage=$("#stage"),log=$("#log"),inp=$("#inp"),ctrl=$("#ctrl"),statsEl=$("#stats"),dashEl=$("#dash");
+const picker=$("#picker"),stage=$("#stage"),log=$("#log"),inp=$("#inp"),wizardEl=$("#wizard"),statsEl=$("#stats"),dashEl=$("#dash");
 
 /* ---------- storage ---------- */
 function loadStore(){try{return JSON.parse(localStorage.getItem(STORE))||{}}catch(e){return{}}}
@@ -789,23 +819,107 @@ function renderPicker(){
     d.innerHTML=`<span class="diff d${p.diff}">${["","쉬움","보통","어려움"][p.diff]}</span>
       <div class="emoji">${p.emoji}</div><h3>${p.name}</h3>
       <span class="tag">${p.tag}</span><p>${p.desc}</p>${rec}`;
-    d.onclick=()=>tryStart(p);
+    d.onclick=()=>selectPersona(p);
     picker.appendChild(d);
   });
-  ctrl.classList.add("on");
 }
 
-/* ---------- coldness slider ---------- */
-const coldSl=$("#cold");
-function syncCold(){coldness=+coldSl.value;const c=COLD[coldness];$("#coldVal").innerHTML=`${c.t}<small>${c.d}</small>`;}
-coldSl.addEventListener("input",syncCold);
+/* ---------- 대시보드 토글 (접기/펼치기) ---------- */
+function updateDashToggle(){
+  var b=document.getElementById('dashToggle'); if(!b) return;
+  var open=dashEl.classList.contains('on');
+  var db=loadStore(), g=db.global, sm='';
+  if(g&&g.sessions){ var avg=g.answers?Math.round(g.totalScore/g.answers):0; sm=' · 평균 '+avg+'점'; }
+  b.innerHTML='📊 내 훈련 기록'+sm+' '+(open?'닫기 ▲':'보기 ▾');
+}
+function toggleDash(){
+  var open=!dashEl.classList.contains('on');
+  dashEl.classList.toggle('on',open);
+  if(open){ statsEl.classList.add('on'); renderStats(); }
+  updateDashToggle();
+}
+
+/* ---------- 단계형 시작 위저드 ---------- */
+var wizPersona=null;
+function wizReset(){ wizPersona=null; var s1=document.getElementById('step1'), s2=document.getElementById('step2'); if(s1)s1.style.display=''; if(s2)s2.style.display='none'; }
+function wizBack(){ wizReset(); }
+function selectPersona(p){
+  wizPersona=p;
+  var s1=document.getElementById('step1'), s2=document.getElementById('step2');
+  if(s1)s1.style.display='none'; if(s2)s2.style.display='';
+  var sp=document.getElementById('step2Persona'); if(sp) sp.innerHTML='<span class="wsel-emoji">'+p.emoji+'</span> '+esc(p.name)+' 상대로 훈련';
+  renderColdCards(); updateTeaseBtn();
+}
+function renderColdCards(){
+  var el=document.getElementById('coldCards'); if(!el) return;
+  var html='';
+  for(var c=1;c<=5;c++){
+    var o=COLD[c], label=(o.t.split('·')[1]||o.t).trim();
+    var bg=c<=2?'#e8f7ee':(c===3?'#fef4e6':'#fdeaea'), tx=c<=2?'#15803d':(c===3?'#b45309':'#b91c1c');
+    html+='<button class="coldcard" onclick="chooseCold('+c+')"><span class="cc-n" style="background:'+bg+';color:'+tx+'">'+c+'</span><span class="cc-t">'+esc(label)+'</span><span class="cc-d">'+esc(o.d)+'</span></button>';
+  }
+  el.innerHTML=html;
+}
+function chooseCold(c){ coldness=c; if(wizPersona) tryStart(wizPersona); }  // 미터링 후 startChat
+
+/* ---------- 놀리기 모드 ---------- */
+let teasePref=true;
+try{ var _tv=localStorage.getItem('vida_tease_mode'); if(_tv!=null) teasePref=(_tv==='1'); }catch(e){}
+function updateTeaseBtn(){ var b=$("#teaseBtn"); if(!b)return; b.textContent='😜 놀리기 모드: '+(teasePref?'켜짐':'꺼짐'); b.classList.toggle('on',teasePref); b.classList.toggle('off',!teasePref); }
+function toggleTease(){ teasePref=!teasePref; try{localStorage.setItem('vida_tease_mode',teasePref?'1':'0');}catch(e){} if(state)state.tease=teasePref; updateTeaseBtn(); }
+
+/* ---------- 진행 중 세션 로컬 저장 (이어서 하기) ---------- */
+var SNAP='sales_training_active_session';
+function saveSnapshot(){
+  if(!state) return;
+  try{ localStorage.setItem(SNAP, JSON.stringify({
+    personaId:state.persona.id, cold:state.cold, passLine:state.passLine,
+    messages:state.messages, scores:state.scores, improves:state.improves,
+    axisSum:state.axisSum, axisCount:state.axisCount, turnEvals:state.turnEvals,
+    best:state.best, turns:state.turns, moodW:state.moodW, tease:state.tease, voiceOn:state.voiceOn, ts:Date.now()
+  })); }catch(e){}
+}
+function loadSnapshot(){ try{ return JSON.parse(localStorage.getItem(SNAP)); }catch(e){ return null; } }
+function clearSnapshot(){ try{ localStorage.removeItem(SNAP); }catch(e){} }
+function discardSnapshot(){ clearSnapshot(); renderResume(); }
+function setMoodByW(w){ var key='cold'; Object.keys(MOODS).forEach(function(k){ if(MOODS[k].w===w) key=k; }); setMood(key); }
+window.addEventListener('pagehide', function(){ if(state && !state.closed && state.scores && state.scores.length) saveSnapshot(); });
+function renderResume(){
+  var bar=document.getElementById('resumeBar'); if(!bar) return;
+  var snap=loadSnapshot();
+  if(!snap || !(snap.turns>0)){ bar.style.display='none'; bar.innerHTML=''; return; }
+  var p=null; for(var i=0;i<PERSONAS.length;i++){ if(PERSONAS[i].id===snap.personaId){p=PERSONAS[i];break;} }
+  var name=p?p.name:'훈련';
+  bar.style.display='block';
+  bar.innerHTML='<div class="resume"><div class="rz-t">⏸ 진행 중이던 훈련이 있어요</div><div class="rz-s">'+(p?p.emoji+' ':'')+esc(name)+' · '+snap.turns+'턴 진행</div><div class="rz-btns"><button class="rz-go" onclick="resumeSession()">이어서 하기</button><button class="rz-new" onclick="discardSnapshot()">새로 시작</button></div></div>';
+}
+function resumeSession(){
+  var snap=loadSnapshot(); if(!snap){ renderResume(); return; }
+  var p=null; for(var i=0;i<PERSONAS.length;i++){ if(PERSONAS[i].id===snap.personaId){p=PERSONAS[i];break;} }
+  if(!p){ clearSnapshot(); renderResume(); return; }
+  state={persona:p, messages:snap.messages||[], turns:snap.turns||0, best:snap.best||0, scores:snap.scores||[], improves:snap.improves||[], axisSum:snap.axisSum||{}, axisCount:snap.axisCount||0, turnEvals:snap.turnEvals||[], moodW:snap.moodW||18, won:false, closed:false, committed:false, cold:snap.cold, passLine:snap.passLine, voiceOn:(snap.voiceOn!=null?snap.voiceOn:voicePref), tease:(snap.tease!=null?snap.tease:teasePref)};
+  var bar=document.getElementById('resumeBar'); if(bar) bar.style.display='none';
+  wizardEl.style.display="none"; dashEl.classList.remove("on"); var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='none';
+  stage.classList.add("on"); $("#inbar").style.display="flex"; $("#report").classList.remove("on");
+  $("#tAv").textContent=p.emoji; $("#tWho").textContent=p.name; $("#tSt").textContent='냉담도 '+COLD[state.cold].t+' · 이어서 진행';
+  updateVoiceBtn(); setMoodByW(state.moodW); log.innerHTML="";
+  var turnIdx=0;
+  (state.messages||[]).forEach(function(m,idx){
+    if(idx===0){ addBubble("cust",p.emoji,m.text); return; }
+    if(m.role==='fc'){ addBubble("fc","🧑‍💼",m.text); }
+    else { addBubble("cust",p.emoji,m.text); var row=document.createElement("div"); row.className="peekrow"; row.innerHTML='<button class="peek" onclick="togglePeek('+turnIdx+',this)">💬 코칭 보기</button>'; log.appendChild(row); turnIdx++; }
+  });
+  log.scrollTop=log.scrollHeight;
+  inp.disabled=false;$("#send").disabled=false;inp.focus();
+}
 
 /* ---------- chat ---------- */
 function passLineFor(p,cold){return Math.max(50,Math.min(90,[0,60,68,75][p.diff]+(cold-3)*3));}
 function startChat(p){
+  clearSnapshot(); var _rb=document.getElementById('resumeBar'); if(_rb)_rb.style.display='none';
   const pass=passLineFor(p,coldness);
-  state={persona:p,messages:[],turns:0,best:0,scores:[],improves:[],axisSum:{},axisCount:0,turnEvals:[],moodW:18,won:false,closed:false,committed:false,cold:coldness,passLine:pass,voiceOn:voicePref};
-  picker.style.display="none"; ctrl.classList.remove("on"); dashEl.classList.remove("on"); var _sh=document.getElementById('startHead'); if(_sh)_sh.style.display='none';
+  state={persona:p,messages:[],turns:0,best:0,scores:[],improves:[],axisSum:{},axisCount:0,turnEvals:[],moodW:18,won:false,closed:false,committed:false,cold:coldness,passLine:pass,voiceOn:voicePref,tease:teasePref};
+  wizardEl.style.display="none"; dashEl.classList.remove("on"); var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='none';
   stage.classList.add("on"); $("#inbar").style.display="flex"; $("#report").classList.remove("on");
   $("#tAv").textContent=p.emoji; $("#tWho").textContent=p.name;
   $("#tSt").textContent=`냉담도 ${COLD[coldness].t} · 합격선 평균 ${pass}점`;
@@ -813,7 +927,14 @@ function startChat(p){
   addBubble("cust",p.emoji,p.opener); state.messages.push({role:"cust",text:p.opener}); speak(p.opener);
   inp.disabled=false;$("#send").disabled=false;inp.focus();
 }
-function reset(){ persistSession(); stopSpeak(); stopRecog(); stage.classList.remove("on"); picker.style.display="grid"; var _sh=document.getElementById('startHead'); if(_sh)_sh.style.display=''; dashEl.classList.add("on"); showTab('me'); renderPicker(); renderStats(); loadCloudStats(); state=null; }
+function reset(){
+  if(state && !state.closed && state.scores && state.scores.length){ saveSnapshot(); }  // 진행 중 → 이어서 하기용 저장(커밋 안 함)
+  else { persistSession(); clearSnapshot(); }                                            // 완료/빈 세션 → 커밋(대개 no-op) 후 정리
+  stopSpeak(); stopRecog();
+  stage.classList.remove("on"); wizardEl.style.display=""; wizReset();
+  var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='block';
+  dashEl.classList.remove("on"); renderResume(); renderPicker(); renderStats(); updateDashToggle(); state=null;
+}
 function setMood(m){const i=MOODS[m]||MOODS.cold;$("#moodTxt").textContent=i.t;$("#moodFill").style.width=i.w+"%";}
 function addBubble(role,emoji,text){
   const r=document.createElement("div"); r.className="row "+role;
@@ -832,10 +953,15 @@ function buildEvalEl(ev){
     ${axesHtml}`;
   return el;
 }
+const CHIP_UP=['🔺 오, 좀 통하는데요?','🔺 어라, 마음이 살짝 흔들려요','🔺 이번 건 인정 — 설득력 상승','🔥 오~ 이제 좀 하시네요'];
+const CHIP_SAME=['⏸ 흠, 아직은 그대로예요','⏸ 그걸로는 좀 부족한데요','⏸ 음… 아직 안 넘어가요'];
+const CHIP_DOWN=['🔻 에이~ 그걸로는 어림없죠 ㅎㅎ','🔻 오히려 경계심만 올라갔어요','🔻 방금 건 살짝 역효과였어요'];
+const PLAIN_UP='🔺 설득력이 올라가고 있어요', PLAIN_SAME='⏸ 아직 마음이 그대로예요', PLAIN_DOWN='🔻 고객 경계가 다시 올라갔어요';
 function persuasionChip(prevW,newW){
-  if(newW>prevW) return '<span class="persist up">🔺 설득력이 올라가고 있어요</span>';
-  if(newW<prevW) return '<span class="persist down">🔻 고객 경계가 다시 올라갔어요</span>';
-  return '<span class="persist">⏸ 아직 마음이 그대로예요</span>';
+  const t=state?state.tease:teasePref, pick=a=>a[Math.floor(Math.random()*a.length)];
+  if(newW>prevW) return '<span class="persist up">'+(t?pick(CHIP_UP):PLAIN_UP)+'</span>';
+  if(newW<prevW) return '<span class="persist down">'+(t?pick(CHIP_DOWN):PLAIN_DOWN)+'</span>';
+  return '<span class="persist">'+(t?pick(CHIP_SAME):PLAIN_SAME)+'</span>';
 }
 function addTurnFooter(prevW,newW,i){
   const row=document.createElement("div"); row.className="peekrow";
@@ -860,6 +986,7 @@ async function send(){
   inp.disabled=true;$("#send").disabled=true;typing(true);
   const p=state.persona, c=COLD[state.cold];
   const convo=state.messages.map(m=>`${m.role==='fc'?'영업사원':'고객'}: ${m.text}`).join("\n");
+  const teaseRule=state.tease?`\n- 재미와 동기부여를 위해 살짝 장난스럽고 유쾌한 톤을 섞습니다. 답변이 약하면 부드럽게 놀리듯 도발해("에이~ 그 정도로는 안 넘어가죠 ㅎㅎ", "오, 이번엔 진짜 대충인데요?") 재도전 승부욕을 자극하고, 답변이 좋으면 능청스럽게 인정합니다("오, 이번 건 좀 통하네요"). 단 무례·인신공격은 금지하고, 페르소나 성격과 냉담도는 끝까지 유지합니다.`:``;
   const prompt=
 `당신은 보험 영업사원(FC) 교육용 롤플레이 AI입니다. 두 역할을 동시에 수행합니다.
 
@@ -872,7 +999,7 @@ ${c.d}
 설득 반응: ${c.s}
 
 [규칙]
-- 위 고객이 되어 실제처럼 자연스러운 한국어 구어체로 반응합니다.
+- 위 고객이 되어 실제처럼 자연스러운 한국어 구어체로 반응합니다.${teaseRule}
 - 영업사원의 마지막 답변이 설득력 있으면 냉담도 규칙에 맞게 누그러지고, 약하면 계속 거절/의심합니다. 특성과 냉담도를 끝까지 유지하세요.
 - 동시에 영업사원의 마지막 답변을 코치로서 평가합니다. 냉담도가 높을수록 점수 기준을 엄격히 적용하세요.
 - 고객이 마음을 열어 이 상황의 목표(가입 검토·다음 미팅 약속, 또는 지인 소개 승낙 등)에 긍정적으로 응할 때만 closed를 true로 합니다.
@@ -912,6 +1039,7 @@ ${convo}
   const prevW=state.moodW||18; const nm=data.mood||"cold"; setMood(nm); const newW=(MOODS[nm]||MOODS.cold).w; state.moodW=newW;
   state.messages.push({role:"cust",text:data.customer||"…"}); addBubble("cust",p.emoji,data.customer||"…"); speak(data.customer||"");
   addTurnFooter(prevW,newW,state.turnEvals.length-1);
+  saveSnapshot();
   if(data.closed){finish(true);return;}
   inp.disabled=false;$("#send").disabled=false;inp.focus();
 }
@@ -930,6 +1058,7 @@ function persistSession(){
   recordSession({personaId:state.persona.id,scores:sc,best:state.best,won:passed,axisAvg:axisAvg});
   saveCloud({personaId:state.persona.id,cold:state.cold,passLine:state.passLine,turns:state.turns,avg:avg,best:state.best,trend:trend,passed:passed,grade:gr.g,axisAvg:axisAvg});
   saveSessionToDB({persona:state.persona.id,cold:state.cold,turns:state.turns,avg:avg,best:state.best,trend:trend,passed:passed,grade:gr.g,axisAvg:axisAvg});
+  clearSnapshot();
   state.committed=true;
 }
 function finish(won){
@@ -1178,7 +1307,12 @@ const CANCEL_ENDPOINT="/.netlify/functions/cancel-subscription"; // 구독 해�
 
 let sb=null, AUTH_USER=null, gMode="login";
 function gq(id){return document.getElementById(id);}
-function bootApp(){ syncCold(); dashEl.classList.add("on"); renderStats(); renderPicker(); }
+function bootApp(){
+  wizReset(); updateTeaseBtn();
+  var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='block';
+  dashEl.classList.remove("on");
+  renderResume(); renderStats(); renderPicker(); updateDashToggle();
+}
 
 function setGateMode(m){
   gMode=m;
