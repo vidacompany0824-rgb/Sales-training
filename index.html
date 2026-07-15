@@ -142,6 +142,19 @@
 .ms-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}
 .ms-m{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:13px;padding:12px 8px;text-align:center}
 .ms-m .mv{font-size:22px;font-weight:800;line-height:1.15}
+.ms-m .mu{font-size:13px;font-weight:700;margin-left:1px}
+/* 홈 액션 버튼 · 랭킹 필터 */
+.home-actions{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:18px}
+.ha-btn{border:none;border-radius:14px;padding:17px 12px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06);transition:.15s}
+.ha-rank{background:#fff;border:1px solid #e7e9df;color:#2f5a0e}
+.ha-rank:hover{border-color:#7cae3b}
+.ha-start{background:linear-gradient(135deg,#3B6D11,#5a9420);color:#fff}
+.ha-start:active{transform:translateY(1px)}
+.back-btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 13px;font:inherit;font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:12px}
+.rankfilter{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 0 13px;font-size:12px;color:var(--muted)}
+.rfchip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:4px 12px;font:inherit;font-size:12px;cursor:pointer;color:#374151;min-width:34px}
+.rfchip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.resume .rz-home{display:block;margin:12px auto 0;border:none;background:none;color:var(--muted);font:inherit;font-size:12.5px;cursor:pointer}
 .ms-m .ml{font-size:11px;color:#dce9c8;margin-top:5px}
 .ms-m .msub{font-size:10.5px;color:#c8e0a8;margin-top:2px}
 .ms-card{background:#fff;border:1px solid #e7e9df;border-radius:16px;padding:16px 17px;margin-top:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
@@ -433,6 +446,8 @@ textarea:focus{border-color:var(--brand)}
   /* 콘텐츠가 고정 상단바 아래에서 시작하도록 여백 확보 */
   .wrap{padding:calc(50px + env(safe-area-inset-top)) 11px calc(28px + env(safe-area-inset-bottom))}
   h1{font-size:18px}
+  .ha-btn{font-size:14px;padding:15px 8px}
+  .home-actions{gap:9px}
   .sub{font-size:12.5px;margin-bottom:14px}
   .dash{margin-bottom:14px}
   .stats,.ranking{padding:17px 15px}
@@ -652,16 +667,29 @@ textarea:focus{border-color:var(--brand)}
   <p class="sub">고객 유형과 거절 강도를 정하면 AI가 그 고객이 되어 거절합니다. 대화를 이어가며 설득하세요. 코칭은 '💬 코칭 보기'로 원할 때 펼쳐보고, 세션 종료 시 종합 리포트를 확인하세요. <span id="brandTag"></span></p>
 
   <section id="myspace" class="myspace" style="display:none"></section>
-  <button id="dashToggle" class="dashToggle" onclick="toggleDash()">📊 내 훈련 기록 보기 ▾</button>
+
+  <div id="homeActions" class="home-actions" style="display:none">
+    <button class="ha-btn ha-rank" type="button" onclick="openRanking()">🏆 랭킹 보기</button>
+    <button class="ha-btn ha-start" type="button" onclick="startFlow()">▶ 훈련 시작</button>
+  </div>
+
+  <div id="rankView" style="display:none">
+    <button class="back-btn" type="button" onclick="closeRanking()">← 돌아가기</button>
+    <div id="ranking" class="ranking on"></div>
+  </div>
+
+  <div id="resumeChoice" style="display:none"></div>
+
+  <button id="dashToggle" class="dashToggle" onclick="toggleDash()" style="display:none">📊 내 훈련 기록 보기 ▾</button>
   <div id="dash" class="dash">
     <div id="stats" class="stats on"></div>
   </div>
 
   <div id="resumeBar" class="resumebar"></div>
 
-  <div id="wizard">
+  <div id="wizard" style="display:none">
     <div id="step1" class="wstep">
-      <div class="wstep-h"><span class="wnum">1</span> 어떤 고객을 상대해볼까요?</div>
+      <div class="wstep-h"><button class="wback" onclick="showHome()">← 홈</button><span class="wnum">1</span> 어떤 고객을 상대해볼까요?</div>
       <div id="picker" class="grid"></div>
     </div>
     <div id="step2" class="wstep" style="display:none">
@@ -1116,13 +1144,13 @@ function renderResume(){
   bar.innerHTML='<div class="resume"><div class="rz-t">⏸ 진행 중이던 훈련이 있어요</div><div class="rz-s">'+(p?p.emoji+' ':'')+esc(name)+' · '+snap.turns+'턴 진행</div><div class="rz-btns"><button class="rz-go" onclick="resumeSession()">이어서 하기</button><button class="rz-new" onclick="discardSnapshot()">새로 시작</button></div></div>';
 }
 function resumeSession(){
-  var snap=loadSnapshot(); if(!snap){ renderResume(); return; }
+  var snap=loadSnapshot(); if(!snap){ showHome(); return; }
   var p=null; for(var i=0;i<PERSONAS.length;i++){ if(PERSONAS[i].id===snap.personaId){p=PERSONAS[i];break;} }
-  if(!p){ clearSnapshot(); renderResume(); return; }
+  if(!p){ clearSnapshot(); showHome(); return; }
   state={persona:p, messages:snap.messages||[], turns:snap.turns||0, best:snap.best||0, scores:snap.scores||[], improves:snap.improves||[], axisSum:snap.axisSum||{}, axisCount:snap.axisCount||0, turnEvals:snap.turnEvals||[], moodW:snap.moodW||18, won:false, closed:false, committed:false, cold:snap.cold, passLine:snap.passLine, voiceOn:(snap.voiceOn!=null?snap.voiceOn:voicePref), tease:(snap.tease!=null?snap.tease:teasePref)};
-  var bar=document.getElementById('resumeBar'); if(bar) bar.style.display='none';
-  wizardEl.style.display="none"; dashEl.classList.remove("on"); var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='none';
+  listHideAll();
   stage.classList.add("on"); $("#inbar").style.display="flex"; $("#report").classList.remove("on");
+  if(typeof trackStage==='function') trackStage('chat');
   $("#tAv").textContent=p.emoji; $("#tWho").textContent=p.name; $("#tSt").textContent='거절 강도 '+COLD[state.cold].t+' · 이어서 진행';
   updateVoiceBtn(); setMoodByW(state.moodW); log.innerHTML="";
   var turnIdx=0;
@@ -1154,9 +1182,10 @@ function reset(){
   if(state && !state.closed && state.scores && state.scores.length){ saveSnapshot(); }  // 진행 중 → 이어서 하기용 저장(커밋 안 함)
   else { persistSession(); clearSnapshot(); }                                            // 완료/빈 세션 → 커밋(대개 no-op) 후 정리
   stopSpeak(); stopRecog();
-  stage.classList.remove("on"); wizardEl.style.display=""; wizReset();
-  var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='block';
-  dashEl.classList.remove("on"); renderResume(); renderPicker(); renderStats(); updateDashToggle(); renderMySpace(); if(typeof trackStage==='function') trackStage('persona_select'); state=null;
+  stage.classList.remove("on"); wizReset();
+  renderPicker(); renderStats(); updateDashToggle();
+  showHome();
+  state=null;
 }
 function setMood(m){const i=MOODS[m]||MOODS.cold;$("#moodTxt").textContent=i.t;$("#moodFill").style.width=i.w+"%";}
 function addBubble(role,emoji,text){
@@ -1610,11 +1639,11 @@ async function renderMySpace(){
   // 지표 카드
   var growthHtml=(growth==null)
     ? '<div class="mv" style="font-size:16px">–</div><div class="ml">성장률</div><div class="msub">기록 쌓는 중</div>'
-    : '<div class="mv">'+(growth>0?'▲ ':(growth<0?'▼ ':''))+Math.abs(growth)+'</div><div class="ml">성장률(점)</div><div class="msub">최근 vs 직전</div>';
+    : '<div class="mv">'+(growth>0?'▲':(growth<0?'▼':''))+Math.abs(growth)+'<span class="mu">점</span></div><div class="ml">성장률</div><div class="msub">최근 vs 직전</div>';
   var metrics='<div class="ms-metrics">'+
-      '<div class="ms-m"><div class="mv">'+(total?avgAll:'–')+(total?' <span style="font-size:13px;font-weight:800">'+gr.g+'</span>':'')+'</div><div class="ml">숙련도(평균)</div><div class="msub">누적 '+total+'회</div></div>'+
+      '<div class="ms-m"><div class="mv">'+(total?avgAll+'<span class="mu">점</span>':'–')+'</div><div class="ml">숙련도</div><div class="msub">'+(total?gr.g+'등급 · 누적 '+total+'회':'기록 없음')+'</div></div>'+
       '<div class="ms-m">'+growthHtml+'</div>'+
-      '<div class="ms-m"><div class="mv">'+weekCount+'</div><div class="ml">이번 주 훈련</div><div class="msub">활동 '+activeDays+'일</div></div>'+
+      '<div class="ms-m"><div class="mv">'+weekCount+'<span class="mu">회</span></div><div class="ml">이번 주 훈련</div><div class="msub">활동 '+activeDays+'일</div></div>'+
     '</div>';
 
   // 목표 카드
@@ -1663,10 +1692,53 @@ async function renderMySpace(){
 
 function bootApp(){
   wizReset(); updateTeaseBtn();
-  var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='block';
-  dashEl.classList.remove("on");
-  renderResume(); renderStats(); renderPicker(); updateDashToggle(); renderMySpace();
-  if(typeof trackStage==='function') trackStage('persona_select');
+  renderStats(); renderPicker(); updateDashToggle();
+  showHome();
+}
+/* ---------- 화면 전환(홈 · 랭킹 · 훈련 시작 플로우) ---------- */
+function listHideAll(){ ['myspace','homeActions','rankView','resumeChoice','wizard','resumeBar','dash'].forEach(function(id){ var e=document.getElementById(id); if(e)e.style.display='none'; }); if(dashEl) dashEl.classList.remove('on'); }
+function showHome(){ listHideAll(); var ms=gq('myspace'); if(ms)ms.style.display=''; renderMySpace(); var ha=gq('homeActions'); if(ha)ha.style.display='grid'; if(typeof trackStage==='function') trackStage('home'); }
+function openRanking(){ listHideAll(); var rv=gq('rankView'); if(rv)rv.style.display='block'; renderRanking(); if(typeof trackStage==='function') trackStage('ranking'); }
+function closeRanking(){ showHome(); }
+function gotoPersona(){ listHideAll(); var w=gq('wizard'); if(w)w.style.display='block'; wizReset(); renderPicker(); if(typeof trackStage==='function') trackStage('persona_select'); }
+function startFresh(){ clearSnapshot(); gotoPersona(); }
+function startFlow(){
+  var snap=loadSnapshot();
+  if(snap && snap.turns>0){
+    listHideAll();
+    var rc=gq('resumeChoice'); if(!rc){ gotoPersona(); return; }
+    var p=null; for(var i=0;i<PERSONAS.length;i++){ if(PERSONAS[i].id===snap.personaId){p=PERSONAS[i];break;} }
+    rc.style.display='block';
+    rc.innerHTML='<div class="resume"><div class="rz-t">⏸ 진행 중이던 훈련이 있어요</div><div class="rz-s">'+(p?p.emoji+' '+esc(p.name):'훈련')+' · '+snap.turns+'턴 진행</div><div class="rz-btns"><button class="rz-go" onclick="resumeSession()">이어서 하기</button><button class="rz-new" onclick="startFresh()">새로 시작</button></div><button class="rz-home" onclick="showHome()">← 홈으로</button></div>';
+  } else { gotoPersona(); }
+}
+
+/* ---------- 랭킹(내 계정 데이터 기반 · 고객별 공략) ---------- */
+var rankCold=0;
+function rankFilterHtml(){
+  return '<div class="rankfilter"><span>거절 강도</span>'+[0,1,2,3,4,5].map(function(c){return '<button class="rfchip'+(c===rankCold?' on':'')+'" onclick="renderRanking('+c+')">'+(c===0?'전체':c)+'</button>';}).join("")+'</div>';
+}
+async function renderRanking(cold){
+  if(cold!==undefined) rankCold=cold;
+  var el=gq("ranking"); if(!el) return;
+  var head='<div class="stats-head"><div class="ttl">🏆 내 고객별 공략 랭킹</div><button class="clr" onclick="renderRanking()">새로고침</button></div>'+rankFilterHtml();
+  el.innerHTML=head+'<div class="rank-load">불러오는 중…</div>';
+  if(!sb || !AUTH_USER){ el.innerHTML=head+'<div class="rank-load">로그인 후 이용할 수 있어요.</div>'; return; }
+  var rows=[];
+  try{
+    var q=await sb.from('training_sessions').select('persona,cold,avg_score,best_score,passed').eq('user_id',AUTH_USER.id).limit(1000);
+    rows=q.data||[];
+  }catch(e){ rows=[]; }
+  if(rankCold) rows=rows.filter(function(r){ return (+r.cold)===rankCold; });
+  if(!rows.length){ el.innerHTML=head+'<div class="rank-load">'+(rankCold?'거절 강도 '+rankCold+'단계 훈련 기록이 아직 없어요.':'아직 훈련 기록이 없어요. 훈련을 시작해보세요.')+'</div>'; return; }
+  var map={};
+  rows.forEach(function(r){ var k=r.persona||'기타'; var m=map[k]||(map[k]={persona:k,n:0,sum:0,best:0,pass:0,coldSum:0}); m.n++; m.sum+=(+r.avg_score||0); m.best=Math.max(m.best,+r.best_score||0); if(r.passed)m.pass++; m.coldSum+=(+r.cold||0); });
+  var list=Object.keys(map).map(function(k){ var m=map[k]; return {persona:m.persona,n:m.n,avg:Math.round(m.sum/m.n),best:m.best,pass:Math.round(m.pass/m.n*100),avgCold:(m.coldSum/m.n).toFixed(1)}; });
+  list.sort(function(a,b){ return b.avg-a.avg || b.best-a.best; });
+  var body=list.map(function(f,i){ var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+    return '<tr class="rrow"><td class="rk">'+medal+'</td><td class="rf">'+esc(f.persona)+'</td><td>'+f.n+'</td><td>'+f.avgCold+'</td><td class="rv">'+f.avg+'<span class="rvb"> / '+f.best+'</span></td><td>'+f.pass+'%</td></tr>';
+  }).join("");
+  el.innerHTML=head+'<div class="rank-wrap"><table class="rank"><thead><tr><th>순위</th><th>고객</th><th>세션</th><th>거절강도</th><th>평균 / 최고</th><th>합격률</th></tr></thead><tbody>'+body+'</tbody></table></div><div class="rank-note">'+(rankCold?'거절 강도 '+rankCold+'단계만 · ':'')+'평균 점수 기준 정렬 · 내 계정 누적 기록</div>';
 }
 
 function setGateMode(m){
