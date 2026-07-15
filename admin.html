@@ -2,1612 +2,193 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>세일즈 거절 극복 훈련</title>
-<!-- Supabase 인증 SDK (v2) -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>마스터 어드민 · 세일즈 훈련</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- 포트원 결제 SDK (V2) -->
-<script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
-<!-- PWA (홈 화면에 추가하면 앱처럼 실행) -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2563eb">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="세일즈훈련">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
-/* ===== 로그인 게이트 (Supabase 인증) ===== */
-#gate{position:fixed;inset:0;z-index:9000;background:linear-gradient(160deg,#0f2447,#1d4ed8 60%,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px}
+:root{--ink:#111827;--sub:#6b7280;--line:#e5e7eb;--bg:#f4f6f9;--card:#fff;--brand:#2563eb;--good:#16a34a;--amber:#d97706;--pur:#7c3aed}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 18px 60px}
+h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.top .sp{margin-left:auto;display:flex;gap:8px;align-items:center}
+.muted{color:var(--sub);font-size:13px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 13px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+.btn.p{background:var(--brand);color:#fff;border:none;font-weight:700}
+/* login */
+#gate{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,#0f172a,#1d4ed8);display:flex;align-items:center;justify-content:center;padding:20px}
 #gate.hide{display:none}
-.gate-card{background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.32);width:100%;max-width:400px;padding:28px 26px}
-.gate-card h2{font-size:21px;font-weight:800;color:#161b26;margin-bottom:4px;text-align:center}
-.gate-card .gsub{font-size:13px;color:#5b6472;text-align:center;margin-bottom:20px}
-.gtabs{display:flex;background:#eef2f7;border-radius:10px;padding:4px;margin-bottom:18px}
-.gtab{flex:1;border:none;background:transparent;border-radius:8px;padding:9px;font:inherit;font-size:14px;font-weight:700;color:#5b6472;cursor:pointer}
-.gtab.on{background:#fff;color:#1d4ed8;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.gfield{margin-bottom:13px}
-.gfield label{display:block;font-size:12.5px;font-weight:700;color:#334155;margin-bottom:5px}
-.gfield input{width:100%;border:1px solid #d5dbe6;border-radius:10px;padding:12px 13px;font:inherit;font-size:15px;outline:none}
-.gfield input:focus{border-color:#2563eb}
-.gbtn{width:100%;border:none;background:#2563eb;color:#fff;border-radius:11px;padding:13px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px}
-.gbtn:disabled{opacity:.55;cursor:default}
-.gmsg{font-size:13px;text-align:center;margin-top:13px;min-height:18px}
-.gmsg.err{color:#dc2626}.gmsg.ok{color:#16a34a}
-.gnote{font-size:11.5px;color:#94a3b8;text-align:center;margin-top:16px;line-height:1.5}
-#logoutBtn{position:fixed;top:10px;right:12px;z-index:60;background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#5b6472;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
-/* 사용량 표시 + 구독 유도 모달 */
-#useTag{position:fixed;top:10px;right:96px;z-index:60;background:#eff4ff;border:1px solid #cfe0fb;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;font-weight:700;color:#1d4ed8;display:none}
-#paywall{position:fixed;inset:0;z-index:9500;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px}
-#paywall.on{display:flex}
-.pw-card{background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.35);max-width:420px;width:100%;padding:30px 28px;text-align:center}
-.pw-card .pw-ic{font-size:40px}
-.pw-card h2{font-size:21px;font-weight:800;color:#161b26;margin:8px 0 6px}
-.pw-card p{font-size:14px;color:#5b6472;margin-bottom:6px}
-.pw-price{background:#eff4ff;border:1px solid #cfe0fb;border-radius:12px;padding:14px;margin:16px 0 8px}
-.pw-price .amt{font-size:24px;font-weight:800;color:#1d4ed8}
-.pw-price .amt small{font-size:13px;color:#5b6472;font-weight:600}
-.pw-btn{width:100%;border:none;background:#2563eb;color:#fff;border-radius:12px;padding:14px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
-.pw-close{background:none;border:none;color:#94a3b8;font:inherit;font-size:13px;cursor:pointer;margin-top:12px}
-/* 내 계정 대시보드 */
-#acctBtn{position:fixed;top:10px;right:96px;z-index:60;background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#1d4ed8;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
-#acct{position:fixed;inset:0;z-index:9400;background:rgba(15,23,42,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
-#acct.on{display:flex}
-.acct-card{background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.32);max-width:520px;width:100%;padding:24px 24px 26px}
-.acct-h{display:flex;align-items:center;margin-bottom:14px}
-.acct-h h2{font-size:19px;font-weight:800}
-.acct-h .x{margin-left:auto;border:none;background:#f1f3f6;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:15px;color:#6b7280}
-.acct-sec{border:1px solid #eef1f5;border-radius:12px;padding:14px 15px;margin-bottom:12px}
-.acct-sec h4{font-size:12.5px;font-weight:800;color:#1d4ed8;margin-bottom:9px;letter-spacing:.02em}
-.acct-row{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;color:#111827}
-.acct-row .l{color:#6b7280}
-.acct-badge{display:inline-block;font-size:11.5px;font-weight:800;border-radius:20px;padding:2px 10px}
-.acct-badge.on{background:#e8f7ee;color:#15803d}.acct-badge.off{background:#f1f3f6;color:#6b7280}
-.acct-hist{font-size:12.5px;color:#374151;max-height:170px;overflow-y:auto}
-.acct-hist .h{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6}
-.acct-cancel{width:100%;border:1px solid #f6c9c9;background:#fff;color:#b91c1c;border-radius:10px;padding:11px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;margin-top:6px}
-.acct-cancel:disabled{opacity:.5}
-/* 대시보드 토글 */
-.dashToggle{display:none;width:100%;text-align:left;border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:12px 15px;font:inherit;font-size:13.5px;font-weight:600;color:#374151;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:16px}
-.dashToggle:hover{border-color:#d1d5db}
-/* 이어서 하기 */
-.resumebar{display:none;margin-bottom:14px}
-.resume{background:linear-gradient(180deg,#fffdf5,#fff8e8);border:1px solid #f2e2b6;border-radius:14px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.resume .rz-t{font-weight:700;font-size:14.5px}
-.resume .rz-s{font-size:12.5px;color:#6b7280;margin-top:3px}
-.resume .rz-btns{display:flex;gap:8px;margin-top:11px}
-.resume .rz-go{border:none;background:#2563eb;color:#fff;border-radius:10px;padding:9px 16px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
-.resume .rz-new{border:1px solid #e5e7eb;background:#fff;border-radius:10px;padding:9px 14px;font:inherit;font-size:13.5px;color:#6b7280;cursor:pointer}
-/* 시작 위저드 */
-#wizard{margin-bottom:8px}
-.wstep-h{font-size:15px;font-weight:700;display:flex;align-items:center;gap:9px;margin:2px 2px 14px}
-.wstep-h .wnum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#2563eb;color:#fff;font-size:12px;font-weight:700;flex:none}
-.wback{border:1px solid #e5e7eb;background:#fff;border-radius:8px;padding:5px 10px;font:inherit;font-size:12.5px;color:#6b7280;cursor:pointer}
-.wsel{font-size:13.5px;font-weight:600;color:#1f2430;background:#eff4ff;border:1px solid #dbe4f5;border-radius:10px;padding:9px 13px;margin-bottom:14px;display:inline-flex;align-items:center;gap:7px}
-.wsel-emoji{font-size:17px}
-.coldgrid{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
-.coldcard{display:flex;align-items:center;gap:13px;text-align:left;border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:13px 15px;cursor:pointer;font:inherit;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:.15s;width:100%}
-.coldcard:hover{border-color:#2563eb;transform:translateY(-1px)}
-.coldcard .cc-n{flex:none;width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
-.coldcard .cc-t{flex:none;width:50px;font-weight:700;font-size:14px}
-.coldcard .cc-d{flex:1;font-size:12.5px;color:#6b7280;line-height:1.4}
-/* 놀리기 모드 칩 */
-.modechip{margin-top:2px;border:1px solid #e5e7eb;background:#fff;border-radius:20px;padding:7px 14px;font:inherit;font-size:12.5px;font-weight:600;color:#374151;cursor:pointer}
-.modechip.off{color:#6b7280}
-.modechip.on{background:#eff4ff;border-color:#2563eb;color:#2563eb}
-/* PWA 설치 배너 */
-#pwaBanner{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9700;background:#111827;color:#fff;border-radius:14px;padding:12px 14px;display:none;align-items:center;gap:11px;box-shadow:0 12px 34px rgba(0,0,0,.34)}
-#pwaBanner.on{display:flex}
-#pwaBanner .pi-ic{font-size:22px;flex:none}
-#pwaBanner .pi-t{flex:1;font-size:12.8px;line-height:1.4}
-#pwaBanner .pi-t b{font-weight:700}
-#pwaBanner .pi-go{flex:none;border:none;background:#2563eb;color:#fff;border-radius:9px;padding:8px 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
-#pwaBanner .pi-x{flex:none;border:none;background:transparent;color:#9ca3af;font-size:16px;cursor:pointer;padding:2px 4px}
-</style>
-<style>
-:root{
-  color-scheme: light;
-  --bg:#f5f6f8; --card:#ffffff; --line:#e5e7eb; --ink:#1f2430; --muted:#6b7280;
-  --brand:#2563eb; --brand-soft:#eff4ff; --cust:#f1f3f6;
-  --good:#16a34a; --warn:#d97706; --bad:#dc2626;
-  --shadow:0 1px 3px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.05);
-}
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Segoe UI",Roboto,sans-serif;
-  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
-.wrap{max-width:880px;margin:0 auto;padding:20px 16px 40px}
-h1{font-size:20px;margin:0 0 2px;font-weight:700;letter-spacing:-.01em}
-.sub{color:var(--muted);font-size:13px;margin:0 0 16px}
-
-/* control bar */
-.ctrl{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:16px;display:none}
-.ctrl.on{display:block}
-.ctrl .ttl{font-weight:600;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.slval{font-size:14px;font-weight:700;margin-bottom:8px}
-.slval small{font-weight:400;color:var(--muted);font-size:12px;margin-left:6px}
-.cold-range{display:block;width:100%;margin:0;accent-color:var(--brand);cursor:pointer}
-.ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px;padding:0}
-.ticks span{width:20%;text-align:center}
-.ticks span:first-child{text-align:left}
-.ticks span:last-child{text-align:right}
-
-/* cumulative */
-.stats{background:linear-gradient(180deg,#fff,#fbfcff);border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:var(--shadow);margin-bottom:18px;display:none}
-.stats.on{display:block}
-.stats-head{display:flex;align-items:center;margin-bottom:18px}
-.stats .ttl{font-weight:700;font-size:16px;display:flex;align-items:center;gap:9px;letter-spacing:-.01em}
-.clr{margin-left:auto;font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer}
-.clr:hover{color:#555;border-color:#d1d5db}
-.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 10px;text-align:center}
-.stat .n{font-size:26px;font-weight:800;line-height:1}
-.stat .l{font-size:11.5px;color:var(--muted);margin-top:7px}
-.pbars-h{font-size:12px;font-weight:600;color:var(--muted);margin:22px 0 12px;letter-spacing:.02em}
-.pbars{display:flex;flex-direction:column;gap:13px}
-.pbar{display:flex;align-items:center;gap:13px;font-size:13.5px}
-.pbar.empty{opacity:.42}
-.pbar .pn{width:118px;flex:none;color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pbar .track{flex:1;height:8px;background:#eef1f5;border-radius:20px;overflow:hidden}
-.pbar .fill{height:100%;border-radius:20px;transition:width .4s}
-.pbar .pv{width:48px;flex:none;text-align:right;font-weight:700}
-.pbar.empty .pv{font-weight:400;color:var(--muted)}
-/* 대시보드 탭 + FC 랭킹 */
-.dash{display:none;margin-bottom:18px}
-.dash.on{display:block}
-.dash-tabs{display:flex;gap:8px;margin-bottom:11px}
-.dtab{border:1px solid var(--line);background:#fff;border-radius:20px;padding:8px 16px;font:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:.12s}
-.dtab.on{background:var(--brand);color:#fff;border-color:var(--brand)}
-.stats{margin-bottom:0}
-.ranking{background:linear-gradient(180deg,#fff,#fbfcff);border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:var(--shadow);display:none}
-.ranking.on{display:block}
-.dash-empty,.rank-load{color:var(--muted);font-size:13px;padding:8px 2px}
-.dash-eval{display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
-.deval-grade{font-size:34px;font-weight:800;line-height:1;min-width:46px;text-align:center}
-.deval-line{font-size:14px;font-weight:600;line-height:1.4}
-.deval-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
-.deval-sub b{color:var(--ink);font-weight:700}
-.rank-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table.rank{width:100%;border-collapse:collapse;font-size:13px}
-table.rank th{background:#f8fafc;color:var(--muted);font-weight:600;font-size:11.5px;padding:9px 6px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
-table.rank td{padding:10px 6px;text-align:center;border-bottom:1px solid #f0f1f4;white-space:nowrap}
-table.rank td.rk{font-weight:700;width:46px}
-table.rank td.rf{text-align:left;font-weight:600}
-table.rank td.rf .rt{font-size:11px;color:var(--muted);font-weight:400;margin-left:4px}
-table.rank td.rv{font-weight:800;color:var(--brand)}
-tr.rrow.me td{background:#eff4ff}
-tr.rrow.me td.rf{color:var(--brand)}
-.rank-note{font-size:11.5px;color:var(--muted);margin-top:11px}
-.picker-head{margin:2px 2px 13px}
-.picker-head .ph-t{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;letter-spacing:-.01em}
-.picker-head .ph-s{font-size:12.5px;color:var(--muted);margin-top:4px}
-details.pbdetails{margin-top:16px}
-details.pbdetails>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);list-style:none;padding:5px 0;user-select:none}
-details.pbdetails>summary::-webkit-details-marker{display:none}
-details.pbdetails[open]>summary{margin-bottom:10px}
-.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(10px);background:#1f2430;color:#fff;font-size:13px;line-height:1.45;padding:11px 16px;border-radius:11px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:70;max-width:88%;width:max-content;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.28)}
-.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* persona picker */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px}
-.pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px;cursor:pointer;transition:.15s;box-shadow:var(--shadow);position:relative}
-.pcard:hover{border-color:var(--brand);transform:translateY(-2px)}
-.pcard .emoji{font-size:26px;line-height:1}
-.pcard h3{margin:8px 0 2px;font-size:15.5px}
-.pcard .tag{display:inline-block;font-size:11px;color:var(--muted);background:#f3f4f6;border-radius:6px;padding:2px 7px;margin-top:2px}
-.pcard p{margin:8px 0 4px;font-size:12.8px;color:var(--muted);line-height:1.45}
-.pcard .rec{font-size:11px;color:var(--brand);font-weight:600}
-.diff{position:absolute;top:12px;right:12px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
-.d1{background:#e8f7ee;color:#15803d}.d2{background:#fef4e6;color:#b45309}.d3{background:#fdeaea;color:#b91c1c}
-
-/* chat */
-.stage{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;display:none}
-.stage.on{display:block}
-.topbar{display:flex;align-items:center;gap:11px;padding:13px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fff,#fbfcfe)}
-.topbar .av{font-size:24px}
-.topbar .who{font-weight:700;font-size:15px}
-.topbar .st{font-size:12px;color:var(--muted)}
-.mood{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
-.moodbar{width:82px;height:7px;border-radius:20px;background:#eceff3;overflow:hidden}
-.moodfill{height:100%;width:20%;background:linear-gradient(90deg,#94a3b8,#22c55e);transition:width .5s}
-.endbtn{margin-left:8px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)}
-
-.log{padding:16px;height:44vh;min-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;background:#fbfcfd}
-.row{display:flex;gap:8px;max-width:82%}
-.row.fc{align-self:flex-end;flex-direction:row-reverse}
-.bub{padding:9px 13px;border-radius:14px;font-size:14px;white-space:pre-wrap;word-break:break-word}
-.row.cust .bub{background:var(--cust);border-top-left-radius:4px}
-.row.fc .bub{background:var(--brand);color:#fff;border-top-right-radius:4px}
-.mini{font-size:22px;flex:none;margin-top:2px}
-.eval{align-self:center;width:100%;background:#fff;border:1px solid var(--line);border-left:3px solid var(--brand);border-radius:10px;padding:11px 13px;font-size:13px}
-.eval .hd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.score{font-weight:800;font-size:15px;padding:1px 9px;border-radius:20px;color:#fff}
-.eval .lbl{font-weight:600;color:var(--muted);font-size:11.5px}
-.eval .line{margin:3px 0}
-.eval b.g{color:var(--good)}.eval b.i{color:var(--warn)}.eval b.t{color:var(--brand)}
-.axes{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--line)}
-.ax{display:flex;align-items:center;gap:7px;font-size:11.5px}
-.ax .axl{width:60px;flex:none;color:var(--muted)}
-.ax .axt{flex:1;height:6px;background:#eef1f5;border-radius:20px;overflow:hidden}
-.ax .axf{display:block;height:100%;border-radius:20px}
-.ax .axv{width:22px;flex:none;text-align:right;font-weight:700;font-size:11px}
-.peekrow{align-self:center;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;margin-top:-3px}
-.persist{font-size:11.5px;color:var(--muted);background:#f3f4f6;border-radius:20px;padding:3px 11px;font-weight:500}
-.persist.up{color:#15803d;background:#e8f7ee}
-.persist.down{color:#b45309;background:#fef4e6}
-.peek{border:1px solid var(--line);background:#fff;border-radius:20px;padding:4px 12px;font-size:11.5px;color:var(--muted);cursor:pointer;font-family:inherit}
-.peek:hover{color:#333;border-color:#d1d5db}
-.raxes{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
-.raxes .rax-h{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:9px}
-.rax{display:flex;align-items:center;gap:9px;font-size:12.5px;margin:6px 0}
-.rax .l{width:78px;flex:none}
-.rax .t{flex:1;height:7px;background:#eef1f5;border-radius:20px;overflow:hidden}
-.rax .f{display:block;height:100%;border-radius:20px}
-.rax .v{width:26px;flex:none;text-align:right;font-weight:700}
-.rax.low .l{color:#dc2626;font-weight:700}
-.coach{background:linear-gradient(180deg,#fff,#f7faff);border:1px solid #dbe4f5;border-radius:10px;padding:13px 15px;margin-bottom:12px}
-.coach h4{margin:0 0 8px;font-size:13.5px;display:flex;align-items:center;gap:6px}
-.coach-load{color:var(--muted);font-size:12.5px}
-.coach .cst{font-size:13px;margin:5px 0;line-height:1.5}
-.coach .cfocus{background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-top:9px}
-.coach .cfocus .ca{font-weight:700;color:var(--brand);font-size:13px;margin-bottom:3px}
-.coach ul{margin:6px 0 0;padding-left:18px;font-size:12.5px}.coach li{margin:3px 0;line-height:1.5}
-.coach .cnext{font-size:12px;color:var(--muted);margin-top:9px;border-top:1px dashed var(--line);padding-top:8px}
-.typing{font-size:13px;color:var(--muted);font-style:italic;padding:2px 4px}
-.inbar{display:flex;flex-direction:column;gap:9px;padding:11px 14px;border-top:1px solid var(--line);background:#fff}
-.tools{display:flex;gap:7px}
-.tool{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:38px;border:1px solid var(--line);background:#fff;border-radius:10px;font:inherit;font-size:13px;font-weight:500;color:#374151;cursor:pointer;white-space:nowrap;transition:background .12s}
-.tool:hover{background:#f7f8fa}
-.tool.off{opacity:.55}
-.tool.mic.rec{background:#dc2626;color:#fff;border-color:#dc2626;animation:micpulse 1.1s infinite}
-.typerow{display:flex;gap:8px}
-textarea{flex:1;resize:none;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;outline:none;max-height:120px}
-textarea:focus{border-color:var(--brand)}
-.send{border:none;background:var(--brand);color:#fff;border-radius:10px;padding:0 18px;font-weight:600;cursor:pointer;font-size:14px}
-.send:disabled{opacity:.5;cursor:default}
-.hintbtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:0 12px;cursor:pointer;font-size:13px;color:var(--muted)}
-
-/* report */
-.report{padding:18px 16px;border-top:1px solid var(--line);background:#f7faff;display:none}
-.report.on{display:block}
-.report h3{margin:0 0 4px;font-size:16px}
-.report .grade{font-size:34px;font-weight:800;line-height:1}
-.rtop{display:flex;align-items:center;gap:16px;margin-bottom:14px}
-.rmetrics{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;flex:1}
-.rm{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px;text-align:center}
-.rm .n{font-size:18px;font-weight:800}.rm .l{font-size:10.5px;color:var(--muted)}
-.spark{display:flex;align-items:flex-end;gap:4px;height:52px;padding:6px 2px;background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:12px}
-.spark .b{flex:1;border-radius:3px 3px 0 0;min-height:4px;background:var(--brand);position:relative}
-.rlist{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:12px}
-.rlist .li{margin:5px 0;padding-left:4px}
-.rlist b.g{color:var(--good)}.rlist b.i{color:var(--warn)}
-.rbtns{display:flex;gap:8px;flex-wrap:wrap}
-.footnote{text-align:center;color:var(--muted);font-size:11.5px;margin-top:14px}
-
-/* pass badge */
-.passbadge{display:inline-block;font-weight:800;font-size:13px;padding:3px 12px;border-radius:20px;letter-spacing:.02em}
-.passbadge.p{background:#e8f7ee;color:#15803d;border:1px solid #bbf0cd}
-.passbadge.f{background:#fdeaea;color:#b91c1c;border:1px solid #f6c9c9}
-.passline{font-size:11.5px;color:var(--muted)}
-
-/* model script modal */
-.modal{position:fixed;inset:0;background:rgba(20,25,35,.42);display:none;align-items:flex-start;justify-content:center;z-index:50;padding:26px 14px;overflow-y:auto}
-.modal.on{display:flex}
-.sheet{background:#fff;border-radius:16px;max-width:640px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.25);overflow:hidden}
-.sheet .sh{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fff,#fbfcfe)}
-.sheet .sh .emoji{font-size:22px}
-.sheet .sh h3{margin:0;font-size:15.5px}
-.sheet .sh .x{margin-left:auto;border:none;background:#f1f3f6;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--muted)}
-.sbody{padding:16px 18px;max-height:64vh;overflow-y:auto}
-.sintro{font-size:12.5px;color:var(--muted);margin:0 0 12px}
-.scard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:11px;background:#fbfcfd}
-.scard .skill{display:inline-block;font-size:11px;font-weight:700;color:var(--brand);background:var(--brand-soft);border-radius:6px;padding:2px 8px;margin-bottom:7px}
-.scard .say{font-size:13.5px;line-height:1.6;white-space:pre-wrap}
-.scard .why{font-size:11.5px;color:var(--muted);margin-top:7px;padding-top:7px;border-top:1px dashed var(--line)}
-.scriptbtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:0 12px;cursor:pointer;font-size:13px;color:var(--muted)}
-.micbtn{font-size:15px}
-.micbtn.rec{background:#dc2626;color:#fff;border-color:#dc2626;animation:micpulse 1.1s infinite}
-@keyframes micpulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.45)}50%{box-shadow:0 0 0 7px rgba(220,38,38,0)}}
-#voiceBtn.off{opacity:.5}
-.speaking .bub{box-shadow:0 0 0 2px #c7d2fe}
-@media(max-width:560px){.statgrid,.rmetrics{grid-template-columns:repeat(2,1fr)}}
-
-/* ===== 모바일 최적화 ===== */
-@media(max-width:640px){
-  .wrap{padding:14px 11px calc(28px + env(safe-area-inset-bottom))}
-  h1{font-size:18px}
-  .sub{font-size:12.5px;margin-bottom:14px}
-  .dash{margin-bottom:14px}
-  .stats,.ranking{padding:17px 15px}
-  .ctrl{padding:14px 15px;margin-bottom:14px}
-  .statgrid{gap:9px}
-  .stat{padding:13px 6px}
-  .stat .n{font-size:22px}
-  .stat .l{font-size:11px}
-  .dtab{padding:7px 13px;font-size:12.5px}
-  .dash-eval{gap:12px;padding:12px 13px}
-  .deval-grade{font-size:30px;min-width:40px}
-  .deval-line{font-size:13.5px}
-  table.rank th,table.rank td{padding:8px 4px;font-size:12.5px}
-  table.rank td.rf .rt{display:block;margin-left:0}
-  .grid{grid-template-columns:1fr;gap:10px}
-  .pcard{padding:15px 16px}
-  .pcard .emoji{font-size:28px}
-  .pcard h3{font-size:16px}
-  .pcard p{font-size:13px}
-  .pcard .diff{top:14px;right:14px}
-  /* 상단바 컴팩트 */
-  .topbar{padding:10px 12px;gap:8px;flex-wrap:wrap}
-  .topbar .av{font-size:22px}
-  .topbar .who{font-size:14px}
-  .mood{gap:5px}
-  #moodTxt{display:none}
-  .moodbar{width:54px}
-  .endbtn{padding:7px 10px;font-size:12px}
-  /* 채팅 영역: 화면 높이 최대 활용 */
-  .log{height:56vh;height:56dvh;padding:13px;gap:10px}
-  .row{max-width:88%}
-  .bub{font-size:15px;padding:10px 13px}
-  .mini{font-size:24px}
-  .eval{font-size:13.5px}
-  /* 입력바: 터치 타깃 확대 + iOS 확대 방지 + 안전영역 */
-  .inbar{padding:9px 10px calc(9px + env(safe-area-inset-bottom));gap:9px;position:sticky;bottom:0}
-  .tools{gap:5px}
-  .tool{min-height:42px;font-size:12.5px;gap:4px;padding:0 4px}
-  .hintbtn,.scriptbtn{min-height:44px;font-size:14px}
-  textarea{font-size:16px;min-height:48px;padding:13px 12px}
-  .send{min-height:48px;padding:0 22px;font-size:16px}
-  /* 냉담도 슬라이더: 손가락으로 쉽게 */
-  .cold-range{height:30px}
-  .slval{font-size:14.5px}
-  /* 리포트: 세로 스택 */
-  .report{padding:16px 13px calc(16px + env(safe-area-inset-bottom))}
-  .rtop{flex-direction:column;align-items:stretch;gap:10px}
-  .report .grade{font-size:30px}
-  .rbtns .send,.rbtns .scriptbtn,.rbtns .hintbtn{min-height:44px;display:inline-flex;align-items:center}
-  .spark{height:46px}
-  /* 누적 기록 막대 라벨 */
-  .pbars-h{margin:18px 0 10px}
-  .pbar{gap:10px;font-size:13px}
-  .pbar .pn{width:92px}
-  .pbar .pv{width:44px}
-  /* 모범답안 모달 */
-  .modal{padding:10px 8px calc(10px + env(safe-area-inset-bottom))}
-  .sheet{border-radius:14px}
-  .sbody{max-height:74vh;max-height:74dvh}
-  .scard .say{font-size:14px}
-}
-
-/* 인쇄 / PDF 리포트 */
-#printArea{display:none}
-.pa{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Segoe UI",Roboto,sans-serif;color:#1f2430;max-width:720px;margin:0 auto;padding:8px}
-.pa h2{font-size:20px;margin:0 0 2px}
-.pa .meta{font-size:12.5px;color:#6b7280;margin-bottom:14px}
-.pa .pa-badge{display:inline-block;font-weight:800;font-size:13px;padding:3px 12px;border-radius:20px;margin-right:8px}
-.pa .pa-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
-.pa .pa-m{border:1px solid #e5e7eb;border-radius:8px;padding:8px;text-align:center}
-.pa .pa-m .n{font-size:18px;font-weight:800}.pa .pa-m .l{font-size:10.5px;color:#6b7280}
-.pa table{width:100%;border-collapse:collapse;font-size:12.5px;margin:8px 0 14px}
-.pa th,.pa td{border:1px solid #e5e7eb;padding:5px 8px;text-align:center}
-.pa th{background:#f8fafc}
-.pa .sec{font-size:13px;font-weight:700;margin:14px 0 6px}
-.pa ul{margin:0;padding-left:18px;font-size:12.5px}.pa li{margin:3px 0}
-.pa .foot{margin-top:18px;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:8px}
-@media print{
-  body{padding:0 !important;background:#fff !important}
-  body > *:not(#printArea){display:none !important}
-  #printArea{display:block !important}
-  @page{margin:14mm}
-}
+.gcard{background:#fff;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.3);width:100%;max-width:380px;padding:26px}
+.gcard h2{font-size:19px;font-weight:800;text-align:center;margin-bottom:4px}
+.gcard .s{font-size:12.5px;color:var(--sub);text-align:center;margin-bottom:18px}
+.gcard input{width:100%;border:1px solid #d1d5db;border-radius:10px;padding:11px;font:inherit;font-size:15px;margin-bottom:11px}
+.gcard button{width:100%;border:none;background:var(--brand);color:#fff;border-radius:10px;padding:12px;font:inherit;font-weight:800;cursor:pointer}
+.gmsg{font-size:12.5px;color:#dc2626;text-align:center;min-height:16px;margin-top:9px}
+/* kpi */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+.k{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 15px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.k .n{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.k .l{font-size:12px;color:var(--sub);margin-top:4px}
+.k.b .n{color:var(--brand)}.k.g .n{color:var(--good)}.k.a .n{color:var(--amber)}.k.p .n{color:var(--pur)}
+.k .spark{margin-top:9px;width:100%!important;height:36px!important;display:block}
+.k .nospark{margin-top:9px;height:36px;display:flex;align-items:flex-end;font-size:11px;color:#c3c9d2}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:16px}
+.panel h3{font-size:15px;font-weight:800;margin-bottom:12px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--sub);font-weight:600;font-size:11.5px;padding:7px 6px;border-bottom:1px solid var(--line)}
+td{padding:8px 6px;border-bottom:1px solid #f1f3f6}
+td.r,th.r{text-align:right}
+.bar{height:7px;background:#eef2f7;border-radius:20px;overflow:hidden;display:inline-block;width:90px;vertical-align:middle;margin-right:8px}
+.bar span{display:block;height:100%;background:var(--brand);border-radius:20px}
+.loading{color:var(--sub);font-size:14px;padding:40px;text-align:center}
+@media(max-width:820px){.grid{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
-<!-- PWA 설치 안내 배너 -->
-<div id="pwaBanner">
-  <span class="pi-ic">📲</span>
-  <div class="pi-t" id="pwaText"><b>홈 화면에 앱 설치</b><br>설치하면 앱처럼 전체화면으로 쓸 수 있어요.</div>
-  <button class="pi-go" id="pwaInstall" type="button">설치</button>
-  <button class="pi-x" id="pwaClose" type="button">✕</button>
-</div>
-
-<!-- ===== 로그인 게이트 ===== -->
+<!-- 로그인 게이트 (어드민 전용) -->
 <div id="gate">
-  <div class="gate-card">
-    <h2>🎯 세일즈 거절 극복 훈련</h2>
-    <div class="gsub">로그인하고 훈련을 시작하세요</div>
-    <div class="gtabs">
-      <button class="gtab on" id="gtabLogin" type="button">로그인</button>
-      <button class="gtab" id="gtabSignup" type="button">회원가입</button>
-    </div>
-    <div class="gfield"><label>이메일</label><input id="gEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
-    <div class="gfield"><label>비밀번호</label><input id="gPw" type="password" autocomplete="current-password" placeholder="6자 이상"></div>
-    <button class="gbtn" id="gSubmit" type="button">로그인</button>
-    <div class="gmsg" id="gMsg"></div>
-    <div class="gnote" id="gNote"></div>
-  </div>
-</div>
-<button id="logoutBtn" type="button">로그아웃</button>
-<button id="acctBtn" type="button">👤 내 계정</button>
-<div id="useTag"></div>
-
-<!-- 내 계정 대시보드 -->
-<div id="acct">
-  <div class="acct-card">
-    <div class="acct-h"><h2>👤 내 계정</h2><button class="x" id="acctClose" type="button">✕</button></div>
-    <div id="acctBody"><div style="color:#6b7280;font-size:13px;padding:20px;text-align:center">불러오는 중…</div></div>
-  </div>
-</div>
-
-<!-- 구독 유도 모달 -->
-<div id="paywall">
-  <div class="pw-card">
-    <div class="pw-ic">🚀</div>
-    <h2>무료 훈련을 다 쓰셨어요</h2>
-    <p id="pwMsg">이번 달 무료 세션을 모두 사용했습니다.<br>구독하면 <b>무제한</b>으로 훈련할 수 있어요.</p>
-    <div class="pw-price">
-      <div class="amt">월 9,900원 <small>· VAT 포함</small></div>
-    </div>
-    <button class="pw-btn" id="pwSub" type="button">구독하고 무제한 훈련하기</button>
-    <button class="pw-close" id="pwClose" type="button">나중에</button>
+  <div class="gcard">
+    <h2>🔐 마스터 어드민</h2>
+    <div class="s">관리자 계정으로 로그인하세요</div>
+    <input id="email" type="email" placeholder="관리자 이메일" autocomplete="email">
+    <input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password">
+    <button id="loginBtn" type="button">로그인</button>
+    <div class="gmsg" id="gmsg"></div>
   </div>
 </div>
 
 <div class="wrap">
-  <h1>🎯 세일즈 거절 극복 훈련</h1>
-  <p class="sub">고객 유형과 냉담도를 정하면 AI가 그 고객이 되어 거절합니다. 대화를 이어가며 설득하세요. 코칭은 '💬 코칭 보기'로 원할 때 펼쳐보고, 세션 종료 시 종합 리포트를 확인하세요. <span id="brandTag"></span></p>
-
-  <button id="dashToggle" class="dashToggle" onclick="toggleDash()">📊 내 훈련 기록 보기 ▾</button>
-  <div id="dash" class="dash">
-    <div id="stats" class="stats on"></div>
-  </div>
-
-  <div id="resumeBar" class="resumebar"></div>
-
-  <div id="wizard">
-    <div id="step1" class="wstep">
-      <div class="wstep-h"><span class="wnum">1</span> 어떤 고객을 상대해볼까요?</div>
-      <div id="picker" class="grid"></div>
-    </div>
-    <div id="step2" class="wstep" style="display:none">
-      <div class="wstep-h"><button class="wback" onclick="wizBack()">← 뒤로</button><span class="wnum">2</span> 냉담도를 정하세요</div>
-      <div class="wsel" id="step2Persona"></div>
-      <div id="coldCards" class="coldgrid"></div>
-      <button id="teaseBtn" class="modechip" onclick="toggleTease()">😜 놀리기 모드: 켜짐</button>
+  <div class="top">
+    <h1>📊 마스터 어드민</h1>
+    <div class="sp">
+      <span class="muted" id="who"></span>
+      <button class="btn" id="reload" type="button">새로고침</button>
+      <button class="btn" id="logout" type="button">로그아웃</button>
     </div>
   </div>
+  <div class="muted">세일즈 훈련 · 운영 지표</div>
 
-  <div id="stage" class="stage">
-    <div class="topbar">
-      <span class="av" id="tAv">🙍</span>
-      <div>
-        <div class="who" id="tWho">고객</div>
-        <div class="st" id="tSt">전화 상담 중</div>
-      </div>
-      <div class="mood">
-        <span id="moodTxt">냉담</span>
-        <div class="moodbar"><div class="moodfill" id="moodFill"></div></div>
-      </div>
-      <button class="endbtn" onclick="finish(false)">리포트</button>
-      <button class="endbtn" onclick="reset()">← 목록</button>
-    </div>
-    <div class="log" id="log"></div>
-    <div class="report" id="report"></div>
-    <div class="inbar" id="inbar">
-      <div class="tools">
-        <button class="tool" id="hintBtn">💡 힌트</button>
-        <button class="tool" id="scriptBtn">📋 모범답안</button>
-        <button class="tool mic" id="micBtn">🎤 말하기</button>
-        <button class="tool" id="voiceBtn" onclick="toggleVoice()">🔊 듣기 켜짐</button>
-      </div>
-      <div class="typerow">
-        <textarea id="inp" rows="1" placeholder="답변을 입력하세요 (Enter 전송)"></textarea>
-        <button class="send" id="send">전송</button>
-      </div>
-    </div>
-  </div>
-
-  <p class="footnote"><span id="brandFoot"></span>AI가 고객 연기와 답변 평가를 동시에 수행 · 훈련 기록은 이 브라우저에 저장됩니다</p>
-</div>
-
-<div id="printArea"></div>
-<div id="toast" class="toast"></div>
-
-<div class="modal" id="modal">
-  <div class="sheet">
-    <div class="sh"><span class="emoji" id="mEmoji">📋</span><h3 id="mTitle">모범답안 스크립트</h3><button class="x" onclick="closeScripts()">✕</button></div>
-    <div class="sbody"><p class="sintro" id="mIntro"></p><div id="mCards"></div></div>
-  </div>
+  <div id="content"><div class="loading">로그인 후 데이터를 불러옵니다…</div></div>
 </div>
 
 <script>
-/* ============================================================
-   ===== 판매용(화이트라벨) 배포 설정 =====
-   구매 조직은 아래 값만 바꾸면 자체 브랜드로 사용할 수 있습니다.
-   - COMPANY : 화면·리포트에 표기될 회사/조직 이름 (빈 값이면 미표기)
-   - API_ENDPOINT : 실제 AI 롤플레이를 처리할 Netlify Function 주소.
-       구매 조직이 자체 Claude(Anthropic) API 키로 이 함수를 배포해야
-       '실시간 AI 대화'가 동작합니다.
-   - 백엔드가 없거나 연결이 안 되면 자동으로 '데모 모드'로 전환되어
-       내장 엔진이 고객 응답·채점을 생성합니다(미리보기·체험용).
-   ============================================================ */
-const COMPANY="";                                   // 예: "○○금융서비스" — 판매 시 구매사명 입력
-const API_ENDPOINT="/.netlify/functions/sales-coach"; // 구매사 자체 백엔드 주소
-let DEMO_MODE=false;                                  // 백엔드 미연결 시 자동 true
-const STORE="sales_training_ext_v1";
-const PERSONAS=[
-  {id:"apathy",emoji:"😐",name:"김무심 (무관심형)",diff:1,tag:"이미 보험 있음",
-   desc:"“보험은 이미 있어요. 관심 없습니다.”",
-   opener:"아 네… 근데 저 보험은 이미 다 들어놔서요. 딱히 필요 없을 것 같은데요.",
-   traits:"이미 보험이 충분하다고 믿고 대화를 빨리 끝내려 한다. 무성의하고 짧게 답한다. 니즈를 못 느낀다."},
-  {id:"price",emoji:"💸",name:"박알뜰 (가격 민감형)",diff:2,tag:"보험료 부담",
-   desc:"“너무 비싸요. 그 돈이면 차라리…”",
-   opener:"설명은 좋은데… 솔직히 매달 그 돈 나가는 게 부담이에요. 좀 비싼 거 아니에요?",
-   traits:"가격에 매우 민감하다. 월납입료를 부담스러워하고 가성비/대안(적금 등)을 계속 언급한다."},
-  {id:"doubt",emoji:"🤨",name:"이신중 (의심형)",diff:3,tag:"신뢰 부족",
-   desc:"“나중에 안 주려 하잖아요.”",
-   opener:"보험이라는 게 막상 아플 때 이 핑계 저 핑계로 안 주려고 하잖아요. 그거 어떻게 믿어요?",
-   traits:"보험사와 설계사를 근본적으로 불신한다. 보장 거절 사례, 약관 함정을 걱정한다. 논리와 증거를 요구한다. 가장 극복하기 어렵다."},
-  {id:"busy",emoji:"⏰",name:"최바쁨 (시간 없음형)",diff:1,tag:"미루기",
-   desc:"“지금 바빠요, 다음에요.”",
-   opener:"죄송한데 제가 지금 좀 바빠서요. 나중에 시간 될 때 다시 얘기하면 안 될까요?",
-   traits:"항상 바쁘다며 대화와 결정을 미룬다. 급할 것 없다는 태도. 짧고 회피적이다."},
-  {id:"spouse",emoji:"👫",name:"정미룸 (배우자 상의형)",diff:2,tag:"결정 회피",
-   desc:"“배우자랑 상의하고요.”",
-   opener:"음… 좋아 보이긴 하는데, 이런 건 와이프랑 상의를 해봐야 할 것 같아요.",
-   traits:"혼자 결정하지 않고 배우자 핑계로 마무리를 미룬다. 상의가 진짜 이유인지 회피인지 애매하다."},
-  {id:"friend",emoji:"🤝",name:"한지인 (지인설계사형)",diff:3,tag:"기존 설계사",
-   desc:"“아는 설계사가 있어서요.”",
-   opener:"얘기는 잘 들었는데, 사실 제 친척이 보험 설계사라서요. 그쪽에서 하는 게 맞을 것 같아요.",
-   traits:"지인/친척 설계사와의 관계를 이유로 든다. 미안함과 의리가 섞여 있다. 기분 상하지 않게 다뤄야 한다."},
-  {id:"probe",emoji:"🕵️",name:"조경계 (설계사 검증형)",diff:2,tag:"탐색·경계",
-   desc:"“무슨 일 하세요?”",
-   opener:"근데 그쪽은 정확히 무슨 일 하시는 거예요? 어디 소속이고, 이 일 하신 지는 얼마나 되셨어요?",
-   traits:"설계사의 신원·소속·경력·전문성을 캐물으며 믿을 만한 사람인지 검증한다. 답이 미덥지 않으면 마음을 닫는다. 실력과 진정성을 증명해야 대화가 이어진다."},
-  {id:"tenure",emoji:"⏳",name:"우걱정 (담당자 지속성형)",diff:2,tag:"이직 우려",
-   desc:"“이 일 언제까지 하실 거예요?”",
-   opener:"이 일 언제까지 하실 거예요? 요즘 설계사들 금방 그만두던데, 나중에 담당자 없어지는 거 아니에요?",
-   traits:"설계사가 곧 그만두어 자기 보험 관리가 끊길까 걱정한다. 장기적인 관리와 책임, 사후관리 지속성을 확인하고 싶어 한다."},
-  {id:"hold",emoji:"🤔",name:"고민중 (결정 보류형)",diff:2,tag:"결정 유보",
-   desc:"“고민해보겠습니다.”",
-   opener:"음… 설명은 잘 들었어요. 근데 이런 건 좀 고민을 해봐야 할 것 같아요. 생각 좀 해볼게요.",
-   traits:"뚜렷한 반대 이유를 대지 않고 결정을 계속 미룬다. 애매하게 긍정하지만 마무리를 안 짓는다. 진짜 망설이는 지점을 질문으로 끌어내야 한다."},
-  {id:"parent",emoji:"👪",name:"김의존 (부모 관리형)",diff:1,tag:"부모가 관리",
-   desc:"“엄마가 보험료를 내고 있어서요.”",
-   opener:"아 저는 보험 잘 몰라요. 엄마가 다 알아서 내주고 계셔서요. 저한테 말씀하셔도 잘…",
-   traits:"본인 보험을 부모(주로 엄마)가 관리·납입한다. 스스로 내용을 모르고 관심·주도권이 없다. 젊은 고객. 본인이 당사자라는 인식을 깨워야 한다."},
-  {id:"complete",emoji:"😎",name:"나완비 (과신·완비형)",diff:3,tag:"다 되어있음",
-   desc:"“저는 다 잘 되어 있습니다.”",
-   opener:"저는 보험이든 뭐든 다 잘 되어 있어서요. 딱히 부족한 거 없습니다.",
-   traits:"이미 완벽히 준비됐다고 확신한다. 근거 없는 자신감으로 점검 자체를 거부한다. 무관심이 아니라 '확신'이라 정면 부정하면 자존심 상해 반발한다. 인정 후 맹점을 짚어야 한다."},
-  {id:"referral",emoji:"🙋",name:"이만족 (소개 요청형)",diff:2,tag:"소개 부탁",
-   desc:"만족한 고객에게 지인 소개 부탁하기",
-   opener:"덕분에 보험 정리가 깔끔하게 잘 됐어요. 설명도 친절하시고 정말 만족스러웠어요.",
-   traits:"이미 이 설계사에게 가입해 만족한 고객이다. 이 시나리오의 목표는 '거절 극복'이 아니라 '지인 소개 확보'다. 설계사가 소개를 부탁하면 '누굴 소개해야 할지 모르겠다', '괜히 폐 끼칠까 봐'라며 부담스러워하며 주저한다. 소개를 함부로 해주지 않는다. 설계사가 부담을 낮추고, 구체적인 대상(예: 최근 결혼·출산한 지인, 이직·내집마련한 친구 등)을 짚어주며 진정성 있게 요청하면 조금씩 마음을 연다. 잘 요청하면 한 명 정도 소개를 승낙한다. 요청이 어설프거나 부담스러우면 '나중에 생각나면 알려줄게요'로 회피한다."},
-];
-const MOODS={cold:{t:"냉담",w:18},neutral:{t:"보통",w:42},warming:{t:"호의적",w:70},convinced:{t:"설득됨",w:100}};
-const COLD=[null,
-  {t:"1 · 순함",d:"비교적 마음이 열려 있어 진심 어린 답변이면 금방 누그러진다.",s:"조금만 설득력 있어도 빠르게 호의적으로 바뀐다."},
-  {t:"2 · 무난",d:"평범하게 거절하지만 합리적 답변엔 반응한다.",s:"괜찮은 답변이면 서서히 마음을 연다."},
-  {t:"3 · 보통",d:"현실적인 고객 수준의 저항.",s:"설득력이 확실할 때만 조금씩 누그러진다."},
-  {t:"4 · 완강",d:"쉽게 넘어가지 않고 반론을 계속 던진다.",s:"정말 탄탄한 답변이 여러 번 쌓여야 마음이 움직인다."},
-  {t:"5 · 철벽",d:"매우 회의적이고 방어적이다. 거의 넘어오지 않는다.",s:"거의 완벽한 설득이 반복돼야만 아주 조금 열린다. 웬만해선 closed를 true로 하지 마라."},
-];
+/* ===== 설정 ===== 앱과 동일한 Supabase 값 (anon은 공개 안전) */
+const SUPABASE_URL="https://pzotfitbuxwoaenvdfju.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6b3RmaXRidXh3b2FlbnZkZmp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5OTU4ODksImV4cCI6MjA5OTU3MTg4OX0.A-2Buu9hKLW_2ORgxFfMQcL9u9vzKLWZBf3R4v0XAQc";
+const ADMIN_ENDPOINT="/.netlify/functions/admin-stats";
 
-/* 페르소나별 모범답안 스크립트 (합격 화법) */
-const SCRIPTS={
-  apathy:{intro:"'이미 있다'는 '충분하다'가 아닙니다. 부정하지 말고, 공백을 확인시키는 질문으로 대화를 여세요.",
-    cards:[
-      {skill:"인정 + 공백 진단 질문",say:"이미 준비해두셨다니 정말 잘하셨어요. 그런데 그 보험이 지금 나이·상황에 맞게 보장 공백은 없는지 점검은 해보셨어요? 딱 5분, 무료로 보장분석 도와드릴게요. 있는 걸 확인만 해도 남는 거니까요.",why:"거절을 부정하지 않고 인정한 뒤, '점검'이라는 부담 낮은 다음 행동으로 넘깁니다."},
-      {skill:"업데이트 프레임",say:"충분하다고 느끼시는 것과 실제로 충분한 건 다를 수 있어요. 최근 실손 세대교체나 상품 개편으로 같은 보험료에 보장이 더 좋아진 경우가 많거든요. 비교표만 딱 보여드릴게요.",why:"'당신 판단이 틀렸다'가 아니라 '시장이 바뀌었다'로 프레임을 돌려 방어를 낮춥니다."}
-    ]},
-  price:{intro:"가격은 '비싸다 vs 싸다'가 아니라 '무엇을 사는가'의 문제로 전환하세요.",
-    cards:[
-      {skill:"가치 환산(쪼개기)",say:"월 부담 느끼시는 거 당연해요. 그런데 이걸 하루로 나누면 커피 한 잔 값이에요. 그 한 잔으로 큰 병 걸렸을 때 수천만원 치료비를 대비하는 거라, 오히려 가장 저렴한 안전장치예요.",why:"큰 월납액을 하루 단위로 쪼개 심리적 저항을 줄이고 가치로 재정의합니다."},
-      {skill:"적금과의 차이",say:"적금은 사고 나면 그때까지 모은 돈밖에 없지만, 보험은 가입 다음 날 사고가 나도 약정된 보장을 다 받아요. 돈을 모으는 게 아니라 '만약'을 사는 거예요.",why:"흔한 대안(적금)과 정면 비교해 보험만의 레버리지를 각인시킵니다."},
-      {skill:"설계 조정 제안",say:"부담되시면 지금 예산에 맞춰 꼭 필요한 핵심 보장부터 설계하고, 여력 생기면 늘리는 방식으로 시작해도 돼요.",why:"'전부 아니면 전무'를 깨고 작은 시작점을 제시해 클로징 문턱을 낮춥니다."}
-    ]},
-  doubt:{intro:"의심엔 감정이 아니라 숫자와 '내 책임'으로 답하세요. 두루뭉술하면 더 의심합니다.",
-    cards:[
-      {skill:"데이터로 신뢰",say:"그 걱정 당연해요. 그래서 숫자로 말씀드릴게요. 주요 보험사 보험금 지급률은 90%대 후반이에요. 안 주는 게 아니라 약관 요건이 안 맞은 경우가 대부분이고, 그 요건을 처음부터 정확히 설계하는 게 제 역할이에요.",why:"막연한 불신을 구체적 통계로 받아치고, 원인을 '설계 문제'로 재정의합니다."},
-      {skill:"책임 프레임",say:"약관 함정이 걱정되시면, 가입할 때 되는 것과 안 되는 걸 제가 서면으로 다 짚어드리고, 청구 때도 손해사정 절차를 끝까지 같이 챙길게요. 못 믿을 회사가 아니라 안 챙겨주는 설계사가 문제인 거예요.",why:"회사 신뢰가 아니라 '나의 사후관리'를 팔아 통제 가능한 신뢰로 전환합니다."}
-    ]},
-  busy:{intro:"시간 핑계엔 부담을 극단적으로 낮추고, '지금'의 이점을 짚으세요.",
-    cards:[
-      {skill:"부담 축소(3분 화법)",say:"바쁘신 거 잘 알아요. 그래서 딱 3분만요. 지금 보장에 큰 구멍 있는지만 확인하고, 없으면 저도 더 안 붙잡을게요.",why:"요구 시간을 최소화하고 '없으면 끝'이라는 출구를 줘 심리 저항을 없앱니다."},
-      {skill:"지연의 손해",say:"미루는 게 오히려 손해예요. 보험은 건강할 때·젊을 때 가입해야 보험료가 싸고 거절도 안 나요. 시간 지나면 같은 보장에 더 내셔야 해요.",why:"미루기의 기회비용을 구체화해 '나중'을 비싸게 만듭니다."}
-    ]},
-  spouse:{intro:"배우자 핑계는 존중하되, 결정을 돕는 자료와 진짜 니즈 질문으로 되받으세요.",
-    cards:[
-      {skill:"동반 설득 자료",say:"당연히 두 분이 함께 결정하실 일이죠. 그럼 배우자분께 그대로 보여드릴 수 있게 비교자료랑 예상 보장표를 정리해드릴게요. 궁금한 건 제가 직접 설명드려도 되고요.",why:"고객을 '전달자'로만 두지 않고, 설득 도구를 쥐여줘 성사 확률을 높입니다."},
-      {skill:"진짜 니즈 확인 질문",say:"상의하신다고 하셨는데, 혹시 본인은 어떤 부분이 제일 마음에 걸리세요? 그 부분을 먼저 풀어야 배우자분 설득도 되니까요.",why:"'상의'가 회피인지 실제 장애물인지 질문으로 드러내 핵심을 공략합니다."}
-    ]},
-  friend:{intro:"관계를 절대 깎아내리지 말고, '한 번 점검'과 '관계 부담 해소'로 접근하세요.",
-    cards:[
-      {skill:"세컨드 오피니언",say:"친척분이 챙겨주신다니 든든하시겠어요. 그 관계 바꾸시라는 게 아니에요. 다만 큰 결정이니 병원 세컨드 오피니언처럼 다른 시각으로 한 번 점검만 받아보시는 것도 손해 볼 게 없어요.",why:"경쟁 구도를 만들지 않고 '추가 점검'이라는 무해한 행동으로 문을 엽니다."},
-      {skill:"관계 부담 해소",say:"지인한테 하면 나중에 뭐 하나 물어보기도 미안하고, 안 좋은 일 생겼을 때 관계가 얽히는 게 오히려 불편할 수 있어요. 객관적으로 봐드릴 사람이 하나쯤 있는 것도 방법이에요.",why:"지인 계약의 숨은 단점(관계 리스크)을 짚어 전환 명분을 제공합니다."}
-    ]},
-  probe:{intro:"검증은 위기가 아니라 기회입니다. 방어하지 말고 신원·경력·진정성을 당당하게 증명하세요.",
-    cards:[
-      {skill:"당당한 자기소개",say:"네, 좋은 질문이세요. 저는 ○○ 소속 설계사 ○○○이고, 이 일만 ○년째 하고 있어요. 지금 ○○분 넘게 담당하고 있고, 궁금하시면 자격증이랑 위촉증도 바로 보여드릴게요.",why:"숨기지 않고 구체적 사실로 답하면 경계심이 오히려 신뢰로 바뀝니다."},
-      {skill:"검증 태도 인정",say:"그렇게 꼼꼼히 확인하시는 분이 저는 오히려 좋아요. 설계사 잘못 만나면 평생 손해니까요. 그래서 오늘 제가 어떤 사람인지, 어떻게 관리하는지 직접 보고 판단하시면 돼요.",why:"경계심을 '현명한 태도'로 인정해 고객을 방어자에서 내 편으로 돌립니다."}
-    ]},
-  tenure:{intro:"지속성 불안엔 개인 다짐만으론 부족합니다. '시스템'과 조직 인계로 안심시키세요.",
-    cards:[
-      {skill:"조직 백업 안심",say:"그 걱정 정말 현실적이세요. 그래서 저희는 담당자가 바뀌어도 회사 시스템으로 고객 정보와 보장 내역이 그대로 인계돼요. 저 개인이 아니라 조직이 끝까지 책임지는 구조라 관리가 끊길 일은 없어요.",why:"개인 의존 리스크를 조직·시스템 신뢰로 전환해 불안의 근본을 없앱니다."},
-      {skill:"장기 커리어 진정성",say:"저는 이 일을 평생 직업으로 생각하고 있어요. 그래서 단발성 판매가 아니라 오래 관계 맺을 분들만 신중히 모시고요. 가입 후 청구·리모델링까지 제가 계속 챙길 겁니다.",why:"장기 비전과 진정성을 보여 '금방 그만둘 사람'이라는 프레임을 깹니다."}
-    ]},
-  hold:{intro:"'고민'은 대개 숨은 반대의 포장지입니다. 질문으로 진짜 걸림돌을 끄집어내세요.",
-    cards:[
-      {skill:"숨은 걸림돌 질문",say:"신중하게 생각하시는 거 맞아요. 그런데 구체적으로 어떤 부분이 제일 고민되세요? 보험료인지, 보장 내용인지, 아니면 저에 대한 확신인지 — 그거 하나만 풀면 결정이 훨씬 쉬워지실 거예요.",why:"막연한 '고민'을 선택지로 좁혀 진짜 장애물을 수면 위로 끌어냅니다."},
-      {skill:"보류도 결정이다",say:"고민하시는 동안에도 시간은 가고, 그사이 사고는 저를 안 기다려줘요. 지금 미루시는 것도 사실 '보장 없이 지내겠다'는 결정이거든요. 부담되면 핵심 보장부터라도 먼저 시작해두시죠.",why:"'결정 안 함'도 리스크를 떠안는 선택임을 짚어 미루기의 비용을 부각합니다."}
-    ]},
-  parent:{intro:"부모가 관리한다면 '내 것'이라는 주인의식을 깨우는 게 핵심입니다.",
-    cards:[
-      {skill:"주인의식 환기",say:"어머님이 챙겨주시는 거 정말 감사한 일이죠. 그런데 그 보험, 정작 본인은 뭐가 보장되는지 알고 계세요? 결국 아플 때 청구하고 혜택 받는 건 본인이잖아요. 딱 한 번만 같이 확인해봐요.",why:"납입 주체(부모)와 수혜 주체(본인)를 분리해 당사자 의식을 일깨웁니다."},
-      {skill:"독립 프레임",say:"부모님 세대 설계랑 지금 본인 상황은 많이 달라요. 취업·독립하면서 새로 필요한 보장이 생겼을 수도 있고요. 어머님께도 '내가 한 번 점검받아봤다' 하면 오히려 좋아하실 거예요.",why:"독립·성장 맥락으로 스스로 챙길 명분을 주고 부모 반발 우려도 해소합니다."}
-    ]},
-  complete:{intro:"과신형은 정면 부정하면 자존심이 상합니다. 인정 → 맹점 질문으로 우회하세요.",
-    cards:[
-      {skill:"인정 후 맹점 질문",say:"관리를 잘 해두셨나 봐요, 대단하세요. 그런데 요즘 상품이 워낙 자주 바뀌어서요 — 실손 세대나 3대 진단비 한도 같은 건 최근 기준으로 점검해보셨어요? 잘 되어 있으면 확인만 하고 끝내면 되고요.",why:"칭찬으로 방어를 풀고, 확인이 필요한 구체 항목을 던져 점검 명분을 만듭니다."},
-      {skill:"비교로 검증 유도",say:"'다 되어 있다'는 분들도 막상 보장분석 돌려보면 중복이거나 빠진 게 꼭 나와요. 손해 볼 거 없으니 무료로 비교표 딱 한 장만 받아보세요. 정말 완벽하면 제가 인정하고 물러날게요.",why:"확신을 검증 가능한 데이터로 유도하고, 출구까지 제시해 부담을 없앱니다."}
-    ]},
-  referral:{intro:"소개는 '부탁'이 아니라 '자연스러운 다음 단계'로 만드세요. 만족을 확인받은 직후에, 부담을 없애고 대상을 구체화하는 게 핵심입니다.",
-    cards:[
-      {skill:"만족 확인 후 연결",say:"이렇게 만족해 주시니 저도 정말 뿌듯해요. 혹시 주변에 사장님처럼 보험 정리가 필요하거나 최근 결혼·출산하신 분 있으면, 딱 한 분만 소개해 주실 수 있을까요? 똑같이 부담 없이 점검만 도와드릴게요.",why:"만족을 표현한 직후가 소개 요청의 최적 타이밍이고, 구체적 대상을 제시해 떠올리기 쉽게 합니다."},
-      {skill:"부담 완전 제거",say:"소개해 주셔도 그분께 절대 부담 드리지 않아요. 제가 억지로 뭘 권하는 사람이 아니라는 거 오늘 보셨잖아요. 그냥 '괜찮은 사람 있으니 한번 얘기 들어봐' 정도로만 다리 놓아주시면 돼요.",why:"소개자가 가장 걱정하는 '지인에게 폐 끼침' 리스크를 명확히 없애 심리 문턱을 낮춥니다."},
-      {skill:"구체 대상 지목",say:"지금 딱 떠오르는 분 없으시면… 최근에 차 새로 뽑거나 집 장만하신 분, 아이 막 태어난 친구분 계세요? 그런 분들이 보통 보장 점검이 꼭 필요하더라고요.",why:"'아무나'가 아니라 상황별 예시로 특정인을 떠올리게 만들어 소개 성사율을 높입니다."}
-    ]}
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=id=>document.getElementById(id);
+let chart=null, sparks=[];
+
+/* 앱 단계(스테이지) → 이탈 페이지 한글 라벨 (퍼널 순서 표기) */
+const STAGE_LABELS={
+  landing:"① 랜딩(광고 유입)", service_intro:"서비스 소개(로그인)",
+  login:"② 로그인 화면", signup:"② 회원가입 화면",
+  persona_select:"③ 고객 선택", coldness_select:"④ 거절 강도 선택",
+  chat:"⑤ 대화(훈련 중)", report:"⑥ 리포트",
+  account:"내 계정", paywall:"구독 안내(페이월)"
 };
+function stageLabel(p){ if(STAGE_LABELS[p]) return STAGE_LABELS[p]; if(p==="/"||p==="/index.html"||p==="/index") return "(구버전·미분류)"; return esc(p); }
+const CARD_COLOR={b:"#2563eb",g:"#16a34a",a:"#d97706",p:"#7c3aed","":"#64748b"};
+function hexA(hex,a){ var n=parseInt(hex.slice(1),16); return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+a+")"; }
 
-const AXES=[
-  {k:"empathy",label:"공감·경청"},
-  {k:"needs",label:"니즈 파악"},
-  {k:"evidence",label:"근거·전문성"},
-  {k:"delivery",label:"화법·표현"},
-  {k:"rebuttal",label:"반론 대응"},
-  {k:"closing",label:"클로징"}
-];
-function clampS(v){ return Math.max(0,Math.min(100,Math.round(+v||0))); }
-function axColor(v){ return v>=75?'#16a34a':v>=50?'#d97706':'#dc2626'; }
-const AX_FIELD={empathy:"공감경청",needs:"니즈파악",evidence:"근거전문성",delivery:"화법표현",rebuttal:"반론대응",closing:"클로징"};
+function won(n){ return (n||0).toLocaleString('ko-KR')+"원"; }
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function fmtDur(sec){ sec=+sec||0; if(sec<60)return sec+"초"; var m=Math.floor(sec/60),s=sec%60; return m+"분 "+s+"초"; }
 
-/* ============================================================
-   ===== 데모 모드 엔진 (백엔드 미연결 시 자동 사용) =====
-   실시간 Claude 대신 브라우저 내에서 고객 응답·6역량 채점을 생성합니다.
-   판매 데모·체험용이며, 실제 배포 시 API_ENDPOINT가 있으면 이 엔진은 사용되지 않습니다.
-   ============================================================ */
-const DEMO_LINES={
-  cold:["음… 그건 알겠는데, 그래도 좀 그래요.","글쎄요, 아직은 잘 모르겠는데요.","말씀은 알겠어요. 근데 딱히 마음이 안 움직이네요.","그래도 지금은 좀…"],
-  neutral:["아, 그렇게 보니 좀 다르긴 하네요. 근데 확신은 아직….","흠, 일리는 있어요. 조금 더 얘기해볼까요?","그 부분은 이해가 되네요. 다른 건 어때요?","오케이, 계속 들어볼게요."],
-  warming:["오, 그건 생각 못 했네요. 꽤 설득력 있는데요.","말씀 들으니 마음이 좀 열리네요.","그렇게 챙겨주시면 저야 좋죠.","점점 믿음이 가네요."],
-  convinced:["좋아요, 그럼 한번 제대로 얘기 들어볼게요.","설득당했네요. 진행해봅시다.","믿어볼게요. 다음 단계로 가죠.","좋습니다. 그렇게 하시죠."]
-};
-const DEMO_TIPS={
-  apathy:"'이미 있다=충분하다'가 아님을 질문으로 짚고, 부담 없는 무료 점검으로 연결하세요.",
-  price:"가격을 하루 단위 가치로 환산하고, 미보장 시 리스크를 대비시키세요.",
-  doubt:"지급률·약관 등 구체적 데이터와 본인의 사후관리 책임으로 신뢰를 증명하세요.",
-  busy:"'딱 3분'으로 부담을 낮추고, 지금 가입의 이점을 짚으세요.",
-  spouse:"배우자를 함께 설득할 자료를 제안하고, 진짜 걸림돌을 질문으로 확인하세요.",
-  friend:"관계를 존중하며 '세컨드 오피니언'의 가치를 부드럽게 제안하세요.",
-  probe:"방어 대신 소속·경력·자격을 당당히 밝히고 검증 태도를 칭찬하세요.",
-  tenure:"개인 다짐이 아니라 조직·시스템 인계 구조로 지속 관리를 보장하세요.",
-  hold:"'어떤 부분이 제일 고민되세요?'로 숨은 반대 이유를 끌어내세요.",
-  parent:"납입은 부모, 혜택은 본인임을 짚어 당사자 주인의식을 깨우세요.",
-  complete:"인정부터 하고 최신 기준 맹점을 질문으로 확인시키세요.",
-  referral:"만족 직후 요청하고, '폐 끼칠까' 걱정을 없애고 대상을 구체적으로 짚으세요."
-};
-function demoScore(text){
-  var t=(text||'').replace(/\s+/g,' ').trim(), L=t;
-  var has=function(arr){return arr.some(function(k){return L.indexOf(k)>=0;});};
-  var ax={};
-  ax.empathy = has(['그렇','이해','충분','당연','느끼','맞아','안타','좋','네,','그럴','공감','마음','당황','걱정되'])?72:34;
-  ax.needs = (L.indexOf('?')>=0||has(['혹시','어떤','어느','무엇','뭘','왜','어디','고민','이유','여쭤','필요']))?72:34;
-  ax.evidence = has(['약관','보장','지급','청구','사례','증권','조건','기준','실제','통계','%','데이터','비교','수치','금액','한도','세대'])?74:34;
-  ax.delivery = t.length>=22?68:44;
-  ax.rebuttal = has(['하지만','대신','오히려','사실','그런데','바로','해결','책임','챙','짚','막아','달라'])?68:38;
-  ax.closing = has(['한번','한 번','점검','시작','도와','약속','다음','알려','보여','정리','받아','신청','미팅','만나'])?68:36;
-  var pen=has(['무조건','지금 안 하면','손해','후회','반드시','절대','마지막 기회','오늘만','강제']);
-  Object.keys(ax).forEach(function(k){ if(pen) ax[k]=Math.max(12,ax[k]-24); });
-  var score=Math.round((ax.empathy+ax.needs+ax.evidence+ax.delivery+ax.rebuttal+ax.closing)/6);
-  if(t.length<8) score=Math.min(score,26);
-  return {ax:ax,score:score,pen:pen};
-}
-function demoTurn(text){
-  var r=demoScore(text), pass=state.passLine;
-  var levels=[18,42,70,100], idx=levels.indexOf(state.moodW||18); if(idx<0)idx=0;
-  if(r.score>=pass) idx=Math.min(3,idx+1);
-  else if(r.score<pass-15) idx=Math.max(0,idx-1);
-  var moodKey=['cold','neutral','warming','convinced'][idx];
-  var pool=DEMO_LINES[moodKey], line=pool[Math.floor(Math.random()*pool.length)];
-  var closed=(idx>=3 && state.turns>=2);
-  var axArr=AXES.map(function(a){return {label:a.label,v:r.ax[a.k]};});
-  var strong=axArr.slice().sort(function(a,b){return b.v-a.v;})[0];
-  var weak=axArr.slice().sort(function(a,b){return a.v-b.v;})[0];
-  var good=strong.label+"이(가) 돋보였어요.";
-  var improve=r.pen?"압박·강매성 표현은 신뢰를 떨어뜨려요. 근거로 설득하세요.":(weak.label+"이(가) 약했어요.");
-  var tip=DEMO_TIPS[state.persona.id]||"고객의 진짜 니즈를 질문으로 확인하고, 부담을 낮춘 다음 행동을 제안하세요.";
-  return {score:r.score,axes:r.ax,good:good,improve:improve,tip:tip,customer:line,mood:moodKey,closed:closed};
-}
-function renderDemoCoaching(){
-  var b=document.getElementById("coachBox"); if(!b) return;
-  var avgAx=AXES.map(function(a){return {label:a.label,v:state.axisCount?Math.round((state.axisSum[a.k]||0)/state.axisCount):0};});
-  var weak=avgAx.slice().sort(function(x,y){return x.v-y.v;})[0];
-  var strong=avgAx.slice().sort(function(x,y){return y.v-x.v;})[0];
-  var sc=state.scores||[], avg=sc.length?Math.round(sc.reduce(function(a,b){return a+b;},0)/sc.length):0;
-  b.innerHTML='<h4>🤖 종합 코칭 <span style="font-weight:400;color:var(--muted);font-size:11px">(데모 모드)</span></h4>'+
-    '<div class="cst" style="font-weight:600">'+(avg>=state.passLine?'설득의 큰 줄기를 잘 잡았습니다.':'방향은 맞지만 설득력을 더 쌓아야 합니다.')+'</div>'+
-    '<div class="cst">👍 '+esc(strong.label)+'이(가) 가장 강했습니다 ('+strong.v+'점).</div>'+
-    '<div class="cfocus"><div class="ca">가장 개선할 점 · '+esc(weak.label)+'</div>'+
-    '<div class="cst">'+esc(weak.label)+' 점수가 '+weak.v+'점으로 가장 낮습니다.</div>'+
-    '<ul><li>'+esc(DEMO_TIPS[state.persona.id]||'질문으로 진짜 니즈를 끌어내고 근거로 뒷받침하세요.')+'</li>'+
-    '<li>모범답안 스크립트의 화법을 참고해 다시 연습해 보세요.</li></ul></div>'+
-    '<div class="cnext">▶ 다음 훈련: 냉담도를 한 단계 올려 같은 고객을 다시 설득해 보세요.</div>';
-}
-
-let state=null, coldness=3;
-const $=s=>document.querySelector(s);
-const picker=$("#picker"),stage=$("#stage"),log=$("#log"),inp=$("#inp"),wizardEl=$("#wizard"),statsEl=$("#stats"),dashEl=$("#dash");
-
-/* ---------- storage ---------- */
-function loadStore(){try{return JSON.parse(localStorage.getItem(STORE))||{}}catch(e){return{}}}
-function saveStore(o){try{localStorage.setItem(STORE,JSON.stringify(o))}catch(e){}}
-function recordSession(sess){
-  const db=loadStore();
-  db.global=db.global||{sessions:0,answers:0,totalScore:0,wins:0};
-  db.personas=db.personas||{};
-  const g=db.global;
-  g.sessions++; g.answers+=sess.scores.length; g.totalScore+=sess.scores.reduce((a,b)=>a+b,0); if(sess.won)g.wins++;
-  const p=db.personas[sess.personaId]||{sessions:0,answers:0,totalScore:0,best:0,wins:0};
-  p.sessions++; p.answers+=sess.scores.length; p.totalScore+=sess.scores.reduce((a,b)=>a+b,0);
-  p.best=Math.max(p.best,sess.best); if(sess.won)p.wins++;
-  db.personas[sess.personaId]=p;
-  if(sess.axisAvg){ db.axes=db.axes||{}; AXES.forEach(function(a){ if(sess.axisAvg[a.k]!=null){ var x=db.axes[a.k]||{sum:0,count:0}; x.sum+=sess.axisAvg[a.k]; x.count++; db.axes[a.k]=x; } }); }
-  saveStore(db);
-}
-
-/* ---------- cumulative panel ---------- */
-function assess(avg,rate){
-  if(avg>=80) return "최상위권 — 대부분의 상황을 능숙하게 다룹니다.";
-  if(avg>=70) return "안정적인 합격권입니다. 꾸준히 유지하세요.";
-  if(avg>=55) return "기본기는 갖췄습니다. 약점 페르소나를 집중 공략하세요.";
-  if(avg>=40) return "성장 중입니다. 모범답안을 참고해 반복 훈련하세요.";
-  return "훈련 초기 단계입니다. 힌트와 모범답안을 적극 활용해 보세요.";
-}
-function renderStats(){
-  const db=loadStore(); const g=db.global;
-  if(!g||!g.sessions){
-    statsEl.innerHTML=`<div class="stats-head"><div class="ttl">📊 내 훈련 요약</div></div>
-      <div class="dash-empty">아직 훈련 기록이 없습니다. 아래에서 고객을 선택해 첫 훈련을 시작해 보세요.</div>`;
-    return;
-  }
-  const avg=g.answers?Math.round(g.totalScore/g.answers):0;
-  const rate=g.sessions?Math.round(g.wins/g.sessions*100):0;
-  const gr=grade(avg);
-  const fillFor=v=>v>=75?'linear-gradient(90deg,#86efac,#16a34a)':v>=50?'linear-gradient(90deg,#fcd34d,#d97706)':'linear-gradient(90deg,#fca5a5,#dc2626)';
-  let bars="", strong=null, weak=null;
-  PERSONAS.forEach(p=>{
-    const pp=(db.personas||{})[p.id];
-    const done=pp&&pp.answers;
-    const a=done?Math.round(pp.totalScore/pp.answers):0;
-    if(done){ if(!strong||a>strong.a)strong={n:p.name.split(" ")[0],a}; if(!weak||a<weak.a)weak={n:p.name.split(" ")[0],a}; }
-    bars+=`<div class="pbar${done?'':' empty'}"><span class="pn">${p.emoji} ${p.name.split(" ")[0]}</span>
-      <span class="track"><span class="fill" style="width:${done?a:0}%;background:${fillFor(a)}"></span></span>
-      <span class="pv">${done?a+'점':'—'}</span></div>`;
-  });
-  const sw=strong?`강점 <b>${esc(strong.n)} ${strong.a}점</b>${weak&&weak.n!==strong.n?` · 보완 <b>${esc(weak.n)} ${weak.a}점</b>`:''}`:'';
-  let axHtml='';
-  if(db.axes){
-    const list=AXES.map(a=>{const x=(db.axes||{})[a.k]; return {label:a.label, v:(x&&x.count)?Math.round(x.sum/x.count):null};}).filter(x=>x.v!=null);
-    if(list.length){
-      const minV=Math.min.apply(null,list.map(x=>x.v));
-      const weakAx=list.filter(x=>x.v===minV).map(x=>x.label)[0];
-      axHtml=`<div class="raxes"><div class="rax-h">역량별 누적 평균 · 집중 보완: <b style="color:#dc2626">${esc(weakAx)}</b></div>${list.map(x=>`<div class="rax${x.v===minV?' low':''}"><span class="l">${x.label}</span><span class="t"><span class="f" style="width:${x.v}%;background:${axColor(x.v)}"></span></span><span class="v">${x.v}</span></div>`).join("")}</div>`;
-    }
-  }
-  statsEl.innerHTML=`<div class="stats-head"><div class="ttl">📊 내 훈련 요약</div><button class="clr" onclick="clearStats()">기록 삭제</button></div>
-    <div class="dash-eval">
-      <div class="deval-grade" style="color:${gr.c}">${gr.g}</div>
-      <div class="deval-txt"><div class="deval-line">${assess(avg,rate)}</div>${sw?`<div class="deval-sub">${sw}</div>`:''}</div>
-    </div>
-    <div class="statgrid">
-      <div class="stat"><div class="n">${g.sessions}</div><div class="l">총 세션</div></div>
-      <div class="stat"><div class="n">${g.answers}</div><div class="l">응답 수</div></div>
-      <div class="stat"><div class="n" style="color:${avg>=70?'#16a34a':avg>=50?'#d97706':'#dc2626'}">${avg}</div><div class="l">평균 점수</div></div>
-      <div class="stat"><div class="n">${rate}%</div><div class="l">합격률</div></div>
-    </div>
-    ${axHtml}
-    <details class="pbdetails"><summary>페르소나별 평균 점수 펼쳐보기 ▾</summary><div class="pbars">${bars}</div></details>`;
-}
-function showTab(t){ if(statsEl) statsEl.classList.add('on'); }
-function clearStats(){ if(confirm("이 브라우저에 저장된 훈련 기록을 모두 삭제할까요?")){localStorage.removeItem(STORE);renderStats();renderPicker();} }
-
-/* ---------- 훈련생 식별 (로컬 전용, 조직 로그인 비의존) ----------
-   판매용 버전은 조직 Airtable/로그인에 연결하지 않고 이 브라우저에만 기록합니다.
-   조직 단위 랭킹·서버 집계가 필요하면 별도 백엔드 연동(유료 애드온)으로 확장하세요. */
-function identity(){
-  if(AUTH_USER){ var m=(AUTH_USER.user_metadata&&AUTH_USER.user_metadata.name)||""; return {fc:String(m||AUTH_USER.email||"").trim(), team:""}; }
-  try{ return {fc:String(localStorage.getItem("trainee_name")||"").trim(), team:""}; }catch(e){ return {fc:"",team:""}; }
-}
-function saveCloud(){ /* 판매용 버전: 조직 클라우드 저장 비활성화 (로컬 recordSession만 사용) */ }
-function loadCloudStats(){ /* 판매용 버전: 조직 클라우드 조회 비활성화 */ }
-
-/* ---------- picker ---------- */
-function renderPicker(){
-  const db=loadStore();
-  picker.innerHTML="";
-  PERSONAS.forEach(p=>{
-    const pp=(db.personas||{})[p.id];
-    const rec=pp&&pp.best?`<div class="rec">최고 ${pp.best}점 · ${pp.sessions}회 연습</div>`:"";
-    const d=document.createElement("div"); d.className="pcard";
-    d.innerHTML=`<span class="diff d${p.diff}">${["","쉬움","보통","어려움"][p.diff]}</span>
-      <div class="emoji">${p.emoji}</div><h3>${p.name}</h3>
-      <span class="tag">${p.tag}</span><p>${p.desc}</p>${rec}`;
-    d.onclick=()=>selectPersona(p);
-    picker.appendChild(d);
-  });
-}
-
-/* ---------- 대시보드 토글 (접기/펼치기) ---------- */
-function updateDashToggle(){
-  var b=document.getElementById('dashToggle'); if(!b) return;
-  var open=dashEl.classList.contains('on');
-  var db=loadStore(), g=db.global, sm='';
-  if(g&&g.sessions){ var avg=g.answers?Math.round(g.totalScore/g.answers):0; sm=' · 평균 '+avg+'점'; }
-  b.innerHTML='📊 내 훈련 기록'+sm+' '+(open?'닫기 ▲':'보기 ▾');
-}
-function toggleDash(){
-  var open=!dashEl.classList.contains('on');
-  dashEl.classList.toggle('on',open);
-  if(open){ statsEl.classList.add('on'); renderStats(); }
-  updateDashToggle();
-}
-
-/* ---------- 단계형 시작 위저드 ---------- */
-var wizPersona=null;
-function wizReset(){ wizPersona=null; var s1=document.getElementById('step1'), s2=document.getElementById('step2'); if(s1)s1.style.display=''; if(s2)s2.style.display='none'; }
-function wizBack(){ wizReset(); }
-function selectPersona(p){
-  wizPersona=p;
-  var s1=document.getElementById('step1'), s2=document.getElementById('step2');
-  if(s1)s1.style.display='none'; if(s2)s2.style.display='';
-  var sp=document.getElementById('step2Persona'); if(sp) sp.innerHTML='<span class="wsel-emoji">'+p.emoji+'</span> '+esc(p.name)+' 상대로 훈련';
-  renderColdCards(); updateTeaseBtn();
-}
-function renderColdCards(){
-  var el=document.getElementById('coldCards'); if(!el) return;
-  var html='';
-  for(var c=1;c<=5;c++){
-    var o=COLD[c], label=(o.t.split('·')[1]||o.t).trim();
-    var bg=c<=2?'#e8f7ee':(c===3?'#fef4e6':'#fdeaea'), tx=c<=2?'#15803d':(c===3?'#b45309':'#b91c1c');
-    html+='<button class="coldcard" onclick="chooseCold('+c+')"><span class="cc-n" style="background:'+bg+';color:'+tx+'">'+c+'</span><span class="cc-t">'+esc(label)+'</span><span class="cc-d">'+esc(o.d)+'</span></button>';
-  }
-  el.innerHTML=html;
-}
-function chooseCold(c){ coldness=c; if(wizPersona) tryStart(wizPersona); }  // 미터링 후 startChat
-
-/* ---------- 놀리기 모드 ---------- */
-let teasePref=true;
-try{ var _tv=localStorage.getItem('vida_tease_mode'); if(_tv!=null) teasePref=(_tv==='1'); }catch(e){}
-function updateTeaseBtn(){ var b=$("#teaseBtn"); if(!b)return; b.textContent='😜 놀리기 모드: '+(teasePref?'켜짐':'꺼짐'); b.classList.toggle('on',teasePref); b.classList.toggle('off',!teasePref); }
-function toggleTease(){ teasePref=!teasePref; try{localStorage.setItem('vida_tease_mode',teasePref?'1':'0');}catch(e){} if(state)state.tease=teasePref; updateTeaseBtn(); }
-
-/* ---------- 진행 중 세션 로컬 저장 (이어서 하기) ---------- */
-var SNAP='sales_training_active_session';
-function saveSnapshot(){
-  if(!state) return;
-  try{ localStorage.setItem(SNAP, JSON.stringify({
-    personaId:state.persona.id, cold:state.cold, passLine:state.passLine,
-    messages:state.messages, scores:state.scores, improves:state.improves,
-    axisSum:state.axisSum, axisCount:state.axisCount, turnEvals:state.turnEvals,
-    best:state.best, turns:state.turns, moodW:state.moodW, tease:state.tease, voiceOn:state.voiceOn, ts:Date.now()
-  })); }catch(e){}
-}
-function loadSnapshot(){ try{ return JSON.parse(localStorage.getItem(SNAP)); }catch(e){ return null; } }
-function clearSnapshot(){ try{ localStorage.removeItem(SNAP); }catch(e){} }
-function discardSnapshot(){ clearSnapshot(); renderResume(); }
-function setMoodByW(w){ var key='cold'; Object.keys(MOODS).forEach(function(k){ if(MOODS[k].w===w) key=k; }); setMood(key); }
-window.addEventListener('pagehide', function(){ if(state && !state.closed && state.scores && state.scores.length) saveSnapshot(); });
-function renderResume(){
-  var bar=document.getElementById('resumeBar'); if(!bar) return;
-  var snap=loadSnapshot();
-  if(!snap || !(snap.turns>0)){ bar.style.display='none'; bar.innerHTML=''; return; }
-  var p=null; for(var i=0;i<PERSONAS.length;i++){ if(PERSONAS[i].id===snap.personaId){p=PERSONAS[i];break;} }
-  var name=p?p.name:'훈련';
-  bar.style.display='block';
-  bar.innerHTML='<div class="resume"><div class="rz-t">⏸ 진행 중이던 훈련이 있어요</div><div class="rz-s">'+(p?p.emoji+' ':'')+esc(name)+' · '+snap.turns+'턴 진행</div><div class="rz-btns"><button class="rz-go" onclick="resumeSession()">이어서 하기</button><button class="rz-new" onclick="discardSnapshot()">새로 시작</button></div></div>';
-}
-function resumeSession(){
-  var snap=loadSnapshot(); if(!snap){ renderResume(); return; }
-  var p=null; for(var i=0;i<PERSONAS.length;i++){ if(PERSONAS[i].id===snap.personaId){p=PERSONAS[i];break;} }
-  if(!p){ clearSnapshot(); renderResume(); return; }
-  state={persona:p, messages:snap.messages||[], turns:snap.turns||0, best:snap.best||0, scores:snap.scores||[], improves:snap.improves||[], axisSum:snap.axisSum||{}, axisCount:snap.axisCount||0, turnEvals:snap.turnEvals||[], moodW:snap.moodW||18, won:false, closed:false, committed:false, cold:snap.cold, passLine:snap.passLine, voiceOn:(snap.voiceOn!=null?snap.voiceOn:voicePref), tease:(snap.tease!=null?snap.tease:teasePref)};
-  var bar=document.getElementById('resumeBar'); if(bar) bar.style.display='none';
-  wizardEl.style.display="none"; dashEl.classList.remove("on"); var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='none';
-  stage.classList.add("on"); $("#inbar").style.display="flex"; $("#report").classList.remove("on");
-  $("#tAv").textContent=p.emoji; $("#tWho").textContent=p.name; $("#tSt").textContent='냉담도 '+COLD[state.cold].t+' · 이어서 진행';
-  updateVoiceBtn(); setMoodByW(state.moodW); log.innerHTML="";
-  var turnIdx=0;
-  (state.messages||[]).forEach(function(m,idx){
-    if(idx===0){ addBubble("cust",p.emoji,m.text); return; }
-    if(m.role==='fc'){ addBubble("fc","🧑‍💼",m.text); }
-    else { addBubble("cust",p.emoji,m.text); var row=document.createElement("div"); row.className="peekrow"; row.innerHTML='<button class="peek" onclick="togglePeek('+turnIdx+',this)">💬 코칭 보기</button>'; log.appendChild(row); turnIdx++; }
-  });
-  log.scrollTop=log.scrollHeight;
-  inp.disabled=false;$("#send").disabled=false;inp.focus();
-}
-
-/* ---------- chat ---------- */
-function passLineFor(p,cold){return Math.max(50,Math.min(90,[0,60,68,75][p.diff]+(cold-3)*3));}
-function startChat(p){
-  clearSnapshot(); var _rb=document.getElementById('resumeBar'); if(_rb)_rb.style.display='none';
-  const pass=passLineFor(p,coldness);
-  state={persona:p,messages:[],turns:0,best:0,scores:[],improves:[],axisSum:{},axisCount:0,turnEvals:[],moodW:18,won:false,closed:false,committed:false,cold:coldness,passLine:pass,voiceOn:voicePref,tease:teasePref};
-  wizardEl.style.display="none"; dashEl.classList.remove("on"); var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='none';
-  stage.classList.add("on"); $("#inbar").style.display="flex"; $("#report").classList.remove("on");
-  $("#tAv").textContent=p.emoji; $("#tWho").textContent=p.name;
-  $("#tSt").textContent=`냉담도 ${COLD[coldness].t} · 합격선 평균 ${pass}점`;
-  updateVoiceBtn(); setMood("cold"); log.innerHTML="";
-  addBubble("cust",p.emoji,p.opener); state.messages.push({role:"cust",text:p.opener}); speak(p.opener);
-  inp.disabled=false;$("#send").disabled=false;inp.focus();
-}
-function reset(){
-  if(state && !state.closed && state.scores && state.scores.length){ saveSnapshot(); }  // 진행 중 → 이어서 하기용 저장(커밋 안 함)
-  else { persistSession(); clearSnapshot(); }                                            // 완료/빈 세션 → 커밋(대개 no-op) 후 정리
-  stopSpeak(); stopRecog();
-  stage.classList.remove("on"); wizardEl.style.display=""; wizReset();
-  var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='block';
-  dashEl.classList.remove("on"); renderResume(); renderPicker(); renderStats(); updateDashToggle(); state=null;
-}
-function setMood(m){const i=MOODS[m]||MOODS.cold;$("#moodTxt").textContent=i.t;$("#moodFill").style.width=i.w+"%";}
-function addBubble(role,emoji,text){
-  const r=document.createElement("div"); r.className="row "+role;
-  r.innerHTML=`<span class="mini">${role==='fc'?'🧑‍💼':emoji}</span><div class="bub">${esc(text)}</div>`;
-  log.appendChild(r); log.scrollTop=log.scrollHeight;
-}
-function buildEvalEl(ev){
-  const s=Math.max(0,Math.min(100,ev.score||0));
-  const col=s>=75?'#16a34a':s>=50?'#d97706':'#dc2626';
-  const axesHtml=ev.axes?`<div class="axes">${AXES.map(a=>{const v=clampS(ev.axes[a.k]);return `<div class="ax"><span class="axl">${a.label}</span><span class="axt"><span class="axf" style="width:${v}%;background:${axColor(v)}"></span></span><span class="axv">${v}</span></div>`}).join("")}</div>`:'';
-  const el=document.createElement("div"); el.className="eval";
-  el.innerHTML=`<div class="hd"><span class="score" style="background:${col}">${s}점</span><span class="lbl">답변 코칭</span></div>
-    ${ev.good?`<div class="line"><b class="g">잘한 점</b> · ${esc(ev.good)}</div>`:''}
-    ${ev.improve?`<div class="line"><b class="i">개선점</b> · ${esc(ev.improve)}</div>`:''}
-    ${ev.tip?`<div class="line"><b class="t">이렇게 해보세요</b> · ${esc(ev.tip)}</div>`:''}
-    ${axesHtml}`;
-  return el;
-}
-const CHIP_UP=['🔺 오, 좀 통하는데요?','🔺 어라, 마음이 살짝 흔들려요','🔺 이번 건 인정 — 설득력 상승','🔥 오~ 이제 좀 하시네요'];
-const CHIP_SAME=['⏸ 흠, 아직은 그대로예요','⏸ 그걸로는 좀 부족한데요','⏸ 음… 아직 안 넘어가요'];
-const CHIP_DOWN=['🔻 에이~ 그걸로는 어림없죠 ㅎㅎ','🔻 오히려 경계심만 올라갔어요','🔻 방금 건 살짝 역효과였어요'];
-const PLAIN_UP='🔺 설득력이 올라가고 있어요', PLAIN_SAME='⏸ 아직 마음이 그대로예요', PLAIN_DOWN='🔻 고객 경계가 다시 올라갔어요';
-function persuasionChip(prevW,newW){
-  const t=state?state.tease:teasePref, pick=a=>a[Math.floor(Math.random()*a.length)];
-  if(newW>prevW) return '<span class="persist up">'+(t?pick(CHIP_UP):PLAIN_UP)+'</span>';
-  if(newW<prevW) return '<span class="persist down">'+(t?pick(CHIP_DOWN):PLAIN_DOWN)+'</span>';
-  return '<span class="persist">'+(t?pick(CHIP_SAME):PLAIN_SAME)+'</span>';
-}
-function addTurnFooter(prevW,newW,i){
-  const row=document.createElement("div"); row.className="peekrow";
-  row.innerHTML=`${persuasionChip(prevW,newW)}<button class="peek" onclick="togglePeek(${i},this)">💬 코칭 보기</button>`;
-  log.appendChild(row); log.scrollTop=log.scrollHeight;
-}
-function togglePeek(i,btn){
-  if(btn._el){ btn._el.remove(); btn._el=null; btn.textContent='💬 코칭 보기'; return; }
-  const ev=state&&state.turnEvals?state.turnEvals[i]:null; if(!ev) return;
-  const el=buildEvalEl(ev); log.insertBefore(el, btn.parentNode.nextSibling); btn._el=el; btn.textContent='코칭 접기'; log.scrollTop=log.scrollHeight;
-}
-function esc(s){return (s||"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function typing(on){let t=$("#typing");
-  if(on){if(!t){t=document.createElement("div");t.id="typing";t.className="typing";t.textContent=state.persona.name.split(" ")[0]+" 님이 입력 중…";log.appendChild(t);log.scrollTop=log.scrollHeight;}}
-  else if(t)t.remove();}
-
-async function send(){
-  if(!state||state.closed)return;
-  const text=inp.value.trim(); if(!text)return;
-  inp.value="";inp.style.height="auto";
-  addBubble("fc","🧑‍💼",text); state.messages.push({role:"fc",text}); state.turns++;
-  inp.disabled=true;$("#send").disabled=true;typing(true);
-  const p=state.persona, c=COLD[state.cold];
-  const convo=state.messages.map(m=>`${m.role==='fc'?'영업사원':'고객'}: ${m.text}`).join("\n");
-  const teaseRule=state.tease?`\n- 재미와 동기부여를 위해 살짝 장난스럽고 유쾌한 톤을 섞습니다. 답변이 약하면 부드럽게 놀리듯 도발해("에이~ 그 정도로는 안 넘어가죠 ㅎㅎ", "오, 이번엔 진짜 대충인데요?") 재도전 승부욕을 자극하고, 답변이 좋으면 능청스럽게 인정합니다("오, 이번 건 좀 통하네요"). 단 무례·인신공격은 금지하고, 페르소나 성격과 냉담도는 끝까지 유지합니다.`:``;
-  const prompt=
-`당신은 보험 영업사원(FC) 교육용 롤플레이 AI입니다. 두 역할을 동시에 수행합니다.
-
-[고객 페르소나]
-이름: ${p.name}
-특성: ${p.traits}
-
-[냉담도 ${c.t}]
-${c.d}
-설득 반응: ${c.s}
-
-[규칙]
-- 위 고객이 되어 실제처럼 자연스러운 한국어 구어체로 반응합니다.${teaseRule}
-- 영업사원의 마지막 답변이 설득력 있으면 냉담도 규칙에 맞게 누그러지고, 약하면 계속 거절/의심합니다. 특성과 냉담도를 끝까지 유지하세요.
-- 동시에 영업사원의 마지막 답변을 코치로서 평가합니다. 냉담도가 높을수록 점수 기준을 엄격히 적용하세요.
-- 고객이 마음을 열어 이 상황의 목표(가입 검토·다음 미팅 약속, 또는 지인 소개 승낙 등)에 긍정적으로 응할 때만 closed를 true로 합니다.
-
-[역량 채점] 영업사원의 이번 답변을 아래 6개 역량으로 각각 0~100점 채점하세요. 상황(거절 극복/소개 요청)에 맞게 유연히 해석합니다.
-- empathy 공감·경청: 고객의 감정·상황을 인정하고 경청했는가
-- needs 니즈 파악: 질문으로 진짜 이유·니즈를 끌어냈는가
-- evidence 근거·전문성: 구체적 사실·데이터·논리로 뒷받침했는가
-- delivery 화법·표현: 자연스럽고 존중하는 말투인가
-- rebuttal 반론 대응: 고객의 우려·반론을 정면으로 해소했는가
-- closing 클로징: 부담을 낮추고 다음 행동을 유도했는가
-score(총점)는 이 역량들을 종합한 설득력이며, good/improve/tip은 이번 답변에 대한 구체적 코칭입니다.
-
-[대화 기록]
-${convo}
-
-[출력] 반드시 아래 JSON 하나만. 다른 말 금지.
-{"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장","improve":"개선점 한 문장","tip":"더 나은 화법 제안 한 문장","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false}`;
-  let data=null;
-  if(!DEMO_MODE){
-    try{
-      const r=await fetch(API_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
-      const j=await r.json();
-      const raw=(j&&j.text)?j.text:(j&&j.content&&j.content[0]&&j.content[0].text)?j.content[0].text:"";
-      data=extractJson(raw);
-    }catch(e){ data=null; }
-    if(!data){ DEMO_MODE=true; toast('🧪 데모 모드 — 내장 엔진이 응답합니다. (실시간 AI는 백엔드 배포 시 동작)'); }
-  }
-  if(!data){ await new Promise(res=>setTimeout(res,450)); data=demoTurn(text); }
-  typing(false);
-  if(!data){addBubble("cust",p.emoji,"(연결이 잠시 불안정했어요. 다시 한 번 말씀해 주시겠어요?)");inp.disabled=false;$("#send").disabled=false;inp.focus();return;}
-  const sc=Math.max(0,Math.min(100,data.score||0));
-  state.scores.push(sc); if(sc>state.best)state.best=sc;
-  if(data.improve)state.improves.push(data.improve);
-  if(data.axes){ state.axisCount++; AXES.forEach(a=>{ state.axisSum[a.k]=(state.axisSum[a.k]||0)+clampS(data.axes[a.k]); }); }
-  state.turnEvals.push(data);
-  const prevW=state.moodW||18; const nm=data.mood||"cold"; setMood(nm); const newW=(MOODS[nm]||MOODS.cold).w; state.moodW=newW;
-  state.messages.push({role:"cust",text:data.customer||"…"}); addBubble("cust",p.emoji,data.customer||"…"); speak(data.customer||"");
-  addTurnFooter(prevW,newW,state.turnEvals.length-1);
-  saveSnapshot();
-  if(data.closed){finish(true);return;}
-  inp.disabled=false;$("#send").disabled=false;inp.focus();
-}
-
-/* ---------- report ---------- */
-function persistSession(){
-  if(!state||state.committed) return;
-  const sc=state.scores||[];
-  if(!sc.length) return;
-  const avg=Math.round(sc.reduce((a,b)=>a+b,0)/sc.length);
-  const passed=state.won||(sc.length>=2&&avg>=state.passLine);
-  const trend=(sc[sc.length-1]||0)-(sc[0]||0);
-  const gr=grade(avg);
-  const axisAvg={};
-  if(state.axisCount){ AXES.forEach(function(a){ axisAvg[a.k]=Math.round((state.axisSum[a.k]||0)/state.axisCount); }); }
-  recordSession({personaId:state.persona.id,scores:sc,best:state.best,won:passed,axisAvg:axisAvg});
-  saveCloud({personaId:state.persona.id,cold:state.cold,passLine:state.passLine,turns:state.turns,avg:avg,best:state.best,trend:trend,passed:passed,grade:gr.g,axisAvg:axisAvg});
-  saveSessionToDB({persona:state.persona.id,cold:state.cold,turns:state.turns,avg:avg,best:state.best,trend:trend,passed:passed,grade:gr.g,axisAvg:axisAvg});
-  clearSnapshot();
-  state.committed=true;
-}
-function finish(won){
-  if(!state||state.closed)return;
-  stopSpeak(); stopRecog();
-  state.closed=true; state.won=won;
-  inp.disabled=true;$("#send").disabled=true; $("#inbar").style.display="none";
-  persistSession();
-  const sc=state.scores;
-  const avg=sc.length?Math.round(sc.reduce((a,b)=>a+b,0)/sc.length):0;
-  const passed=won||(sc.length>=2&&avg>=state.passLine);
-  const first=sc[0]||0, last=sc[sc.length-1]||0, trend=last-first;
-  const gr=grade(avg);
-  const badge=passed?`<span class="passbadge p">✔ 합격</span>`:`<span class="passbadge f">✕ 불합격</span>`;
-  const bars=sc.map(v=>{const col=v>=75?'#16a34a':v>=50?'#d97706':'#dc2626';return `<div class="b" style="height:${Math.max(8,v)}%;background:${col}" title="${v}점"></div>`;}).join("")||'<div style="color:#9ca3af;font-size:12px;align-self:center">응답 없음</div>';
-  const imp=[...new Set(state.improves)].slice(-3);
-  const impHtml=imp.length?imp.map(t=>`<div class="li"><b class="i">보완</b> · ${esc(t)}</div>`).join(""):'<div class="li" style="color:var(--muted)">개선점 데이터가 부족합니다.</div>';
-  let raxHtml='';
-  if(state.axisCount){
-    const avgAx=AXES.map(a=>({label:a.label,v:Math.round((state.axisSum[a.k]||0)/state.axisCount)}));
-    const minV=Math.min(...avgAx.map(x=>x.v));
-    raxHtml=`<div class="raxes"><div class="rax-h">역량별 평균</div>${avgAx.map(x=>`<div class="rax${x.v===minV?' low':''}"><span class="l">${x.label}</span><span class="t"><span class="f" style="width:${x.v}%;background:${axColor(x.v)}"></span></span><span class="v">${x.v}</span></div>`).join("")}</div>`;
-  }
-  const coachHtml=sc.length?`<div class="coach" id="coachBox"><div class="coach-load">🤖 AI 코치가 종합 분석 중…</div></div>`:'';
-  const r=$("#report");
-  r.innerHTML=`
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">${badge}
-      <span class="passline">합격 기준: 평균 ${state.passLine}점 이상(2턴 이상) 또는 고객 설득 성공</span></div>
-    <div class="rtop">
-      <div style="text-align:center;min-width:90px">
-        <div class="grade" style="color:${gr.c}">${gr.g}</div>
-        <div style="font-size:11px;color:var(--muted)">종합 등급</div>
-      </div>
-      <div class="rmetrics">
-        <div class="rm"><div class="n">${state.turns}</div><div class="l">주고받은 턴</div></div>
-        <div class="rm"><div class="n" style="color:${gr.c}">${avg}</div><div class="l">평균 점수</div></div>
-        <div class="rm"><div class="n">${state.best}</div><div class="l">최고 점수</div></div>
-        <div class="rm"><div class="n" style="color:${trend>=0?'#16a34a':'#dc2626'}">${trend>=0?'+':''}${trend}</div><div class="l">첫→끝 변화</div></div>
-      </div>
-    </div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:5px">답변별 점수 추이</div>
-    <div class="spark">${bars}</div>
-    ${raxHtml}
-    ${coachHtml}
-    <div class="rlist">
-      <div class="li"><b>${won?'🎉 거절 극복 성공 — 고객이 마음을 열었습니다.':'세션 종료 — 아래 보완점을 참고해 다시 도전해 보세요.'}</b></div>
-      ${impHtml}
-    </div>
-    <div class="rbtns">
-      <button class="send" onclick="startChat(state.persona)">같은 고객 재도전</button>
-      <button class="scriptbtn" onclick="window.print()">🖨 인쇄 / PDF 저장</button>
-      <button class="scriptbtn" onclick="openScripts()">📋 모범답안 스크립트</button>
-      <button class="hintbtn" onclick="reset()">다른 고객 / 냉담도 변경</button>
-    </div>`;
-  r.classList.add("on");
-  buildPrintArea({persona:state.persona,cold:state.cold,passLine:state.passLine,scores:sc,avg:avg,best:state.best,turns:state.turns,trend:trend,passed:passed,grade:gr.g,improves:[...new Set(state.improves)]});
-  if(sc.length){
-    const axisText=state.axisCount?AXES.map(a=>`${a.label} ${Math.round((state.axisSum[a.k]||0)/state.axisCount)}점`).join(", "):"데이터 없음";
-    generateCoaching({persona:state.persona.name, goal:(state.persona.id==='referral'?'만족 고객에게서 지인 소개 확보':'고객의 거절 극복'), convo:state.messages.map(m=>`${m.role==='fc'?'영업사원':'고객'}: ${m.text}`).join("\n"), axisText:axisText});
-  }
-  $("#tSt").textContent="세션 종료 · 리포트";
-  log.scrollTop=log.scrollHeight;
-}
-function askAI(prompt){
-  return fetch(API_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})})
-    .then(function(r){return r.json();}).then(function(j){ return (j&&j.text)?j.text:((j&&j.content&&j.content[0]&&j.content[0].text)||""); });
-}
-function generateCoaching(ctx){
-  if(DEMO_MODE){ renderDemoCoaching(); return; }
-  const prompt=
-`당신은 보험 영업 코치입니다. 아래는 FC(영업사원)의 롤플레이 훈련 대화입니다. 대화 전체를 보고 종합 코칭을 하세요. 냉철하되 건설적으로, 실전에 바로 쓸 수 있게 구체적으로.
-
-[고객 유형] ${ctx.persona}
-[이번 훈련 목표] ${ctx.goal}
-[역량 평균 점수] ${ctx.axisText}
-
-[대화]
-${ctx.convo}
-
-[출력] 반드시 아래 JSON 하나만. 다른 말 금지. 한국어.
-{"headline":"한 줄 총평","strengths":["잘한 점 1","잘한 점 2"],"focus":{"area":"가장 개선이 필요한 역량 이름","why":"왜 약한지 한 문장","how":["다음에 이렇게 해보라는 구체적 화법·행동 1","구체적 화법·행동 2"]},"nextStep":"다음에 어떤 훈련(고객 유형/냉담도)을 하면 좋을지 한 문장"}`;
-  askAI(prompt).then(function(raw){
-    const b=document.getElementById("coachBox"); if(!b) return;
-    const d=extractJson(raw);
-    if(!d){ b.innerHTML='<h4>🤖 AI 종합 코칭</h4><div class="coach-load">코칭을 생성하지 못했어요. 리포트를 다시 열어보시면 재시도됩니다.</div>'; return; }
-    const st=(d.strengths||[]).map(function(s){return `<div class="cst">👍 ${esc(s)}</div>`;}).join("");
-    const how=((d.focus&&d.focus.how)||[]).map(function(h){return `<li>${esc(h)}</li>`;}).join("");
-    b.innerHTML=`<h4>🤖 AI 종합 코칭</h4>
-      ${d.headline?`<div class="cst" style="font-weight:600">${esc(d.headline)}</div>`:''}
-      ${st}
-      ${d.focus?`<div class="cfocus"><div class="ca">가장 개선할 점 · ${esc(d.focus.area||'')}</div>${d.focus.why?`<div class="cst">${esc(d.focus.why)}</div>`:''}${how?`<ul>${how}</ul>`:''}</div>`:''}
-      ${d.nextStep?`<div class="cnext">▶ 다음 훈련: ${esc(d.nextStep)}</div>`:''}`;
-  }).catch(function(){ const b=document.getElementById("coachBox"); if(b) b.innerHTML='<h4>🤖 AI 종합 코칭</h4><div class="coach-load">코칭 생성 중 오류가 발생했어요.</div>'; });
-}
-function buildPrintArea(d){
-  const bc=d.passed?'#15803d':'#b91c1c', bb=d.passed?'#e8f7ee':'#fdeaea', bt=d.passed?'✔ 합격':'✕ 불합격';
-  const rows=d.scores.map((v,i)=>`<tr><td>${i+1}</td><td>${v}점</td></tr>`).join("")||`<tr><td colspan="2">응답 없음</td></tr>`;
-  const imp=d.improves.slice(-5);
-  const impHtml=imp.length?`<ul>${imp.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`:'<div style="font-size:12px;color:#9ca3af">보완점 데이터 없음</div>';
-  const now=new Date().toLocaleString('ko-KR',{hour12:false});
-  document.getElementById("printArea").innerHTML=`<div class="pa">
-    <h2>🎯 세일즈 거절극복 훈련 리포트</h2>
-    <div class="meta">고객유형: ${esc(d.persona.name)} · 냉담도 ${COLD[d.cold].t} · 합격선 평균 ${d.passLine}점 · 생성 ${now}</div>
-    <div><span class="pa-badge" style="color:${bc};background:${bb}">${bt}</span><span style="font-weight:700">종합 등급 ${d.grade}</span></div>
-    <div class="pa-grid">
-      <div class="pa-m"><div class="n">${d.turns}</div><div class="l">주고받은 턴</div></div>
-      <div class="pa-m"><div class="n">${d.avg}</div><div class="l">평균 점수</div></div>
-      <div class="pa-m"><div class="n">${d.best}</div><div class="l">최고 점수</div></div>
-      <div class="pa-m"><div class="n">${d.trend>=0?'+':''}${d.trend}</div><div class="l">첫→끝 변화</div></div>
-    </div>
-    <div class="sec">답변별 점수</div>
-    <table><thead><tr><th>순번</th><th>코칭 점수</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="sec">보완 포인트</div>${impHtml}
-    <div class="foot">${COMPANY?esc(COMPANY)+' · ':''}세일즈 거절극복 훈련 · 세션 종료 시점 기준으로 생성된 리포트입니다.</div>
-  </div>`;
-}
-function grade(a){
-  if(a>=85)return{g:"A",c:"#16a34a"}; if(a>=70)return{g:"B",c:"#22a06b"};
-  if(a>=55)return{g:"C",c:"#d97706"}; if(a>=40)return{g:"D",c:"#ea580c"}; return{g:"F",c:"#dc2626"};
-}
-function extractJson(t){
-  if(!t)return null;
-  let m=t.match(/```(?:json)?\s*([\s\S]*?)```/); if(m)t=m[1];
-  const i=t.indexOf("{"),j=t.lastIndexOf("}"); if(i<0||j<0)return null;
-  try{return JSON.parse(t.slice(i,j+1));}catch(e){}
-  try{return JSON.parse(t.slice(i,j+1).replace(/,\s*}/g,"}").replace(/,\s*]/g,"]"));}catch(e){return null;}
-}
-
-function openScripts(){
-  if(!state)return;
-  const p=state.persona, sc=SCRIPTS[p.id];
-  $("#mEmoji").textContent=p.emoji;
-  $("#mTitle").textContent=`${p.name} · 모범답안 스크립트`;
-  $("#mIntro").textContent=sc.intro;
-  $("#mCards").innerHTML=sc.cards.map(c=>`<div class="scard"><span class="skill">${esc(c.skill)}</span>
-    <div class="say">“${esc(c.say)}”</div><div class="why">왜 통하나 · ${esc(c.why)}</div></div>`).join("");
-  $("#modal").classList.add("on");
-}
-function closeScripts(){ $("#modal").classList.remove("on"); }
-$("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeScripts();});
-$("#scriptBtn").onclick=openScripts;
-/* ---------- 음성 (TTS 고객 낭독 / STT 답변 받아쓰기) ---------- */
-const TTS=('speechSynthesis' in window);
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-let voicePref=true, recog=null, recWatchdog=null, recHeard=false, toastT=null;
-function toast(msg){ const el=$("#toast"); if(!el){alert(msg);return;} el.textContent=msg; el.classList.add('on'); if(toastT)clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('on'),3600); }
-function clearWatch(){ if(recWatchdog){clearTimeout(recWatchdog);recWatchdog=null;} }
-if(TTS){ try{ speechSynthesis.onvoiceschanged=function(){}; speechSynthesis.getVoices(); }catch(e){} }
-function stopSpeak(){ if(TTS){try{speechSynthesis.cancel()}catch(e){}} }
-function speak(t){
-  if(!TTS||!t||!state||!state.voiceOn) return;
+async function loadStats(){
+  $("content").innerHTML='<div class="loading">불러오는 중…</div>';
+  var sess=(await sb.auth.getSession()).data.session;
+  if(!sess){ showGate(); return; }
   try{
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(String(t));
-    u.lang='ko-KR'; u.rate=1.1; u.pitch=1;
-    const vs=speechSynthesis.getVoices()||[];
-    const v=vs.find(x=>/ko/i.test(x.lang||''));
-    if(v)u.voice=v;
-    speechSynthesis.speak(u);
-  }catch(e){}
-}
-function updateVoiceBtn(){ const b=$("#voiceBtn"); if(!b)return; const on=state?state.voiceOn:voicePref; b.innerHTML=on?'🔊 듣기 켜짐':'🔇 듣기 꺼짐'; b.classList.toggle('off',!on); }
-function toggleVoice(){ if(state){state.voiceOn=!state.voiceOn; voicePref=state.voiceOn;} else {voicePref=!voicePref;} if(!(state?state.voiceOn:voicePref)) stopSpeak(); updateVoiceBtn(); }
-function micIdle(){ const mb=$("#micBtn"); if(mb){ mb.classList.remove('rec'); mb.innerHTML='🎤 말하기'; } }
-function micBusy(){ const mb=$("#micBtn"); if(mb){ mb.classList.add('rec'); mb.innerHTML='⏹ 멈춤'; } }
-function stopRecog(){ clearWatch(); if(recog){ try{recog.onresult=recog.onerror=recog.onend=null;}catch(e){} try{recog.stop();}catch(e){} try{recog.abort&&recog.abort();}catch(e){} recog=null; } micIdle(); }
-function startVoiceInput(){
-  if(!SR){ toast('이 브라우저는 앱 내 음성 입력을 지원하지 않아요. 휴대폰 키보드의 🎤(받아쓰기) 버튼으로 말하면 됩니다.'); inp.focus(); return; }
-  if(recog){ stopRecog(); return; }   // 녹음 중이면 탭해서 멈춤
-  stopSpeak();
-  let r; try{ r=new SR(); }catch(e){ recog=null; return; }
-  recog=r; recHeard=false;
-  r.lang='ko-KR'; r.maxAlternatives=1;
-  try{ r.interimResults=true; }catch(e){}
-  try{ r.continuous=true; }catch(e){}
-  const base=inp.value?inp.value.replace(/\s+$/,'')+' ':'';
-  micBusy();
-  r.onresult=e=>{
-    let fin='',intr='';
-    for(let i=0;i<e.results.length;i++){ const seg=e.results[i][0]?e.results[i][0].transcript:''; if(e.results[i].isFinal)fin+=seg; else intr+=seg; }
-    recHeard=true;
-    inp.value=base+fin+intr; inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,120)+'px';
-  };
-  r.onerror=ev=>{
-    const code=ev&&ev.error;
-    if(recog===r){ clearWatch(); recog=null; micIdle(); }
-    if(code==='not-allowed'||code==='service-not-allowed') toast('마이크 권한이 필요해요. 설정에서 마이크/받아쓰기를 허용하거나, 키보드의 🎤 받아쓰기를 이용하세요.');
-    else if(code==='no-speech') toast('음성이 감지되지 않았어요. 다시 시도해 주세요.');
-    else if(code&&code!=='aborted') toast('음성 인식 오류('+code+'). 키보드의 🎤 받아쓰기를 이용해 보세요.');
-  };
-  r.onend=()=>{ if(recog!==r) return; clearWatch(); recog=null; micIdle(); if(!recHeard) toast('음성이 인식되지 않았어요. 휴대폰 키보드의 🎤(받아쓰기)로도 입력할 수 있어요.'); inp.focus(); };
-  try{ r.start(); }catch(e){ stopRecog(); toast('음성 입력을 시작하지 못했어요. 키보드의 🎤 받아쓰기를 이용해 주세요.'); return; }
-  recWatchdog=setTimeout(()=>{ stopRecog(); }, 30000);  // iOS 안전장치: 30초 후 자동 종료
-}
-if(!TTS){ const vb=$("#voiceBtn"); if(vb) vb.style.display='none'; }
-$("#micBtn").onclick=startVoiceInput;
-
-$("#send").onclick=send;
-inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}});
-inp.addEventListener("input",()=>{inp.style.height="auto";inp.style.height=Math.min(inp.scrollHeight,120)+"px";});
-$("#hintBtn").onclick=()=>{
-  if(!state)return;
-  const hints={apathy:"현재 보험의 '공백'을 질문으로 찾아주세요. 이미 있다=충분하다가 아님을 짚기.",
-    price:"가격이 아니라 '하루 커피값'처럼 가치로 환산하고, 미보장 시 리스크를 대비시키세요.",
-    doubt:"약관·지급률 데이터, 손해사정 절차, 본인의 책임 있는 관리로 신뢰를 증명하세요.",
-    busy:"'딱 3분만'처럼 부담을 낮추고, 지금 결정의 이점(건강할 때 가입)을 짚으세요.",
-    spouse:"배우자를 함께 설득할 자료를 제안하고, 결정을 돕는 질문으로 진짜 니즈를 확인하세요.",
-    friend:"지인 관계를 존중하면서, 비교/세컨드 오피니언의 가치를 부드럽게 제안하세요.",
-    probe:"방어하지 말고 소속·경력·자격을 당당히 밝히세요. 검증하는 태도를 오히려 칭찬하세요.",
-    tenure:"개인 다짐 대신 회사 시스템·조직 인계 구조로 지속 관리를 보장하세요.",
-    hold:"'어떤 부분이 제일 고민되세요?' 질문으로 숨은 진짜 반대 이유를 끌어내세요.",
-    parent:"납입은 부모, 혜택은 본인임을 짚어 당사자 주인의식을 깨우세요.",
-    complete:"인정부터 하고, 최신 기준 맹점(실손 세대·진단비 한도)을 질문으로 확인시키세요.",
-    referral:"만족을 확인받은 직후 요청하고, '폐 끼칠까' 걱정을 먼저 없애며, 소개 대상을 구체적으로(결혼·출산·이직 등) 짚어주세요."};
-  const el=document.createElement("div"); el.className="eval";
-  el.innerHTML=`<div class="hd"><span class="lbl">💡 접근 힌트</span></div><div class="line"><b class="t">방향</b> · ${esc(hints[state.persona.id]||"고객의 진짜 니즈를 질문으로 확인하세요.")}</div>`;
-  log.appendChild(el); log.scrollTop=log.scrollHeight;
-};
-/* ---------- 브랜딩 & 훈련생 이름 (판매용) ---------- */
-function applyBranding(){
-  var bt=$("#brandTag"), bf=$("#brandFoot");
-  if(bt) bt.textContent = COMPANY ? ("— "+COMPANY+" 세일즈 훈련") : "";
-  if(bf) bf.textContent = COMPANY ? (COMPANY+" 세일즈 훈련 · ") : "";
-}
-/* ============================================================
-   ===== Supabase 로그인 게이트 =====
-   아래 두 값을 Supabase 대시보드(Project Settings → API)에서 복사해 넣으세요.
-   - SUPABASE_URL      : Project URL   (예: https://xxxx.supabase.co)
-   - SUPABASE_ANON_KEY : anon public key (eyJ... 로 시작하는 긴 키)
-   ※ anon 키는 브라우저에 넣어도 안전합니다(RLS가 데이터를 보호).
-     service_role 키는 절대 여기에 넣지 마세요.
-   두 값이 비어 있으면 로그인 없이 '데모로 계속'만 가능합니다.
-   ============================================================ */
-const SUPABASE_URL="https://pzotfitbuxwoaenvdfju.supabase.co";       // Project URL
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6b3RmaXRidXh3b2FlbnZkZmp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5OTU4ODksImV4cCI6MjA5OTU3MTg4OX0.A-2Buu9hKLW_2ORgxFfMQcL9u9vzKLWZBf3R4v0XAQc";  // anon public key
-
-/* ===== 포트원 결제 설정 (프론트에 넣어도 안전한 공개 식별자) =====
-   포트원 콘솔 → 결제연동에서 확인:
-   - PORTONE_STORE_ID   : 상점 ID (store-... 로 시작)
-   - PORTONE_CHANNEL_KEY: 채널 키 (channel-key-... 로 시작, 빌링/정기결제 지원 채널)
-   실제 결제(빌링키 발급→서버 결제)는 아래 SUBSCRIBE_ENDPOINT(Netlify 함수)에서 처리됩니다. */
-const PORTONE_STORE_ID="store-018275b1-081a-4e67-a61a-fc19ef94a97a";       // 포트원 상점 ID
-const PORTONE_CHANNEL_KEY="channel-key-4510052f-68c2-4b20-9e6c-2f3db5c0adf5";    // 포트원 채널 키
-const SUBSCRIBE_ENDPOINT="/.netlify/functions/subscribe"; // 구독 결제 백엔드
-const CANCEL_ENDPOINT="/.netlify/functions/cancel-subscription"; // 구독 해지 백엔드
-
-let sb=null, AUTH_USER=null, gMode="login";
-function gq(id){return document.getElementById(id);}
-function bootApp(){
-  wizReset(); updateTeaseBtn();
-  var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='block';
-  dashEl.classList.remove("on");
-  renderResume(); renderStats(); renderPicker(); updateDashToggle();
-}
-
-function setGateMode(m){
-  gMode=m;
-  gq("gtabLogin").classList.toggle("on",m==="login");
-  gq("gtabSignup").classList.toggle("on",m==="signup");
-  gq("gSubmit").textContent = m==="login" ? "로그인" : "회원가입";
-  gq("gPw").setAttribute("autocomplete", m==="login"?"current-password":"new-password");
-  gq("gMsg").textContent=""; gq("gMsg").className="gmsg";
-}
-function gateMsg(t,ok){ var e=gq("gMsg"); e.textContent=t; e.className="gmsg "+(ok?"ok":"err"); }
-
-function onAuthed(user){
-  AUTH_USER=user;
-  try{ localStorage.setItem("trainee_name",(user.user_metadata&&user.user_metadata.name)||user.email||""); }catch(e){}
-  gq("gate").classList.add("hide");
-  gq("logoutBtn").style.display="block";
-  gq("acctBtn").style.display="block";
-  bootApp();
-}
-
-async function gateSubmit(){
-  var email=gq("gEmail").value.trim(), pw=gq("gPw").value;
-  if(!email||!pw){ gateMsg("이메일과 비밀번호를 입력하세요."); return; }
-  gq("gSubmit").disabled=true;
-  try{
-    if(gMode==="signup"){
-      var r=await sb.auth.signUp({email:email,password:pw});
-      if(r.error){ gateMsg(r.error.message); }
-      else if(r.data.session){ onAuthed(r.data.session.user); }   // 이메일 인증 꺼진 경우 즉시 로그인
-      else { gateMsg("가입 완료! 이메일 인증이 켜져 있으면 메일함을 확인하세요.",true); setGateMode("login"); }
-    }else{
-      var l=await sb.auth.signInWithPassword({email:email,password:pw});
-      if(l.error){ gateMsg(l.error.message); }
-      else { onAuthed(l.data.user); }
-    }
-  }catch(e){ gateMsg("연결 오류가 발생했습니다. 잠시 후 다시 시도하세요."); }
-  gq("gSubmit").disabled=false;
-}
-
-function bootAuth(){
-  gq("gtabLogin").onclick=function(){setGateMode("login");};
-  gq("gtabSignup").onclick=function(){setGateMode("signup");};
-  gq("gSubmit").onclick=gateSubmit;
-  gq("gPw").addEventListener("keydown",function(e){ if(e.key==="Enter") gateSubmit(); });
-  gq("logoutBtn").onclick=async function(){ try{ if(sb) await sb.auth.signOut(); }catch(e){} location.reload(); };
-
-  if(!SUPABASE_URL || !SUPABASE_ANON_KEY || !window.supabase){
-    // 설정 전: 로그인 없이 데모로 진입할 수 있게 안내
-    gq("gNote").innerHTML='아직 Supabase 연결 전입니다.<br><button class="gbtn" style="margin-top:10px;background:#5b6472" type="button" onclick="skipAuthDemo()">로그인 없이 데모로 계속 →</button>';
-    return;
-  }
-  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  trackVisit();
-  gq("gNote").textContent="가입 시 이메일·비밀번호(6자 이상)만 있으면 됩니다.";
-  sb.auth.getSession().then(function(res){
-    if(res.data && res.data.session){ onAuthed(res.data.session.user); }
-  });
-}
-function skipAuthDemo(){ gq("gate").classList.add("hide"); bootApp(); }
-
-/* ============================================================
-   ===== Phase 2 · 사용량 미터링 / 무료 한도 / 구독 유도 =====
-   세션 시작 시 Supabase RPC(check_and_bump_usage)를 호출해
-   무료 한도를 세고, 초과하면 구독 모달을 띄웁니다.
-   로그인 안 한 데모 모드에서는 제한 없이 통과합니다.
-   ============================================================ */
-function meterYM(){ var d=new Date(Date.now()+9*3600*1000); return d.toISOString().slice(0,7); } // KST 'YYYY-MM'
-
-async function tryStart(p){
-  // 로그인/백엔드 없으면 그냥 진행(데모)
-  if(!sb || !AUTH_USER){ startChat(p); return; }
-  try{
-    var r=await sb.rpc('check_and_bump_usage',{ p_ym:meterYM(), add_session:1, add_turns:0 });
-    if(r.error){ console.warn('meter error', r.error); startChat(p); return; } // 오류 시 막지 않음
-    var row=Array.isArray(r.data)?r.data[0]:r.data;
-    if(row && row.allowed===false && row.reason==='free_limit_reached'){ showPaywall(row); return; }
-    updateUseTag(row);
-    startChat(p);
-  }catch(e){ console.warn(e); startChat(p); }
-}
-function updateUseTag(row){
-  var el=gq("useTag"); if(!el||!row) return;
-  if(row.limit_===-1){ el.textContent="구독 · 무제한"; }
-  else if(typeof row.sessions_used==='number'){ el.textContent="이번 달 "+row.sessions_used+" / "+row.limit_+"회"; }
-  el.style.display="block";
-}
-function showPaywall(row){
-  var m=gq("pwMsg");
-  if(m && row && typeof row.limit_==='number'){
-    m.innerHTML="이번 달 무료 세션 "+row.limit_+"회를 모두 사용했습니다.<br>구독하면 <b>무제한</b>으로 훈련할 수 있어요.";
-  }
-  gq("paywall").classList.add("on");
-}
-function closePaywall(){ gq("paywall").classList.remove("on"); }
-
-async function saveSessionToDB(d){
-  if(!sb || !AUTH_USER) return;
-  var a=d.axisAvg||{};
-  try{
-    await sb.from('training_sessions').insert({
-      user_id:AUTH_USER.id, persona:d.persona, cold:d.cold, turns:d.turns,
-      avg_score:d.avg, best_score:d.best, trend:d.trend, passed:d.passed, grade:d.grade,
-      empathy:a.empathy, needs:a.needs, evidence:a.evidence, delivery:a.delivery, rebuttal:a.rebuttal, closing:a.closing
-    });
-  }catch(e){ console.warn('session save', e); }
-}
-
-/* ============================================================
-   ===== Phase 3 · 포트원 구독 결제 =====
-   1) 프론트: 포트원 SDK로 빌링키(카드) 발급
-   2) 백엔드(subscribe 함수): 빌링키로 첫 결제 + Supabase 구독 활성 + 다음달 예약
-   ============================================================ */
-async function startSubscribe(){
-  if(!sb || !AUTH_USER){ alert("로그인이 필요합니다."); return; }
-  if(!PORTONE_STORE_ID || !PORTONE_CHANNEL_KEY || !window.PortOne){
-    alert("결제 설정(포트원 상점ID·채널키)이 아직 입력되지 않았습니다."); return;
-  }
-  var btn=gq("pwSub"); btn.disabled=true; var old=btn.textContent; btn.textContent="카드 등록 중…";
-  try{
-    // 1) 빌링키 발급 (카드 등록 창)
-    var issue=await window.PortOne.requestIssueBillingKey({
-      storeId:PORTONE_STORE_ID, channelKey:PORTONE_CHANNEL_KEY, billingKeyMethod:"EASY_PAY",
-      issueId:"issue-"+(crypto.randomUUID?crypto.randomUUID():Date.now()),
-      issueName:"세일즈 훈련 구독",
-      customer:{ customerId:AUTH_USER.id, email:AUTH_USER.email }
-    });
-    if(!issue || issue.code){ alert("카드 등록 실패 ["+((issue&&issue.code)||"")+"]: "+((issue&&issue.message)||"취소됨")); btn.disabled=false; btn.textContent=old; return; }
-    // 2) 서버에 구독 결제 요청 (로그인 토큰 함께 전달)
-    btn.textContent="결제 처리 중…";
-    var sess=(await sb.auth.getSession()).data.session;
-    var r=await fetch(SUBSCRIBE_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ billingKey:issue.billingKey, accessToken:sess&&sess.access_token })});
+    var r=await fetch(ADMIN_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessToken:sess.access_token})});
     var j=await r.json();
-    if(r.ok && j.ok){
-      alert("구독 완료! 이제 무제한으로 이용하실 수 있어요. 🎉");
-      closePaywall();
-      var t=gq("useTag"); if(t){ t.textContent="구독 · 무제한"; t.style.display="block"; }
-    }else{
-      alert("결제 처리 실패: "+((j&&(j.error||j.message))||("HTTP "+r.status))+"\n다시 시도하거나 다른 카드를 사용해 주세요.");
-      btn.disabled=false; btn.textContent=old;
-    }
-  }catch(e){
-    var em=(e&&(e.message||e.code))?(("["+((e&&e.code)||"")+"] ")+(e.message||"")):String(e);
-    alert("결제 오류: "+em); btn.disabled=false; btn.textContent=old;
-  }
-}
-(function(){
-  var s=gq("pwSub"), c=gq("pwClose");
-  if(s) s.onclick=startSubscribe;
-  if(c) c.onclick=closePaywall;
-})();
-
-/* ============================================================
-   ===== 내 계정 대시보드 (정보 · 이용내역 · 구독관리) =====
-   ============================================================ */
-function fmtDate(s){ if(!s) return "-"; try{ return new Date(s).toLocaleDateString('ko-KR'); }catch(e){ return String(s).slice(0,10); } }
-function openAccount(){ gq("acct").classList.add("on"); loadAccount(); }
-function closeAccount(){ gq("acct").classList.remove("on"); }
-async function loadAccount(){
-  if(!sb || !AUTH_USER){ gq("acctBody").innerHTML='<div style="padding:20px;color:#6b7280">로그인이 필요합니다.</div>'; return; }
-  var email=AUTH_USER.email||"-", joined=fmtDate(AUTH_USER.created_at);
-  // 이용량 (RPC로 이번 달 사용량/한도 조회 — 증가 없이)
-  var used="-", limit="-";
-  try{ var u=await sb.rpc('check_and_bump_usage',{p_ym:meterYM(),add_session:0,add_turns:0}); var row=Array.isArray(u.data)?u.data[0]:u.data; if(row){ used=row.sessions_used; limit=(row.limit_===-1?"무제한":row.limit_); } }catch(e){}
-  // 구독
-  var subHtml='<div class="acct-row"><span class="l">상태</span><span class="acct-badge off">미구독</span></div>';
-  var isSub=false, sub=null;
-  try{ var sr=await sb.from('subscriptions').select('status,current_period_end,plan').eq('user_id',AUTH_USER.id).maybeSingle(); sub=sr.data; }catch(e){}
-  if(sub && sub.current_period_end && new Date(sub.current_period_end).getTime()>Date.now() && (sub.status==='active'||sub.status==='canceled')){
-    isSub=true;
-    var canceled=sub.status==='canceled';
-    subHtml='<div class="acct-row"><span class="l">상태</span><span class="acct-badge on">'+(canceled?'해지 예정':'구독 중')+' · 무제한</span></div>'+
-            '<div class="acct-row"><span class="l">'+(canceled?'이용 종료일':'다음 결제일')+'</span><span>'+fmtDate(sub.current_period_end)+'</span></div>'+
-            (canceled?'<div class="acct-row"><span class="l" style="color:#b45309">해지되어 기간 종료 후 자동 갱신되지 않습니다.</span></div>'
-                     :'<button class="acct-cancel" id="cancelSubBtn" type="button">구독 해지하기</button>');
-  }
-  // 최근 세션
-  var hist='<div style="color:#6b7280">기록 없음</div>';
-  try{
-    var hs=await sb.from('training_sessions').select('persona,avg_score,grade,passed,created_at').eq('user_id',AUTH_USER.id).order('created_at',{ascending:false}).limit(10);
-    if(hs.data && hs.data.length){
-      hist=hs.data.map(function(s){ return '<div class="h"><span>'+fmtDate(s.created_at)+' · '+esc(s.persona||'')+'</span><span>'+(s.avg_score||0)+'점 '+(s.passed?'✓':'')+'</span></div>'; }).join("");
-    }
-  }catch(e){}
-
-  gq("acctBody").innerHTML=
-    '<div class="acct-sec"><h4>내 정보</h4>'+
-      '<div class="acct-row"><span class="l">이메일</span><span>'+esc(email)+'</span></div>'+
-      '<div class="acct-row"><span class="l">가입일</span><span>'+joined+'</span></div></div>'+
-    '<div class="acct-sec"><h4>이번 달 이용</h4>'+
-      '<div class="acct-row"><span class="l">사용한 세션</span><span>'+used+' / '+limit+'</span></div></div>'+
-    '<div class="acct-sec"><h4>구독 관리</h4>'+subHtml+'</div>'+
-    '<div class="acct-sec"><h4>최근 훈련 내역</h4><div class="acct-hist">'+hist+'</div></div>';
-
-  var cb=gq("cancelSubBtn");
-  if(cb) cb.onclick=cancelSubscription;
-}
-async function cancelSubscription(){
-  if(!confirm("정말 구독을 해지할까요?\n현재 이용 기간이 끝나면 자동 갱신되지 않습니다.")) return;
-  var btn=gq("cancelSubBtn"); if(btn){ btn.disabled=true; btn.textContent="처리 중…"; }
-  try{
-    var sess=(await sb.auth.getSession()).data.session;
-    var r=await fetch(CANCEL_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessToken:sess&&sess.access_token})});
-    var j=await r.json();
-    if(r.ok && j.ok){ alert(j.message||"구독이 해지되었습니다."); loadAccount(); }
-    else{ alert("해지 처리 실패: "+((j&&j.error)||("HTTP "+r.status))); if(btn){btn.disabled=false;btn.textContent="구독 해지하기";} }
-  }catch(e){ alert("해지 중 오류가 발생했습니다."); if(btn){btn.disabled=false;btn.textContent="구독 해지하기";} }
-}
-gq("acctBtn").onclick=openAccount;
-gq("acctClose").onclick=closeAccount;
-gq("acct").addEventListener("click",function(e){ if(e.target.id==="acct") closeAccount(); });
-
-/* ============================================================
-   ===== 방문 분석 추적 (방문자 · 체류시간 · 이탈페이지) =====
-   ============================================================ */
-function trackVisit(){
-  if(!sb) return;
-  var vid; try{ vid=sessionStorage.getItem('visit_id'); if(!vid){ vid=(crypto.randomUUID?crypto.randomUUID():String(Date.now())); sessionStorage.setItem('visit_id',vid); } }catch(e){ vid=String(Date.now()); }
-  var page=(location.pathname||'/')+(location.hash||''); var start=Date.now(), sent=false;
-  try{ sb.from('analytics_events').insert({visit_id:vid,user_id:(AUTH_USER?AUTH_USER.id:null),type:'pageview',page:page}).then(function(){},function(){}); }catch(e){}
-  function exit(){ if(sent)return; sent=true; var dur=Math.round((Date.now()-start)/1000);
-    try{ fetch(SUPABASE_URL+'/rest/v1/analytics_events',{method:'POST',keepalive:true,
-      headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY},
-      body:JSON.stringify({visit_id:vid,user_id:(AUTH_USER?AUTH_USER.id:null),type:'exit',page:page,duration_sec:dur})}).catch(function(){}); }catch(e){}
-  }
-  document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden') exit(); });
-  window.addEventListener('pagehide',exit);
+    if(r.status===403){ $("content").innerHTML='<div class="loading">이 계정은 관리자가 아닙니다. (ADMIN_EMAIL 환경변수와 로그인 계정을 확인하세요)</div>'; return; }
+    if(!r.ok||!j.ok){ $("content").innerHTML='<div class="loading">데이터를 불러오지 못했습니다: '+esc((j&&j.error)||('HTTP '+r.status))+'</div>'; return; }
+    render(j);
+  }catch(e){ $("content").innerHTML='<div class="loading">서버 연결 오류. 배포 사이트에서 실행하세요.</div>'; }
 }
 
-applyBranding();
-bootAuth();
-</script>
+function render(j){
+  var k=j.kpi||{}, S=j.series||{}, sdays=S.days||[];
+  // 카드 정의: s=시계열 키(있으면 카드에 스파크라인), t=차트 타입
+  var cards=[
+    {label:"방문자(순)", val:k.visitors||0, cls:"b", s:"visitors", t:"line"},
+    {label:"페이지뷰", val:k.totalPageviews||0, cls:"", s:"pageviews", t:"line"},
+    {label:"훈련 세션", val:k.totalSessions||0, cls:"g", s:"sessions", t:"bar"},
+    {label:"평균 체류시간", val:fmtDur(k.avgDuration), cls:"", s:null},
+    {label:"결제자수", val:k.payers||0, cls:"g", s:null},
+    {label:"결제건수", val:k.payCount||0, cls:"g", s:"payCount", t:"bar"},
+    {label:"결제금액", val:won(k.payAmount), cls:"a", s:"payAmount", t:"bar"},
+    {label:"구독자수", val:k.subscribers||0, cls:"p", s:null},
+    {label:"신규 가입", val:k.totalUsers||0, cls:"", s:"newUsers", t:"bar"}
+  ];
+  var kpiHtml=cards.map(function(c,i){
+    var v=(typeof c.val==='number')?c.val.toLocaleString('ko-KR'):esc(c.val);
+    var g=c.s?('<canvas class="spark" id="spark_'+i+'"></canvas>'):'<div class="nospark">—</div>';
+    return '<div class="k '+c.cls+'"><div class="n">'+v+'</div><div class="l">'+c.label+'</div>'+g+'</div>';
+  }).join("");
 
-<!-- ===== PWA: 서비스 워커 등록 + 설치 안내 ===== -->
-<script>
-(function(){
-  if('serviceWorker' in navigator){
-    window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  var per=(j.perUser||[]);
+  var maxS=per.reduce(function(m,u){return Math.max(m,u.sessions);},1);
+  var perHtml=per.length?per.map(function(u){return '<tr><td>'+esc(u.user)+'</td><td class="r"><span class="bar"><span style="width:'+Math.round(u.sessions/maxS*100)+'%"></span></span>'+u.sessions+'</td></tr>';}).join(""):'<tr><td colspan="2" class="muted">데이터 없음</td></tr>';
+
+  var ex=(j.exitPages||[]);
+  var exTot=ex.reduce(function(a,e){return a+e.count;},0)||1;
+  var exHtml=ex.length?ex.map(function(e){var pctv=Math.round(e.count/exTot*100);return '<tr><td>'+stageLabel(e.page)+'</td><td class="r"><span class="bar"><span style="width:'+pctv+'%;background:#dc2626"></span></span>'+e.count+' ('+pctv+'%)</td></tr>';}).join(""):'<tr><td colspan="2" class="muted">데이터 없음</td></tr>';
+
+  $("content").innerHTML=
+    '<div class="grid">'+kpiHtml+'</div>'+
+    '<div class="panel"><h3>💰 일자별 매출 (최근 14일)</h3><canvas id="revChart" height="90"></canvas></div>'+
+    '<div class="cols">'+
+      '<div class="panel"><h3>👤 사용자별 세션 이용수 (상위 30)</h3><table><thead><tr><th>사용자</th><th class="r">세션수</th></tr></thead><tbody>'+perHtml+'</tbody></table></div>'+
+      '<div class="panel"><h3>🚪 이탈 단계 (어디서 나갔나)</h3><table><thead><tr><th>단계</th><th class="r">이탈수</th></tr></thead><tbody>'+exHtml+'</tbody></table></div>'+
+    '</div>';
+
+  // 카드별 스파크라인
+  sparks.forEach(function(c){try{c.destroy();}catch(e){}}); sparks=[];
+  if(window.Chart){
+    cards.forEach(function(c,i){
+      if(!c.s) return;
+      var el=document.getElementById('spark_'+i); if(!el) return;
+      var data=S[c.s]||[], col=CARD_COLOR[c.cls]||"#64748b";
+      sparks.push(new Chart(el,{type:c.t,data:{labels:sdays.map(function(d){return d.slice(5);}),datasets:[{data:data,borderColor:col,backgroundColor:c.t==='bar'?col:hexA(col,.14),borderWidth:2,pointRadius:0,tension:.35,fill:c.t==='line',borderRadius:c.t==='bar'?2:0,maxBarThickness:10}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{displayColors:false,callbacks:{title:function(it){return (sdays[it[0].dataIndex]||'').slice(5);},label:function(it){return (c.cls==='a'?won(it.raw):it.raw.toLocaleString('ko-KR'));}}}},scales:{x:{display:false},y:{display:false,beginAtZero:true}}}}));
+    });
   }
-  var banner=document.getElementById('pwaBanner'), goBtn=document.getElementById('pwaInstall'),
-      xBtn=document.getElementById('pwaClose'), txt=document.getElementById('pwaText'), deferred=null;
-  function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true; }
-  function dismissed(){ try{ return localStorage.getItem('pwa_banner_dismissed')==='1'; }catch(e){ return false; } }
-  function hide(){ if(banner) banner.classList.remove('on'); }
-  function show(){ if(banner && !dismissed() && !isStandalone()) banner.classList.add('on'); }
-  if(xBtn) xBtn.onclick=function(){ try{ localStorage.setItem('pwa_banner_dismissed','1'); }catch(e){} hide(); };
-  // Android/Chrome: 네이티브 설치 프롬프트
-  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred=e; show(); });
-  if(goBtn) goBtn.onclick=async function(){
-    if(deferred){ deferred.prompt(); try{ await deferred.userChoice; }catch(e){} deferred=null; hide(); }
-    else { alert('설치 방법: 브라우저 메뉴 또는 공유 버튼 → "홈 화면에 추가"를 눌러주세요.'); }
-  };
-  window.addEventListener('appinstalled', hide);
-  var ua=navigator.userAgent;
-  var isIOS=/iphone|ipad|ipod/i.test(ua);
-  // 인앱 브라우저(카카오톡·인스타·페북·라인·네이버 등)는 설치 불가 → Safari/Chrome로 열기 안내
-  var inApp=/KAKAOTALK|Instagram|FBAN|FBAV|FB_IAB|Line\/|NAVER|DaumApps|everytimeApp|; wv\)/i.test(ua);
-  if(inApp && !isStandalone()){
-    if(txt) txt.innerHTML='<b>앱 설치는 기본 브라우저에서</b><br>우측 하단 메뉴 → "다른 브라우저로 열기"(Safari)';
-    if(goBtn) goBtn.style.display='none';
-    setTimeout(show, 1000);
-    return;
+
+  var rev=(j.revenueByDay||[]);
+  var ctx=document.getElementById("revChart");
+  if(ctx&&window.Chart){
+    if(chart)chart.destroy();
+    chart=new Chart(ctx,{type:'bar',data:{labels:rev.map(function(d){return d.day.slice(5);}),datasets:[{label:'매출(원)',data:rev.map(function(d){return d.amount;}),backgroundColor:'#2563eb',borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:function(v){return v.toLocaleString('ko-KR');}}}}}});
   }
-  // iOS Safari: 설치 프롬프트 미지원 → 수동 안내
-  var isSafari=isIOS && !/crios|fxios|edgios/i.test(ua);
-  if(isIOS && isSafari && !isStandalone()){
-    if(txt) txt.innerHTML='<b>홈 화면에 앱 설치</b><br>공유 <span style="font-weight:700">⬆︎</span> → "홈 화면에 추가"';
-    if(goBtn) goBtn.style.display='none';
-    setTimeout(show, 1400);
-  }
-})();
+}
+
+/* ---- auth ---- */
+function showGate(){ $("gate").classList.remove("hide"); }
+function hideGate(){ $("gate").classList.add("hide"); }
+$("loginBtn").onclick=async function(){
+  var e=$("email").value.trim(), p=$("pw").value; if(!e||!p){ $("gmsg").textContent="이메일과 비밀번호를 입력하세요."; return; }
+  $("loginBtn").disabled=true;
+  var r=await sb.auth.signInWithPassword({email:e,password:p});
+  $("loginBtn").disabled=false;
+  if(r.error){ $("gmsg").textContent=r.error.message; return; }
+  onAuthed(r.data.user);
+};
+$("pw").addEventListener("keydown",function(e){ if(e.key==="Enter") $("loginBtn").click(); });
+$("logout").onclick=async function(){ await sb.auth.signOut(); location.reload(); };
+$("reload").onclick=loadStats;
+
+function onAuthed(user){ $("who").textContent=user.email||""; hideGate(); loadStats(); }
+
+sb.auth.getSession().then(function(res){ if(res.data&&res.data.session){ onAuthed(res.data.session.user); } else { showGate(); } });
 </script>
 </body>
 </html>
