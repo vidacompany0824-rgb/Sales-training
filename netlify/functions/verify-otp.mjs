@@ -20,6 +20,20 @@ async function sbFetch(SUPA, SERVICE, path, init = {}) {
   });
 }
 
+// 관리자 알림 문자(솔라피). 환경변수 없으면 조용히 건너뜀.
+async function notifyAdmin(text) {
+  const KEY = process.env.SOLAPI_API_KEY, SECRET = process.env.SOLAPI_API_SECRET, FROM = onlyDigits(process.env.SOLAPI_SENDER), TO = onlyDigits(process.env.ADMIN_PHONE);
+  if (!KEY || !SECRET || !FROM || !TO) return;
+  const date = new Date().toISOString();
+  const salt = crypto.randomBytes(32).toString("hex");
+  const signature = crypto.createHmac("sha256", SECRET).update(date + salt).digest("hex");
+  await fetch("https://api.solapi.com/messages/v4/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `HMAC-SHA256 apiKey=${KEY}, date=${date}, salt=${salt}, signature=${signature}` },
+    body: JSON.stringify({ message: { to: TO, from: FROM, text } }),
+  });
+}
+
 export default async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
   const SUPA = process.env.SUPABASE_URL, SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -66,6 +80,12 @@ export default async (req) => {
   });
   if (!rowUp.ok) return json({ error: "db_error" }, 500);
   await sbFetch(SUPA, SERVICE, `phone_verifications?user_id=eq.${user.id}`, { method: "DELETE" });
+
+  // 관리자에게 신규 가입(인증 완료) 알림 문자 — 실패해도 인증은 성공 처리
+  try {
+    const brand = process.env.OTP_BRAND || "쑥쑥AI";
+    await notifyAdmin(`[${brand}] 새 회원 가입 · ${user.email || "-"} · ${phone}`);
+  } catch (_) {}
 
   return json({ ok: true, message: "휴대폰 인증이 완료됐어요." });
 };
