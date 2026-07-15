@@ -1070,6 +1070,7 @@ function selectPersona(p){
   if(s1)s1.style.display='none'; if(s2)s2.style.display='';
   var sp=document.getElementById('step2Persona'); if(sp) sp.innerHTML='<span class="wsel-emoji">'+p.emoji+'</span> '+esc(p.name)+' 상대로 훈련';
   renderColdCards(); updateTeaseBtn();
+  if(typeof trackStage==='function') trackStage('coldness_select');
 }
 function renderColdCards(){
   var el=document.getElementById('coldCards'); if(!el) return;
@@ -1142,6 +1143,7 @@ function startChat(p){
   state={persona:p,messages:[],turns:0,best:0,scores:[],improves:[],axisSum:{},axisCount:0,turnEvals:[],moodW:18,won:false,closed:false,committed:false,cold:coldness,passLine:pass,voiceOn:voicePref,tease:teasePref};
   wizardEl.style.display="none"; dashEl.classList.remove("on"); var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='none';
   stage.classList.add("on"); $("#inbar").style.display="flex"; $("#report").classList.remove("on");
+  if(typeof trackStage==='function') trackStage('chat');
   $("#tAv").textContent=p.emoji; $("#tWho").textContent=p.name;
   $("#tSt").textContent=`거절 강도 ${COLD[coldness].t} · 합격선 평균 ${pass}점`;
   updateVoiceBtn(); setMood("cold"); log.innerHTML="";
@@ -1154,7 +1156,7 @@ function reset(){
   stopSpeak(); stopRecog();
   stage.classList.remove("on"); wizardEl.style.display=""; wizReset();
   var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='block';
-  dashEl.classList.remove("on"); renderResume(); renderPicker(); renderStats(); updateDashToggle(); renderMySpace(); state=null;
+  dashEl.classList.remove("on"); renderResume(); renderPicker(); renderStats(); updateDashToggle(); renderMySpace(); if(typeof trackStage==='function') trackStage('persona_select'); state=null;
 }
 function setMood(m){const i=MOODS[m]||MOODS.cold;$("#moodTxt").textContent=i.t;$("#moodFill").style.width=i.w+"%";}
 function addBubble(role,emoji,text){
@@ -1335,6 +1337,7 @@ function finish(won){
       <button class="hintbtn" onclick="reset()">다른 고객 / 거절 강도 변경</button>
     </div>`;
   r.classList.add("on");
+  if(typeof trackStage==='function') trackStage('report');
   buildPrintArea({persona:state.persona,cold:state.cold,passLine:state.passLine,scores:sc,avg:avg,best:state.best,turns:state.turns,trend:trend,passed:passed,grade:gr.g,improves:[...new Set(state.improves)]});
   if(sc.length){
     const axisText=state.axisCount?AXES.map(a=>`${a.label} ${Math.round((state.axisSum[a.k]||0)/state.axisCount)}점`).join(", "):"데이터 없음";
@@ -1663,6 +1666,7 @@ function bootApp(){
   var _dt=document.getElementById('dashToggle'); if(_dt)_dt.style.display='block';
   dashEl.classList.remove("on");
   renderResume(); renderStats(); renderPicker(); updateDashToggle(); renderMySpace();
+  if(typeof trackStage==='function') trackStage('persona_select');
 }
 
 function setGateMode(m){
@@ -1689,7 +1693,7 @@ function setGateMode(m){
 function enterRecovery(){ hideLanding(); gq("gate").classList.remove("hide"); setGateMode("recovery"); gq("gPw").value=""; }
 function gateMsg(t,ok){ var e=gq("gMsg"); e.textContent=t; e.className="gmsg "+(ok?"ok":"err"); }
 
-function showLanding(){ var l=gq("landing"); if(l){ l.classList.add("show"); l.classList.remove("hide"); } }
+function showLanding(){ var l=gq("landing"); if(l){ l.classList.add("show"); l.classList.remove("hide"); } if(typeof trackStage==='function') trackStage(AUTH_USER?'service_intro':'landing'); }
 function hideLanding(){ var l=gq("landing"); if(l){ l.classList.remove("show"); l.classList.add("hide"); } }
 // 광고 유입 여부: 링크에 ?ad=1 이 있거나, 인스타/페북 광고가 자동으로 붙이는 파라미터(utm_*·fbclid·igshid)가 있으면 랜딩을 노출.
 function isAdEntry(){
@@ -1701,6 +1705,7 @@ function isAdEntry(){
 function landingToAuth(mode){
   hideLanding();
   setGateMode(mode||"signup");
+  if(typeof trackStage==='function') trackStage(mode==='login'?'login':'signup');
   var e=gq("gEmail"); if(e){ try{ e.focus(); }catch(_){} }
 }
 // 랜딩(서비스 소개) CTA를 로그인 상태에 맞게 조정.
@@ -1867,8 +1872,9 @@ function showPaywall(row){
     m.innerHTML="오늘 무료 세션 "+row.limit_+"회를 모두 사용했습니다.<br>구독하면 <b>무제한</b>으로 훈련할 수 있어요.";
   }
   gq("paywall").classList.add("on");
+  if(typeof trackStage==='function') trackStage('paywall');
 }
-function closePaywall(){ gq("paywall").classList.remove("on"); }
+function closePaywall(){ gq("paywall").classList.remove("on"); if(typeof trackStage==='function') trackStage('persona_select'); }
 
 async function saveSessionToDB(d){
   if(!sb || !AUTH_USER) return;
@@ -1932,8 +1938,8 @@ async function startSubscribe(trigBtn){
    ===== 내 계정 대시보드 (정보 · 이용내역 · 구독관리) =====
    ============================================================ */
 function fmtDate(s){ if(!s) return "-"; try{ return new Date(s).toLocaleDateString('ko-KR'); }catch(e){ return String(s).slice(0,10); } }
-function openAccount(){ gq("acct").classList.add("on"); loadAccount(); }
-function closeAccount(){ gq("acct").classList.remove("on"); }
+function openAccount(){ gq("acct").classList.add("on"); loadAccount(); if(typeof trackStage==='function') trackStage('account'); }
+function closeAccount(){ gq("acct").classList.remove("on"); if(typeof trackStage==='function') trackStage('persona_select'); }
 async function loadAccount(){
   if(!sb || !AUTH_USER){ gq("acctBody").innerHTML='<div style="padding:20px;color:#6b7280">로그인이 필요합니다.</div>'; return; }
   var email=AUTH_USER.email||"-", joined=fmtDate(AUTH_USER.created_at);
@@ -1999,15 +2005,18 @@ gq("acct").addEventListener("click",function(e){ if(e.target.id==="acct") closeA
 /* ============================================================
    ===== 방문 분석 추적 (방문자 · 체류시간 · 이탈페이지) =====
    ============================================================ */
+/* 현재 앱 단계(스테이지) — 이탈 페이지를 정밀 분류하기 위해 화면 전환 시 갱신 */
+var CUR_STAGE='login';
+function trackStage(s){ if(s) CUR_STAGE=s; }
 function trackVisit(){
   if(!sb) return;
   var vid; try{ vid=sessionStorage.getItem('visit_id'); if(!vid){ vid=(crypto.randomUUID?crypto.randomUUID():String(Date.now())); sessionStorage.setItem('visit_id',vid); } }catch(e){ vid=String(Date.now()); }
-  var page=(location.pathname||'/')+(location.hash||''); var start=Date.now(), sent=false;
-  try{ sb.from('analytics_events').insert({visit_id:vid,user_id:(AUTH_USER?AUTH_USER.id:null),type:'pageview',page:page}).then(function(){},function(){}); }catch(e){}
+  var start=Date.now(), sent=false;
+  try{ sb.from('analytics_events').insert({visit_id:vid,user_id:(AUTH_USER?AUTH_USER.id:null),type:'pageview',page:CUR_STAGE}).then(function(){},function(){}); }catch(e){}
   function exit(){ if(sent)return; sent=true; var dur=Math.round((Date.now()-start)/1000);
     try{ fetch(SUPABASE_URL+'/rest/v1/analytics_events',{method:'POST',keepalive:true,
       headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY},
-      body:JSON.stringify({visit_id:vid,user_id:(AUTH_USER?AUTH_USER.id:null),type:'exit',page:page,duration_sec:dur})}).catch(function(){}); }catch(e){}
+      body:JSON.stringify({visit_id:vid,user_id:(AUTH_USER?AUTH_USER.id:null),type:'exit',page:CUR_STAGE,duration_sec:dur})}).catch(function(){}); }catch(e){}
   }
   document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden') exit(); });
   window.addEventListener('pagehide',exit);
