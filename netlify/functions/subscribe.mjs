@@ -11,12 +11,30 @@
 //   PORTONE_API_SECRET          = (포트원 콘솔 → API Keys → V2 API Secret)
 //   SUBSCRIPTION_AMOUNT         = 9900   (선택, 미설정 시 9900)
 
+import crypto from "node:crypto";
+
 const PORTONE = "https://api.portone.io";
 
 function json(o, s) {
   return new Response(JSON.stringify(o), {
     status: s || 200,
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+  });
+}
+
+// 관리자 알림 문자(솔라피). 환경변수(SOLAPI_*, ADMIN_PHONE) 없으면 조용히 건너뜀.
+async function notifyAdmin(text) {
+  const KEY = process.env.SOLAPI_API_KEY, SECRET = process.env.SOLAPI_API_SECRET;
+  const FROM = String(process.env.SOLAPI_SENDER || "").replace(/[^0-9]/g, "");
+  const TO = String(process.env.ADMIN_PHONE || "").replace(/[^0-9]/g, "");
+  if (!KEY || !SECRET || !FROM || !TO) return;
+  const date = new Date().toISOString();
+  const salt = crypto.randomBytes(32).toString("hex");
+  const signature = crypto.createHmac("sha256", SECRET).update(date + salt).digest("hex");
+  await fetch("https://api.solapi.com/messages/v4/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `HMAC-SHA256 apiKey=${KEY}, date=${date}, salt=${salt}, signature=${signature}` },
+    body: JSON.stringify({ message: { to: TO, from: FROM, text } }),
   });
 }
 
@@ -63,6 +81,21 @@ export default async (req) => {
     payJson = await pay.json().catch(() => ({}));
     if (!pay.ok) return json({ error: "payment_failed", detail: payJson }, 402);
   } catch (e) { return json({ error: "payment_error", message: String(e) }, 502); }
+
+  // 2.5) 결제 로그 기록 (어드민 매출 집계용)
+  try {
+    await fetch(`${SUPA}/rest/v1/payments`, {
+      method: "POST",
+      headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: user.id, amount: AMOUNT, currency: "KRW", status: "paid", provider: "portone", payment_id: paymentId }),
+    });
+  } catch (_) { /* 로그 실패는 무시 */ }
+
+  // 2.6) 관리자에게 결제 알림 문자 (실패해도 결제는 유효)
+  try {
+    const brand = process.env.OTP_BRAND || "쑥쑥AI";
+    await notifyAdmin(`[${brand}] 💰 새 구독 결제 · ${user.email || "-"} · ${AMOUNT.toLocaleString("ko-KR")}원`);
+  } catch (_) {}
 
   // 3) Supabase 구독 활성화 (+1개월) — service_role로 upsert
   const now = new Date();
