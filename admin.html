@@ -45,7 +45,19 @@ td.r,th.r{text-align:right}
 .bar{height:7px;background:#eef2f7;border-radius:20px;overflow:hidden;display:inline-block;width:90px;vertical-align:middle;margin-right:8px}
 .bar span{display:block;height:100%;background:var(--brand);border-radius:20px}
 .loading{color:var(--sub);font-size:14px;padding:40px;text-align:center}
-@media(max-width:820px){.grid{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}
+/* 고객 원장 */
+.cust-h{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.cust-tools{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cust-tools input[type=text],#custSearch{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:13px;width:200px}
+.cust-chk{font-size:12.5px;color:var(--sub);display:flex;align-items:center;gap:5px;cursor:pointer}
+.cust-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.ctab{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
+table.ctab th{text-align:left;color:var(--sub);font-weight:600;font-size:11px;padding:8px 8px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff}
+table.ctab td{padding:8px 8px;border-bottom:1px solid #f1f3f6}
+table.ctab td.r,table.ctab th.r{text-align:right}
+table.ctab .ok{color:var(--good);font-weight:700}
+table.ctab .muted{color:#b6bcc6}
+@media(max-width:820px){.grid{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}.cust-tools input,#custSearch{width:140px}}
 </style>
 </head>
 <body>
@@ -84,12 +96,12 @@ const ADMIN_ENDPOINT="/.netlify/functions/admin-stats";
 
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
-let chart=null, sparks=[];
+let chart=null, sparks=[], CUST=[];
 
 /* 앱 단계(스테이지) → 이탈 페이지 한글 라벨 (퍼널 순서 표기) */
 const STAGE_LABELS={
   landing:"① 랜딩(광고 유입)", service_intro:"서비스 소개(로그인)",
-  login:"② 로그인 화면", signup:"② 회원가입 화면",
+  login:"② 로그인 화면", signup:"② 회원가입 화면", phone_verify:"② 휴대폰 인증",
   persona_select:"③ 고객 선택", coldness_select:"④ 거절 강도 선택",
   chat:"⑤ 대화(훈련 중)", report:"⑥ 리포트",
   account:"내 계정", paywall:"구독 안내(페이월)"
@@ -149,7 +161,10 @@ function render(j){
     '<div class="cols">'+
       '<div class="panel"><h3>👤 사용자별 세션 이용수 (상위 30)</h3><table><thead><tr><th>사용자</th><th class="r">세션수</th></tr></thead><tbody>'+perHtml+'</tbody></table></div>'+
       '<div class="panel"><h3>🚪 이탈 단계 (어디서 나갔나)</h3><table><thead><tr><th>단계</th><th class="r">이탈수</th></tr></thead><tbody>'+exHtml+'</tbody></table></div>'+
-    '</div>';
+    '</div>'+
+    '<div class="panel"><div class="cust-h"><h3>🧾 고객 원장 ('+(j.customers||[]).length+'명)</h3>'+
+      '<div class="cust-tools"><input type="text" id="custSearch" placeholder="이메일·이름·번호 검색"><label class="cust-chk"><input type="checkbox" id="custMkt"> 마케팅 동의자만</label><button class="btn" id="custCsv" type="button">CSV 내보내기</button></div></div>'+
+      '<div class="cust-wrap"><table class="ctab" id="custTable"></table></div></div>';
 
   // 카드별 스파크라인
   sparks.forEach(function(c){try{c.destroy();}catch(e){}}); sparks=[];
@@ -169,6 +184,48 @@ function render(j){
     if(chart)chart.destroy();
     chart=new Chart(ctx,{type:'bar',data:{labels:rev.map(function(d){return d.day.slice(5);}),datasets:[{label:'매출(원)',data:rev.map(function(d){return d.amount;}),backgroundColor:'#2563eb',borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:function(v){return v.toLocaleString('ko-KR');}}}}}});
   }
+
+  // 고객 원장
+  CUST=j.customers||[];
+  if($("custSearch")) $("custSearch").oninput=renderCustomers;
+  if($("custMkt")) $("custMkt").onchange=renderCustomers;
+  if($("custCsv")) $("custCsv").onclick=custCSV;
+  renderCustomers();
+}
+
+function provLabel(p){ return p==='kakao'?'카카오':p==='google'?'구글':'이메일'; }
+function fmtD(s){ if(!s) return '-'; try{ return new Date(s).toLocaleDateString('ko-KR'); }catch(e){ return String(s).slice(0,10); } }
+function custFiltered(){
+  var q=(($("custSearch")&&$("custSearch").value)||'').trim().toLowerCase();
+  var onlyMkt=$("custMkt")&&$("custMkt").checked;
+  return CUST.filter(function(c){
+    if(onlyMkt && !c.marketing) return false;
+    if(!q) return true;
+    return ((c.email||'')+' '+(c.name||'')+' '+(c.phone||'')).toLowerCase().indexOf(q)>=0;
+  });
+}
+function renderCustomers(){
+  var t=$("custTable"); if(!t) return;
+  var rows=custFiltered();
+  var head='<thead><tr><th>이메일</th><th>이름</th><th>가입경로</th><th>가입일</th><th>휴대폰</th><th>마케팅</th><th>구독</th><th class="r">세션</th><th>최근활동</th></tr></thead>';
+  var body=rows.length?rows.map(function(c){
+    return '<tr><td>'+esc(c.email)+'</td><td>'+esc(c.name)+'</td><td>'+provLabel(c.provider)+'</td><td>'+fmtD(c.joined)+'</td>'+
+      '<td>'+(c.phone?esc(c.phone):'<span class="muted">미인증</span>')+'</td>'+
+      '<td>'+(c.marketing?'<span class="ok">동의</span>':'<span class="muted">-</span>')+'</td>'+
+      '<td>'+esc(c.sub)+'</td><td class="r">'+(c.sessions||0)+'</td><td>'+fmtD(c.lastActive)+'</td></tr>';
+  }).join(''):'<tr><td colspan="9" class="muted" style="padding:16px">해당 고객이 없습니다.</td></tr>';
+  t.innerHTML=head+'<tbody>'+body+'</tbody>';
+}
+function csvCell(v){ v=String(v==null?'':v); return /[",\n]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v; }
+function custCSV(){
+  var rows=custFiltered();
+  var header=['이메일','이름','가입경로','가입일','휴대폰','마케팅동의','구독','세션수','최근활동'];
+  var lines=[header.join(',')].concat(rows.map(function(c){
+    return [c.email,c.name,provLabel(c.provider),fmtD(c.joined),c.phone||'',c.marketing?'동의':'',c.sub,c.sessions||0,fmtD(c.lastActive)].map(csvCell).join(',');
+  }));
+  var blob=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='customers_'+new Date().toISOString().slice(0,10)+'.csv'; document.body.appendChild(a); a.click(); a.remove();
 }
 
 /* ---- auth ---- */
