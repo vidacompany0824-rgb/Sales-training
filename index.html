@@ -120,7 +120,20 @@
 .acct-badge{display:inline-block;font-size:11.5px;font-weight:800;border-radius:20px;padding:2px 10px}
 .acct-badge.on{background:#e8f7ee;color:#15803d}.acct-badge.off{background:#f1f3f6;color:#6b7280}
 .acct-hist{font-size:12.5px;color:#374151;max-height:170px;overflow-y:auto}
-.acct-hist .h{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6}
+.acct-hist .h{display:flex;justify-content:space-between;padding:8px 4px;border-bottom:1px solid #f3f4f6;cursor:pointer;border-radius:8px}
+.acct-hist .h:hover{background:#f5f8f0}
+.acct-hist .h .harrow{color:#9aa3b2;font-weight:700}
+/* 세션 상세(기록 보기) */
+.sd-top{display:flex;align-items:center;gap:14px;margin-top:4px}
+.sd-grade{font-size:34px;font-weight:800;line-height:1;min-width:44px;text-align:center}
+.sd-meta{font-size:13px;color:#374151}
+.sd-sub{font-size:12px;color:#6b7280;margin-top:3px}
+.sd-conv{max-height:300px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px;margin-top:6px;padding-right:2px}
+.sd-conv .tx{display:flex}
+.sd-conv .tx.me{justify-content:flex-end}
+.sd-conv .tx .tb{max-width:82%;font-size:13px;line-height:1.5;padding:9px 12px;border-radius:13px}
+.sd-conv .tx.cu .tb{background:#f1f3ee;color:#2c2c2a;border-top-left-radius:4px}
+.sd-conv .tx.me .tb{background:#3B6D11;color:#fff;border-top-right-radius:4px}
 .acct-cancel{width:100%;border:1px solid #f6c9c9;background:#fff;color:#b91c1c;border-radius:10px;padding:11px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;margin-top:6px}
 .acct-upsell{margin-top:12px;border:1px solid #C0DD97;background:#EAF3DE;border-radius:14px;padding:16px 16px 15px;text-align:center}
 .acct-upsell .au-t{font-size:15px;font-weight:800;color:#1f2a16}
@@ -1309,7 +1322,7 @@ function persistSession(){
   if(state.axisCount){ AXES.forEach(function(a){ axisAvg[a.k]=Math.round((state.axisSum[a.k]||0)/state.axisCount); }); }
   recordSession({personaId:state.persona.id,scores:sc,best:state.best,won:passed,axisAvg:axisAvg});
   saveCloud({personaId:state.persona.id,cold:state.cold,passLine:state.passLine,turns:state.turns,avg:avg,best:state.best,trend:trend,passed:passed,grade:gr.g,axisAvg:axisAvg});
-  saveSessionToDB({persona:state.persona.id,cold:state.cold,turns:state.turns,avg:avg,best:state.best,trend:trend,passed:passed,grade:gr.g,axisAvg:axisAvg});
+  saveSessionToDB({persona:state.persona.id,personaName:state.persona.name,cold:state.cold,turns:state.turns,avg:avg,best:state.best,trend:trend,passed:passed,grade:gr.g,axisAvg:axisAvg,messages:state.messages||[],turnEvals:state.turnEvals||[],improves:Array.from(new Set(state.improves||[])),scores:sc});
   clearSnapshot();
   state.committed=true;
 }
@@ -1953,9 +1966,10 @@ async function saveSessionToDB(d){
   var a=d.axisAvg||{};
   try{
     await sb.from('training_sessions').insert({
-      user_id:AUTH_USER.id, persona:d.persona, cold:d.cold, turns:d.turns,
+      user_id:AUTH_USER.id, persona:d.persona, persona_name:d.personaName||null, cold:d.cold, turns:d.turns,
       avg_score:d.avg, best_score:d.best, trend:d.trend, passed:d.passed, grade:d.grade,
-      empathy:a.empathy, needs:a.needs, evidence:a.evidence, delivery:a.delivery, rebuttal:a.rebuttal, closing:a.closing
+      empathy:a.empathy, needs:a.needs, evidence:a.evidence, delivery:a.delivery, rebuttal:a.rebuttal, closing:a.closing,
+      messages:d.messages||null, turn_evals:d.turnEvals||null, improves:d.improves||null, scores:d.scores||null, axis_avg:a||null
     });
   }catch(e){ console.warn('session save', e); }
 }
@@ -2039,9 +2053,9 @@ async function loadAccount(){
   // 최근 세션
   var hist='<div style="color:#6b7280">기록 없음</div>';
   try{
-    var hs=await sb.from('training_sessions').select('persona,avg_score,grade,passed,created_at').eq('user_id',AUTH_USER.id).order('created_at',{ascending:false}).limit(10);
+    var hs=await sb.from('training_sessions').select('id,persona,persona_name,avg_score,grade,passed,created_at').eq('user_id',AUTH_USER.id).order('created_at',{ascending:false}).limit(20);
     if(hs.data && hs.data.length){
-      hist=hs.data.map(function(s){ return '<div class="h"><span>'+fmtDate(s.created_at)+' · '+esc(s.persona||'')+'</span><span>'+(s.avg_score||0)+'점 '+(s.passed?'✓':'')+'</span></div>'; }).join("");
+      hist=hs.data.map(function(s){ return '<div class="h" onclick="openSessionDetail(\''+s.id+'\')"><span>'+fmtDate(s.created_at)+' · '+esc(s.persona_name||s.persona||'')+'</span><span>'+(s.avg_score||0)+'점 '+(s.passed?'✓':'')+' <span class="harrow">›</span></span></div>'; }).join("");
     }
   }catch(e){}
 
@@ -2058,6 +2072,33 @@ async function loadAccount(){
   if(cb) cb.onclick=cancelSubscription;
   var asb=gq("acctSubBtn");
   if(asb) asb.onclick=function(){ startSubscribe(this); };
+}
+/* 지난 세션 기록 보기 (리포트 + 대화 전문) */
+async function openSessionDetail(id){
+  var body=gq("acctBody"); if(!body) return;
+  body.innerHTML='<div style="padding:24px;color:#6b7280;font-size:13px;text-align:center">불러오는 중…</div>';
+  var s=null;
+  try{ var r=await sb.from('training_sessions').select('*').eq('id',id).eq('user_id',AUTH_USER.id).maybeSingle(); s=r.data; }catch(e){}
+  if(!s){ body.innerHTML='<button class="back-btn" type="button" onclick="loadAccount()">← 최근 내역</button><div class="acct-sec">기록을 불러오지 못했습니다.</div>'; return; }
+  var gr=grade(s.avg_score||0);
+  var name=s.persona_name||s.persona||'고객';
+  var coldTxt=(s.cold && COLD[s.cold])?('거절 강도 '+COLD[s.cold].t):(s.cold?('거절 강도 '+s.cold):'');
+  var ax=s.axis_avg||{};
+  var axHtml=AXES.map(function(a){ var v=ax[a.k]; if(v==null) return ''; return '<div class="ms-ax"><span class="l">'+esc(a.label)+'</span><span class="t"><span class="f" style="width:'+v+'%;background:'+axColor(v)+'"></span></span><span class="v">'+v+'</span></div>'; }).join('');
+  var msgs=Array.isArray(s.messages)?s.messages:[];
+  var conv=msgs.length
+    ? msgs.map(function(m){ var mine=(m.role==='fc'); return '<div class="tx '+(mine?'me':'cu')+'"><div class="tb">'+esc(m.text)+'</div></div>'; }).join('')
+    : '<div style="color:#6b7280;font-size:12.5px;padding:4px 0">저장된 대화가 없습니다. (기록 저장 기능 적용 이전 세션)</div>';
+  body.innerHTML=
+    '<button class="back-btn" type="button" onclick="loadAccount()">← 최근 내역</button>'+
+    '<div class="acct-sec"><h4>'+esc(name)+' · '+fmtDate(s.created_at)+'</h4>'+
+      '<div class="sd-top"><div class="sd-grade" style="color:'+gr.c+'">'+gr.g+'</div>'+
+        '<div class="sd-meta"><div><b>평균 '+(s.avg_score||0)+'점</b> · 최고 '+(s.best_score||0)+'점 '+(s.passed?'· ✅ 합격':'· 미합격')+'</div>'+
+        '<div class="sd-sub">'+esc(coldTxt)+(coldTxt?' · ':'')+(s.turns||0)+'턴</div></div></div>'+
+        (axHtml?'<div class="ms-prof" style="margin-top:13px">'+axHtml+'</div>':'')+
+    '</div>'+
+    '<div class="acct-sec"><h4>💬 대화 내용</h4><div class="sd-conv">'+conv+'</div></div>';
+  body.scrollTop=0;
 }
 async function cancelSubscription(){
   if(!confirm("정말 구독을 해지할까요?\n현재 이용 기간이 끝나면 자동 갱신되지 않습니다.")) return;
