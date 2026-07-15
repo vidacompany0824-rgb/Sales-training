@@ -75,8 +75,18 @@
 .pg-phrow input{flex:1}
 .pg-phrow button{flex:0 0 auto;white-space:nowrap;border:1px solid #C0DD97;background:#EAF3DE;color:#2f5a0e;border-radius:10px;padding:0 12px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
 .pg-phrow button:disabled{opacity:.55;cursor:default}
-.pg-chk{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#4b5563;line-height:1.45;margin:9px 0}
+.pg-chk{display:flex;gap:8px;align-items:flex-start;justify-content:space-between;font-size:12px;color:#4b5563;line-height:1.45;margin:9px 0}
+.pg-chk label{display:flex;gap:8px;align-items:flex-start;cursor:pointer;flex:1}
 .pg-chk input{margin-top:1px}
+.pg-view{flex:0 0 auto;border:none;background:none;color:#2f5a0e;font:inherit;font-size:11.5px;font-weight:700;text-decoration:underline;cursor:pointer;white-space:nowrap;padding:0 0 0 6px}
+#pgConsent{position:fixed;inset:0;z-index:9600;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:18px}
+#pgConsent.on{display:flex}
+.pgc-card{background:#fff;border-radius:16px;max-width:400px;width:100%;max-height:80vh;overflow-y:auto;padding:20px 20px 22px;box-shadow:0 24px 60px rgba(0,0,0,.34)}
+.pgc-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.pgc-h h3{font-size:15px;font-weight:800;color:#161b26}
+.pgc-h .x{border:none;background:none;font-size:16px;cursor:pointer;color:#6b7280}
+.pgc-body{font-size:12.5px;color:#374151;line-height:1.7}
+.pgc-body b{display:inline-block;min-width:82px;color:#1f2a16}
 .pg-btn{width:100%;margin-top:6px;border:none;background:#3B6D11;color:#fff;border-radius:10px;padding:13px;font:inherit;font-size:15px;font-weight:800;cursor:pointer}
 .pg-btn:disabled{opacity:.6;cursor:default}
 .pg-msg{font-size:12.5px;text-align:center;min-height:16px;margin-top:10px}
@@ -670,11 +680,19 @@ textarea:focus{border-color:var(--brand)}
     <div class="pg-field" id="pgCodeField" style="display:none"><label>인증번호</label>
       <input id="pgCode" type="tel" inputmode="numeric" maxlength="6" placeholder="문자로 받은 6자리">
     </div>
-    <label class="pg-chk"><input type="checkbox" id="pgAgree"> <span>[필수] 본인확인·서비스 이용을 위한 휴대폰 번호 수집·이용에 동의합니다.</span></label>
-    <label class="pg-chk"><input type="checkbox" id="pgMkt"> <span>[선택] 혜택·소식 등 마케팅 정보 수신(문자·알림톡)에 동의합니다.</span></label>
+    <div class="pg-chk"><label><input type="checkbox" id="pgAgree"> <span>[필수] 본인확인·서비스 이용을 위한 휴대폰 번호 수집·이용 동의</span></label><button class="pg-view" type="button" onclick="showConsent('req')">보기</button></div>
+    <div class="pg-chk"><label><input type="checkbox" id="pgMkt"> <span>[선택] 혜택·소식 등 마케팅 정보 수신(문자·알림톡) 동의</span></label><button class="pg-view" type="button" onclick="showConsent('mkt')">보기</button></div>
     <button class="pg-btn" id="pgVerify" type="button" style="display:none">인증 완료</button>
     <div class="pg-msg" id="pgMsg"></div>
     <button class="pg-logout" id="pgLogout" type="button">다른 계정으로 로그인</button>
+  </div>
+</div>
+
+<!-- 동의 상세 내역 모달 -->
+<div id="pgConsent">
+  <div class="pgc-card">
+    <div class="pgc-h"><h3 id="pgcTitle"></h3><button class="x" id="pgcClose" type="button">✕</button></div>
+    <div id="pgcBody" class="pgc-body"></div>
   </div>
 </div>
 
@@ -1907,7 +1925,15 @@ async function pgVerifyCode(){
     else{ pgMsg((j&&j.message)||('인증 실패: '+((j&&j.error)||('HTTP '+r.status)))); btn.disabled=false; }
   }catch(e){ pgMsg('인증 중 오류가 발생했어요.'); btn.disabled=false; }
 }
+var PG_CONSENT={
+  req:{t:'[필수] 휴대폰 번호 수집·이용 동의', b:'<b>수집 항목</b> 휴대폰 번호<br><b>이용 목적</b> 본인 확인(SMS 인증), 부정 이용 방지, 서비스 이용 및 고객 문의 대응<br><b>보유·이용 기간</b> 회원 탈퇴 시까지 (관계 법령에 따른 보관 기간은 예외)<br><b>동의 거부</b> 본 항목은 서비스 이용에 필수적이며, 동의하지 않으면 서비스 이용이 제한됩니다.'},
+  mkt:{t:'[선택] 마케팅 정보 수신 동의', b:'<b>이용 목적</b> 신규 기능·혜택·이벤트·프로모션 등 광고성 정보 안내<br><b>전송 방법</b> 문자(SMS), 카카오 알림톡/친구톡 등<br><b>보유·이용 기간</b> 동의 철회 또는 회원 탈퇴 시까지<br><b>안내</b> 동의하지 않아도 서비스 이용에는 제한이 없으며, 언제든 철회할 수 있습니다. 광고성 정보는 야간(21시~익일 08시)에는 발송되지 않습니다.'}
+};
+function showConsent(k){ var c=PG_CONSENT[k]; if(!c) return; gq('pgcTitle').textContent=c.t; gq('pgcBody').innerHTML=c.b; gq('pgConsent').classList.add('on'); }
+function hideConsent(){ var m=gq('pgConsent'); if(m) m.classList.remove('on'); }
 function bootPhoneGate(){
+  var cx=gq('pgcClose'); if(cx) cx.onclick=hideConsent;
+  var pc=gq('pgConsent'); if(pc) pc.addEventListener('click',function(e){ if(e.target.id==='pgConsent') hideConsent(); });
   var s=gq('pgSend'); if(s) s.onclick=pgSendCode;
   var v=gq('pgVerify'); if(v) v.onclick=pgVerifyCode;
   var c=gq('pgCode'); if(c) c.addEventListener('keydown',function(e){ if(e.key==='Enter') pgVerifyCode(); });
