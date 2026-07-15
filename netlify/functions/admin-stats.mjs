@@ -68,18 +68,38 @@ export default async (req) => {
   exits.forEach(e => { const pg = e.page || "(unknown)"; exitMap[pg] = (exitMap[pg] || 0) + 1; });
   const exitPages = Object.keys(exitMap).map(pg => ({ page: pg, count: exitMap[pg] })).sort((a, b) => b.count - a.count).slice(0, 10);
 
-  // 일자별 매출(최근 14일)
-  const byDay = {};
-  paid.forEach(p => { const d = (p.paid_at || "").slice(0, 10); if (d) byDay[d] = (byDay[d] || 0) + (+p.amount || 0); });
-  const days = []; for (let i = 13; i >= 0; i--) { const d = new Date(now - i * 86400000).toISOString().slice(0, 10); days.push({ day: d, amount: byDay[d] || 0 }); }
+  const totalSessions = sessions.length;
+
+  // ===== 일자별 시계열(최근 14일) — 카드별 그래프용 =====
+  const DAYS = 14;
+  const dayKeys = [];
+  for (let i = DAYS - 1; i >= 0; i--) dayKeys.push(new Date(now - i * 86400000).toISOString().slice(0, 10));
+  const zero = () => dayKeys.reduce((o, d) => (o[d] = 0, o), {});
+  const dVisitors = {}; // day -> Set(visit_id)
+  const dPageviews = zero(), dSessions = zero(), dPayCount = zero(), dPayAmount = zero(), dNewUsers = zero();
+  pageviews.forEach(v => { const d = (v.created_at || "").slice(0, 10); if (d in dPageviews) { dPageviews[d]++; (dVisitors[d] = dVisitors[d] || new Set()).add(v.visit_id); } });
+  sessions.forEach(s => { const d = (s.created_at || "").slice(0, 10); if (d in dSessions) dSessions[d]++; });
+  paid.forEach(p => { const d = (p.paid_at || "").slice(0, 10); if (d in dPayCount) { dPayCount[d]++; dPayAmount[d] += (+p.amount || 0); } });
+  profiles.forEach(u => { const d = (u.created_at || "").slice(0, 10); if (d in dNewUsers) dNewUsers[d]++; });
+  const series = {
+    days: dayKeys,
+    visitors: dayKeys.map(d => (dVisitors[d] ? dVisitors[d].size : 0)),
+    pageviews: dayKeys.map(d => dPageviews[d]),
+    sessions: dayKeys.map(d => dSessions[d]),
+    payCount: dayKeys.map(d => dPayCount[d]),
+    payAmount: dayKeys.map(d => dPayAmount[d]),
+    newUsers: dayKeys.map(d => dNewUsers[d]),
+  };
+  // 하위호환: 기존 매출 차트용
+  const revenueByDay = dayKeys.map(d => ({ day: d, amount: dPayAmount[d] }));
 
   return json({
     ok: true,
     kpi: {
       visitors, totalPageviews, avgDuration,
       payers, payCount: paid.length, payAmount,
-      subscribers, activeSubs, totalUsers: profiles.length,
+      subscribers, activeSubs, totalUsers: profiles.length, totalSessions,
     },
-    exitPages, perUser, revenueByDay: days,
+    exitPages, perUser, revenueByDay, series,
   });
 };
