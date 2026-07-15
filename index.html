@@ -4,6 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>쑥쑥 AI</title>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '2598756787224685');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <!-- Supabase 인증 SDK (v2) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- 포트원 결제 SDK (V2) -->
@@ -106,7 +123,8 @@
 .pg-btn:disabled{opacity:.6;cursor:default}
 .pg-msg{font-size:12.5px;text-align:center;min-height:16px;margin-top:10px}
 .pg-msg.err{color:#dc2626}.pg-msg.ok{color:#15803d}
-.pg-logout{display:block;margin:14px auto 0;border:none;background:none;color:#94a3b8;font:inherit;font-size:12px;text-decoration:underline;cursor:pointer}
+.pg-who{text-align:center;font-size:11.5px;color:#94a3b8;margin-top:12px}
+.pg-logout{display:block;margin:6px auto 0;border:none;background:none;color:#94a3b8;font:inherit;font-size:12px;text-decoration:underline;cursor:pointer}
 .gate-card h2{font-size:21px;font-weight:800;color:#161b26;margin-bottom:4px;text-align:center}
 .gate-card .gsub{font-size:13px;color:#5b6472;text-align:center;margin-bottom:20px}
 .gtabs{display:flex;background:#eef1e8;border-radius:10px;padding:4px;margin-bottom:18px}
@@ -707,6 +725,7 @@ textarea:focus{border-color:var(--brand)}
     <div class="pg-chk"><label><input type="checkbox" id="pgMkt"> <span>[선택] 혜택·소식 등 마케팅 정보 수신(문자·알림톡) 동의</span></label><button class="pg-view" type="button" onclick="showConsent('mkt')">보기</button></div>
     <button class="pg-btn" id="pgVerify" type="button" style="display:none">인증 완료</button>
     <div class="pg-msg" id="pgMsg"></div>
+    <div class="pg-who" id="pgWho"></div>
     <button class="pg-logout" id="pgLogout" type="button">다른 계정으로 로그인</button>
   </div>
 </div>
@@ -1928,12 +1947,20 @@ function onAuthed(user){
 var pgCooldown=0, pgTimer=null;
 async function checkPhoneVerified(){
   if(!sb || !AUTH_USER) return true;   // 백엔드 없음(데모)은 통과
-  try{
-    var r=await sb.from('phone_identity').select('verified').eq('user_id',AUTH_USER.id).maybeSingle();
-    return !!(r.data && r.data.verified);
-  }catch(e){ return false; }
+  for(var i=0;i<2;i++){
+    try{
+      var r=await sb.from('phone_identity').select('verified').eq('user_id',AUTH_USER.id).maybeSingle();
+      if(r.error){ if(i===0){ await new Promise(function(res){setTimeout(res,700);}); continue; } console.warn('phone check error', r.error); return false; }
+      return !!(r.data && r.data.verified);   // 조회 성공: 실제 인증 여부 그대로
+    }catch(e){ if(i===0){ await new Promise(function(res){setTimeout(res,700);}); continue; } return false; }
+  }
+  return false;
 }
-function showPhoneGate(){ var g=gq('phoneGate'); if(g) g.classList.add('on'); if(typeof trackStage==='function') trackStage('phone_verify'); }
+function showPhoneGate(){
+  var g=gq('phoneGate'); if(g) g.classList.add('on');
+  var w=gq('pgWho'); if(w && AUTH_USER) w.textContent='현재 로그인: '+(AUTH_USER.email||AUTH_USER.id.slice(0,8));
+  if(typeof trackStage==='function') trackStage('phone_verify');
+}
 function hidePhoneGate(){ var g=gq('phoneGate'); if(g) g.classList.remove('on'); }
 function pgMsg(t,ok){ var e=gq('pgMsg'); if(e){ e.textContent=t; e.className='pg-msg '+(ok?'ok':'err'); } }
 function pgStartCooldown(sec){
@@ -1967,7 +1994,7 @@ async function pgVerifyCode(){
     var sess=(await sb.auth.getSession()).data.session;
     var r=await fetch(VERIFY_OTP_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:sess&&sess.access_token, phone:phone, code:code, marketing:gq('pgMkt').checked})});
     var j=await r.json();
-    if(r.ok && j.ok){ pgMsg('인증 완료! 🎉',true); if(pgTimer)clearInterval(pgTimer); setTimeout(function(){ hidePhoneGate(); bootApp(); },700); }
+    if(r.ok && j.ok){ pgMsg('인증 완료! 🎉',true); try{ if(window.fbq) fbq('track','CompleteRegistration'); }catch(_){} if(pgTimer)clearInterval(pgTimer); setTimeout(function(){ hidePhoneGate(); bootApp(); },700); }
     else{ pgMsg((j&&j.message)||('인증 실패: '+((j&&j.error)||('HTTP '+r.status)))); btn.disabled=false; }
   }catch(e){ pgMsg('인증 중 오류가 발생했어요.'); btn.disabled=false; }
 }
@@ -2172,6 +2199,7 @@ async function startSubscribe(trigBtn){
     alert("결제 설정(포트원 상점ID·채널키)이 아직 입력되지 않았습니다."); return;
   }
   var btn=(trigBtn&&trigBtn.tagName)?trigBtn:gq("pwSub"); btn.disabled=true; var old=btn.textContent; btn.textContent="카드 등록 중…";
+  try{ if(window.fbq) fbq('track','InitiateCheckout',{value:9900,currency:'KRW'}); }catch(_){}
   try{
     // 1) 빌링키 발급 (카드 등록 창)
     var issue=await window.PortOne.requestIssueBillingKey({
@@ -2189,6 +2217,7 @@ async function startSubscribe(trigBtn){
     var j=await r.json();
     if(r.ok && j.ok){
       alert("구독 완료! 이제 무제한으로 이용하실 수 있어요. 🎉");
+      try{ if(window.fbq) fbq('track','Subscribe',{value:9900,currency:'KRW'}); }catch(_){}
       closePaywall();
       var t=gq("useTag"); if(t){ t.textContent="구독 · 무제한"; t.style.display="block"; }
       var _ac=gq("acct"); if(_ac && _ac.classList.contains("on")) loadAccount();  // 내 계정 열려 있으면 즉시 갱신
