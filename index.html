@@ -1910,7 +1910,12 @@ async function pgSendCode(){
     var r=await fetch(SEND_OTP_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:sess&&sess.access_token, phone:phone})});
     var j=await r.json();
     if(r.ok && j.ok){ pgMsg('인증번호를 문자로 보냈어요. 5분 내 입력해 주세요.',true); gq('pgCodeField').style.display='block'; gq('pgVerify').style.display='block'; gq('pgCode').focus(); pgStartCooldown(60); }
-    else{ pgMsg((j&&j.message)||('전송 실패: '+((j&&j.error)||('HTTP '+r.status)))); btn.disabled=false; }
+    else{
+      var d=j&&j.detail, reason='';
+      if(d){ reason=' · '+(d.errorMessage||d.message||(d.failedMessageList&&d.failedMessageList[0]&&(d.failedMessageList[0].reason||d.failedMessageList[0].statusMessage))||JSON.stringify(d).slice(0,200)); }
+      pgMsg(((j&&j.message)||('전송 실패: '+((j&&j.error)||('HTTP '+r.status))))+reason);
+      btn.disabled=false;
+    }
   }catch(e){ pgMsg('전송 중 오류가 발생했어요.'); btn.disabled=false; }
 }
 async function pgVerifyCode(){
