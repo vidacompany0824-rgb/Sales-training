@@ -18,11 +18,14 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 /* ===== 로그인 게이트 (Supabase 인증) ===== */
-#gate{position:fixed;inset:0;z-index:9000;background:linear-gradient(158deg,#3B6D11 0%,#5a9420 60%,#7cae3b 100%);display:flex;align-items:center;justify-content:center;padding:20px}
+#gate{position:fixed;inset:0;z-index:9000;background:linear-gradient(158deg,#3B6D11 0%,#5a9420 60%,#7cae3b 100%);display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(24px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom))}
 #gate.hide{display:none}
 /* ===== 랜딩(설득) 화면 — 광고 유입 첫 화면 ===== */
-#landing{position:fixed;inset:0;z-index:9100;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#f4f6ef;display:block}
+#landing{position:fixed;inset:0;z-index:9100;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#f4f6ef;display:none}
+#landing.show{display:block}
 #landing.hide{display:none}
+#lpClose{position:fixed;top:12px;right:12px;z-index:9110;width:36px;height:36px;border-radius:50%;border:none;background:rgba(0,0,0,.30);color:#fff;font-size:18px;line-height:1;cursor:pointer;display:none;align-items:center;justify-content:center}
+#landing.show #lpClose{display:flex}
 .lp{max-width:480px;margin:0 auto;padding-bottom:40px}
 .lp-hero{background:linear-gradient(168deg,#2f5a0e 0%,#3B6D11 48%,#5a9420 100%);color:#fff;padding:52px 26px 40px;text-align:center;border-radius:0 0 28px 28px;box-shadow:0 12px 34px rgba(47,90,14,.28)}
 .lp-badge{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#eaf3de;font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;margin-bottom:16px}
@@ -58,7 +61,7 @@
 .lp-final .lp-cta{background:#3B6D11;color:#fff;box-shadow:0 10px 26px rgba(47,90,14,.32)}
 .lp-foot{text-align:center;font-size:11px;color:#9aa3b2;padding:18px 26px 0;line-height:1.6}
 .lp-foot a{color:#6b7280;text-decoration:underline}
-.gate-card{background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.32);width:100%;max-width:400px;padding:28px 26px}
+.gate-card{background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.32);width:100%;max-width:400px;padding:28px 26px;margin:auto}
 .gate-card h2{font-size:21px;font-weight:800;color:#161b26;margin-bottom:4px;text-align:center}
 .gate-card .gsub{font-size:13px;color:#5b6472;text-align:center;margin-bottom:20px}
 .gtabs{display:flex;background:#eef1e8;border-radius:10px;padding:4px;margin-bottom:18px}
@@ -87,7 +90,7 @@
 .gkakao .gk-ic{font-size:16px}
 .ggoogle{width:100%;border:1px solid #dadce0;background:#fff;color:#3c4043;border-radius:10px;padding:12px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:9px}
 .ggoogle .gg-ic{font-weight:800;color:#4285F4;font-size:16px}
-#topctl{position:fixed;top:10px;right:12px;z-index:60;display:flex;gap:8px;align-items:center}
+#topctl{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:60;display:flex;gap:8px;align-items:center}
 #logoutBtn{background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#5b6472;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
 /* 사용량 표시 + 구독 유도 모달 */
 #useTag{background:#EAF3DE;border:1px solid #C0DD97;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;font-weight:700;color:#2f5a0e;display:none;white-space:nowrap}
@@ -103,7 +106,7 @@
 .pw-btn{width:100%;border:none;background:#3B6D11;color:#fff;border-radius:12px;padding:14px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
 .pw-close{background:none;border:none;color:#94a3b8;font:inherit;font-size:13px;cursor:pointer;margin-top:12px}
 /* 내 계정 대시보드 */
-#acctBtn{background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#2f5a0e;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none;white-space:nowrap}
+#acctBtn,#introBtn{background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#2f5a0e;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none;white-space:nowrap}
 #acct{position:fixed;inset:0;z-index:9400;background:rgba(15,23,42,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
 #acct.on{display:flex}
 .acct-card{background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.32);max-width:520px;width:100%;padding:24px 24px 26px}
@@ -383,7 +386,13 @@ textarea:focus{border-color:var(--brand)}
 
 /* ===== 모바일 최적화 ===== */
 @media(max-width:640px){
-  .wrap{padding:14px 11px calc(28px + env(safe-area-inset-bottom))}
+  /* 상단 컨트롤: 아이콘 위주로 압축(내 계정·서비스 소개는 라벨 숨김) */
+  #topctl{gap:6px}
+  #introBtn .lbl,#acctBtn .lbl{display:none}
+  #introBtn,#acctBtn,#logoutBtn{padding:7px 9px;font-size:12px}
+  #useTag{padding:7px 9px;font-size:11px}
+  /* 콘텐츠가 고정 상단바 아래에서 시작하도록 여백 확보 */
+  .wrap{padding:calc(50px + env(safe-area-inset-top)) 11px calc(28px + env(safe-area-inset-bottom))}
   h1{font-size:18px}
   .sub{font-size:12.5px;margin-bottom:14px}
   .dash{margin-bottom:14px}
@@ -482,6 +491,7 @@ textarea:focus{border-color:var(--brand)}
 
 <!-- ===== 랜딩(설득) 화면 ===== -->
 <div id="landing">
+  <button id="lpClose" type="button" aria-label="닫기">✕</button>
   <div class="lp">
     <div class="lp-hero">
       <div class="lp-badge">🌱 보험 영업조직을 위한 AI 성장 파트너</div>
@@ -504,7 +514,7 @@ textarea:focus{border-color:var(--brand)}
     <div class="lp-sec">
       <h2>3단계면 끝</h2>
       <div class="lp-lead">앱을 켜고 30초 만에 실전 연습</div>
-      <div class="lp-step"><div class="sn">1</div><div class="sc"><h3>고객을 고릅니다</h3><p>페르소나와 거절 강도(거절 강도)를 골라 나만의 훈련 상대를 만듭니다.</p></div></div>
+      <div class="lp-step"><div class="sn">1</div><div class="sc"><h3>고객을 고릅니다</h3><p>페르소나와 거절 강도를 골라 나만의 훈련 상대를 만듭니다.</p></div></div>
       <div class="lp-step"><div class="sn">2</div><div class="sc"><h3>AI 고객과 대화합니다</h3><p>진짜 고객처럼 반응하는 AI와 실전 롤플레이. 거절·반론도 그대로 나옵니다.</p></div></div>
       <div class="lp-step"><div class="sn">3</div><div class="sc"><h3>실시간으로 채점받습니다</h3><p>6가지 세일즈 역량을 즉시 점수화하고, 무엇을 고칠지 코칭해 줍니다.</p></div></div>
     </div>
@@ -571,8 +581,9 @@ textarea:focus{border-color:var(--brand)}
 </div>
 <div id="topctl">
   <div id="useTag"></div>
-  <button id="acctBtn" type="button">👤 내 계정</button>
-  <button id="logoutBtn" type="button">로그아웃</button>
+  <button id="introBtn" type="button" title="서비스 소개">📖<span class="lbl"> 서비스 소개</span></button>
+  <button id="acctBtn" type="button" title="내 계정">👤<span class="lbl"> 내 계정</span></button>
+  <button id="logoutBtn" type="button" title="로그아웃">로그아웃</button>
 </div>
 
 <!-- 내 계정 대시보드 -->
@@ -1508,12 +1519,39 @@ function setGateMode(m){
 function enterRecovery(){ hideLanding(); gq("gate").classList.remove("hide"); setGateMode("recovery"); gq("gPw").value=""; }
 function gateMsg(t,ok){ var e=gq("gMsg"); e.textContent=t; e.className="gmsg "+(ok?"ok":"err"); }
 
-function hideLanding(){ var l=gq("landing"); if(l) l.classList.add("hide"); }
+function showLanding(){ var l=gq("landing"); if(l){ l.classList.add("show"); l.classList.remove("hide"); } }
+function hideLanding(){ var l=gq("landing"); if(l){ l.classList.remove("show"); l.classList.add("hide"); } }
+// 광고 유입 여부: 링크에 ?ad=1 이 있거나, 인스타/페북 광고가 자동으로 붙이는 파라미터(utm_*·fbclid·igshid)가 있으면 랜딩을 노출.
+function isAdEntry(){
+  try{
+    var q=(location.search||"")+"&"+(location.hash||"");
+    return /(^|[?&#])ad=1(&|$)/.test(q) || /utm_/i.test(q) || /fbclid=/i.test(q) || /igshid=/i.test(q);
+  }catch(e){ return false; }
+}
 function landingToAuth(mode){
   hideLanding();
   setGateMode(mode||"signup");
   var e=gq("gEmail"); if(e){ try{ e.focus(); }catch(_){} }
 }
+// 랜딩(서비스 소개) CTA를 로그인 상태에 맞게 조정.
+//  - 비로그인: '무료로 시작하기' → 회원가입, '이미 계정이 있어요' 링크 노출
+//  - 로그인: CTA를 '앱으로 돌아가기'로 바꿔 소개만 보고 앱으로 복귀
+function adaptLandingForUser(){
+  var loggedIn=!!AUTH_USER;
+  var s1=gq("lpStart"), s2=gq("lpStart2"), lg=gq("lpLogin"), mt=document.querySelector('.lp-microtrust');
+  if(loggedIn){
+    if(s1){ s1.textContent="← 앱으로 돌아가기"; s1.onclick=hideLanding; }
+    if(s2){ s2.textContent="← 앱으로 돌아가기"; s2.onclick=hideLanding; }
+    if(lg) lg.style.display="none";
+    if(mt) mt.style.display="none";
+  }else{
+    if(s1){ s1.textContent="무료로 시작하기 →"; s1.onclick=function(){ landingToAuth("signup"); }; }
+    if(s2){ s2.textContent="지금 무료로 시작하기 →"; s2.onclick=function(){ landingToAuth("signup"); }; }
+    if(lg) lg.style.display="";
+    if(mt) mt.style.display="";
+  }
+}
+function openIntro(){ adaptLandingForUser(); showLanding(); var l=gq("landing"); if(l){ try{ l.scrollTop=0; }catch(e){} } }
 
 function onAuthed(user){
   AUTH_USER=user;
@@ -1522,6 +1560,7 @@ function onAuthed(user){
   gq("gate").classList.add("hide");
   gq("logoutBtn").style.display="block";
   gq("acctBtn").style.display="block";
+  var ib=gq("introBtn"); if(ib) ib.style.display="block";
   bootApp();
 }
 
@@ -1565,10 +1604,13 @@ async function gateSubmit(){
 }
 
 function bootAuth(){
-  var _s1=gq("lpStart"), _s2=gq("lpStart2"), _lg=gq("lpLogin");
-  if(_s1) _s1.onclick=function(){ landingToAuth("signup"); };
-  if(_s2) _s2.onclick=function(){ landingToAuth("signup"); };
-  if(_lg) _lg.onclick=function(){ landingToAuth("login"); };
+  var _lg=gq("lpLogin"); if(_lg) _lg.onclick=function(){ landingToAuth("login"); };
+  var _xc=gq("lpClose"); if(_xc) _xc.onclick=hideLanding;
+  var _ib=gq("introBtn"); if(_ib) _ib.onclick=openIntro;
+  adaptLandingForUser();   // 기본(비로그인) CTA 세팅
+  // 광고 유입(?ad=1 등)일 때만 랜딩 노출. 그 외에는 바로 실행 페이지(로그인/앱)로.
+  // 이미 로그인된 사용자는 아래 getSession → onAuthed 에서 랜딩을 자동으로 닫고 앱으로 진입.
+  if(isAdEntry()) showLanding();
   gq("gtabLogin").onclick=function(){setGateMode("login");};
   gq("gtabSignup").onclick=function(){setGateMode("signup");};
   gq("gSubmit").onclick=gateSubmit;
