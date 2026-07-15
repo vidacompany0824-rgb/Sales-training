@@ -34,14 +34,28 @@ export default async (req) => {
 
   // 데이터 수집
   const now = Date.now();
-  const [payments, subs, sessions, pageviews, exits, profiles] = await Promise.all([
+  const [payments, subs, sessions, pageviews, exits, profiles, phones] = await Promise.all([
     sbGet(SUPA, SERVICE, "payments?select=user_id,amount,status,paid_at&order=paid_at.desc&limit=2000"),
     sbGet(SUPA, SERVICE, "subscriptions?select=user_id,status,current_period_end"),
     sbGet(SUPA, SERVICE, "training_sessions?select=user_id,created_at&limit=5000"),
     sbGet(SUPA, SERVICE, "analytics_events?type=eq.pageview&select=visit_id,page,created_at&order=created_at.desc&limit=5000"),
     sbGet(SUPA, SERVICE, "analytics_events?type=eq.exit&select=page,duration_sec,created_at&order=created_at.desc&limit=5000"),
     sbGet(SUPA, SERVICE, "profiles?select=id,email,display_name,created_at"),
+    sbGet(SUPA, SERVICE, "phone_identity?select=user_id,phone,verified,marketing_consent"),
   ]);
+
+  // 가입 경로(provider): GoTrue admin API 에서 조회
+  const providerById = {};
+  try {
+    const ar = await fetch(`${SUPA}/auth/v1/admin/users?per_page=1000`, { headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` } });
+    const aj = await ar.json().catch(() => ({}));
+    const users = Array.isArray(aj) ? aj : (aj.users || []);
+    users.forEach(u => {
+      const p = (u.app_metadata && (u.app_metadata.provider || (u.app_metadata.providers && u.app_metadata.providers[0])))
+        || (u.identities && u.identities[0] && u.identities[0].provider) || "email";
+      providerById[u.id] = p;
+    });
+  } catch (_) {}
 
   // 결제 집계
   const paid = payments.filter(p => p.status === "paid");
@@ -93,6 +107,37 @@ export default async (req) => {
   // 하위호환: 기존 매출 차트용
   const revenueByDay = dayKeys.map(d => ({ day: d, amount: dPayAmount[d] }));
 
+  // ===== 고객 원장 (CRM) =====
+  const phoneById = {}; phones.forEach(p => { phoneById[p.user_id] = p; });
+  const subStatusById = {};
+  subs.forEach(s => {
+    const valid = s.current_period_end && new Date(s.current_period_end).getTime() > now;
+    if (["active", "canceled"].includes(s.status) && valid) subStatusById[s.user_id] = s.status === "canceled" ? "해지예정" : "구독중";
+    else if (!subStatusById[s.user_id]) subStatusById[s.user_id] = "무료";
+  });
+  const lastSessionById = {};
+  sessions.forEach(s => {
+    if (!s.user_id) return;
+    const t = new Date(s.created_at).getTime();
+    if (!lastSessionById[s.user_id] || t > lastSessionById[s.user_id]) lastSessionById[s.user_id] = t;
+  });
+  const customers = profiles.map(u => {
+    const ph = phoneById[u.id] || {};
+    const last = lastSessionById[u.id];
+    return {
+      email: u.email || "",
+      name: u.display_name || "",
+      provider: providerById[u.id] || "email",
+      joined: u.created_at || null,
+      phone: ph.verified ? (ph.phone || "") : "",
+      phoneVerified: !!ph.verified,
+      marketing: !!ph.marketing_consent,
+      sub: subStatusById[u.id] || "무료",
+      sessions: sessMap[u.id] || 0,
+      lastActive: last ? new Date(last).toISOString() : null,
+    };
+  }).sort((a, b) => new Date(b.joined || 0) - new Date(a.joined || 0));
+
   return json({
     ok: true,
     kpi: {
@@ -100,6 +145,6 @@ export default async (req) => {
       payers, payCount: paid.length, payAmount,
       subscribers, activeSubs, totalUsers: profiles.length, totalSessions,
     },
-    exitPages, perUser, revenueByDay, series,
+    exitPages, perUser, revenueByDay, series, customers,
   });
 };
