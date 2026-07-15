@@ -165,6 +165,14 @@
 .sd-conv .tx.cu .tb{background:#f1f3ee;color:#2c2c2a;border-top-left-radius:4px}
 .sd-conv .tx.me .tb{background:#3B6D11;color:#fff;border-top-right-radius:4px}
 .acct-cancel{width:100%;border:1px solid #f6c9c9;background:#fff;color:#b91c1c;border-radius:10px;padding:11px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;margin-top:6px}
+.sw{position:relative;display:inline-block;width:44px;height:24px;flex:0 0 auto}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw .sw-t{position:absolute;inset:0;background:#cbd5e1;border-radius:24px;transition:.2s;cursor:pointer}
+.sw .sw-t:before{content:"";position:absolute;height:18px;width:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sw input:checked + .sw-t{background:#3B6D11}
+.sw input:checked + .sw-t:before{transform:translateX(20px)}
+.sw input:disabled + .sw-t{opacity:.6}
+.mkt-note{font-size:11.5px;color:#6b7280;margin-top:6px}
 .acct-upsell{margin-top:12px;border:1px solid #C0DD97;background:#EAF3DE;border-radius:14px;padding:16px 16px 15px;text-align:center}
 .acct-upsell .au-t{font-size:15px;font-weight:800;color:#1f2a16}
 .acct-upsell .au-d{font-size:12.5px;color:#4b5563;margin-top:4px;line-height:1.5}
@@ -2171,6 +2179,18 @@ async function loadAccount(){
             (canceled?'<div class="acct-row"><span class="l" style="color:#b45309">해지되어 기간 종료 후 자동 갱신되지 않습니다.</span></div>'
                      :'<button class="acct-cancel" id="cancelSubBtn" type="button">구독 해지하기</button>');
   }
+  // 알림 수신 설정 (휴대폰 인증 완료자만)
+  var phoneSec='';
+  try{
+    var pr=await sb.from('phone_identity').select('phone,verified,marketing_consent').eq('user_id',AUTH_USER.id).maybeSingle();
+    if(pr.data && pr.data.verified){
+      var mkt=!!pr.data.marketing_consent;
+      phoneSec='<div class="acct-sec"><h4>알림 수신 설정</h4>'+
+        '<div class="acct-row"><span class="l">인증 휴대폰</span><span>'+maskPhone(pr.data.phone)+'</span></div>'+
+        '<div class="acct-row"><span class="l">마케팅 정보 수신</span><label class="sw"><input type="checkbox" id="mktToggle"'+(mkt?' checked':'')+'><span class="sw-t"></span></label></div>'+
+        '<div class="mkt-note" id="mktNote">'+(mkt?'수신 동의 상태입니다. 언제든 끌 수 있어요.':'수신 거부 상태입니다.')+'</div></div>';
+    }
+  }catch(e){}
   // 최근 세션
   var hist='<div style="color:#6b7280">기록 없음</div>';
   try{
@@ -2187,13 +2207,25 @@ async function loadAccount(){
     '<div class="acct-sec"><h4>오늘 이용</h4>'+
       '<div class="acct-row"><span class="l">사용한 세션</span><span>'+used+' / '+limit+'</span></div></div>'+
     '<div class="acct-sec"><h4>구독 관리</h4>'+subHtml+'</div>'+
+    phoneSec+
     '<div class="acct-sec"><h4>최근 훈련 내역</h4><div class="acct-hist">'+hist+'</div></div>';
 
   var cb=gq("cancelSubBtn");
   if(cb) cb.onclick=cancelSubscription;
   var asb=gq("acctSubBtn");
   if(asb) asb.onclick=function(){ startSubscribe(this); };
+  var mt=gq("mktToggle");
+  if(mt) mt.onchange=async function(){
+    var on=mt.checked; mt.disabled=true;
+    try{
+      var rr=await sb.rpc('set_marketing_consent',{ p_consent:on });
+      if(rr.error) throw rr.error;
+      var note=gq("mktNote"); if(note) note.textContent = on ? '수신 동의로 변경됐어요.' : '수신 거부로 변경됐어요.';
+    }catch(e){ mt.checked=!on; var note2=gq("mktNote"); if(note2) note2.textContent='변경 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.'; }
+    mt.disabled=false;
+  };
 }
+function maskPhone(p){ p=String(p||'').replace(/[^0-9]/g,''); if(p.length<7) return p||'-'; return p.slice(0,3)+'****'+p.slice(-4); }
 /* 지난 세션 기록 보기 (리포트 + 대화 전문) */
 async function openSessionDetail(id){
   var body=gq("acctBody"); if(!body) return;
