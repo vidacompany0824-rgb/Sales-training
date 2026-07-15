@@ -121,6 +121,7 @@ async function loadStats(){
   try{
     var r=await fetch(ADMIN_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessToken:sess.access_token})});
     var j=await r.json();
+    if(r.status===401||(j&&j.error==='auth_failed')){ try{ await sb.auth.signOut(); }catch(e){} $("who").textContent=''; showGate(); $("gmsg").textContent='세션이 만료됐어요. 다시 로그인해 주세요.'; return; }
     if(r.status===403){ $("content").innerHTML='<div class="loading">이 계정은 관리자가 아닙니다. (ADMIN_EMAIL 환경변수와 로그인 계정을 확인하세요)</div>'; return; }
     if(!r.ok||!j.ok){ $("content").innerHTML='<div class="loading">데이터를 불러오지 못했습니다: '+esc((j&&j.error)||('HTTP '+r.status))+'</div>'; return; }
     render(j);
@@ -155,6 +156,15 @@ function render(j){
   var exTot=ex.reduce(function(a,e){return a+e.count;},0)||1;
   var exHtml=ex.length?ex.map(function(e){var pctv=Math.round(e.count/exTot*100);return '<tr><td>'+stageLabel(e.page)+'</td><td class="r"><span class="bar"><span style="width:'+pctv+'%;background:#dc2626"></span></span>'+e.count+' ('+pctv+'%)</td></tr>';}).join(""):'<tr><td colspan="2" class="muted">데이터 없음</td></tr>';
 
+  var inq=(j.inquiries||[]);
+  var inqOpen=inq.filter(function(q){return q.status!=='answered';}).length;
+  function fmtDT(s){ if(!s) return '-'; try{ return new Date(s).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(e){ return String(s).slice(0,16); } }
+  var inqHtml=inq.length?inq.map(function(q){
+    var body=(q.subject?('<b>'+esc(q.subject)+'</b> · '):'')+esc((q.message||'').slice(0,120))+((q.message||'').length>120?'…':'');
+    var st=q.status==='answered'?'<span class="ok">답변완료</span>':'<span style="color:#d97706;font-weight:700">미처리</span>';
+    return '<tr><td>'+fmtDT(q.created_at)+'</td><td>'+esc(q.email||'')+'</td><td>'+esc(q.category||'')+'</td><td style="white-space:normal;max-width:360px">'+body+'</td><td>'+st+'</td></tr>';
+  }).join(""):'<tr><td colspan="5" class="muted" style="padding:16px">문의 없음</td></tr>';
+
   $("content").innerHTML=
     '<div class="grid">'+kpiHtml+'</div>'+
     '<div class="panel"><h3>💰 일자별 매출 (최근 14일)</h3><canvas id="revChart" height="90"></canvas></div>'+
@@ -164,7 +174,10 @@ function render(j){
     '</div>'+
     '<div class="panel"><div class="cust-h"><h3>🧾 고객 원장 ('+(j.customers||[]).length+'명)</h3>'+
       '<div class="cust-tools"><input type="text" id="custSearch" placeholder="이메일·이름·번호 검색"><label class="cust-chk"><input type="checkbox" id="custMkt"> 마케팅 동의자만</label><button class="btn" id="custCsv" type="button">CSV 내보내기</button></div></div>'+
-      '<div class="cust-wrap"><table class="ctab" id="custTable"></table></div></div>';
+      '<div class="cust-wrap"><table class="ctab" id="custTable"></table></div></div>'+
+    '<div class="panel"><h3>💬 문의 ('+(j.inquiries||[]).length+'건'+(inqOpen?' · 미처리 '+inqOpen+'건':'')+')</h3>'+
+      '<div class="cust-wrap"><table class="ctab">'+
+        '<thead><tr><th>날짜</th><th>이메일</th><th>분류</th><th>내용</th><th>상태</th></tr></thead><tbody>'+inqHtml+'</tbody></table></div></div>';
 
   // 카드별 스파크라인
   sparks.forEach(function(c){try{c.destroy();}catch(e){}}); sparks=[];
