@@ -1540,20 +1540,23 @@ function askAI(prompt){
   return fetch(API_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})})
     .then(function(r){return r.json();}).then(function(j){ return (j&&j.text)?j.text:((j&&j.content&&j.content[0]&&j.content[0].text)||""); });
 }
-function generateCoaching(ctx){
-  if(DEMO_MODE){ renderDemoCoaching(); return; }
-  const prompt=
-`당신은 보험 영업 코치입니다. 아래는 FC(영업사원)의 롤플레이 훈련 대화입니다. 대화 전체를 보고 종합 코칭을 하세요. 냉철하되 건설적으로, 실전에 바로 쓸 수 있게 구체적으로.
+// AI 종합 코칭 프롬프트(실시간·지난 리포트 공용)
+function buildCoachPrompt(personaName, goal, convo, axisText){
+  return `당신은 보험 영업 코치입니다. 아래는 FC(영업사원)의 롤플레이 훈련 대화입니다. 대화 전체를 보고 종합 코칭을 하세요. 냉철하되 건설적으로, 실전에 바로 쓸 수 있게 구체적으로.
 
-[고객 유형] ${ctx.persona}
-[이번 훈련 목표] ${ctx.goal}
-[역량 평균 점수] ${ctx.axisText}
+[고객 유형] ${personaName}
+[이번 훈련 목표] ${goal}
+[역량 평균 점수] ${axisText}
 
 [대화]
-${ctx.convo}
+${convo}
 
 [출력] 반드시 아래 JSON 하나만. 다른 말 금지. 한국어.
 {"headline":"한 줄 총평","strengths":["잘한 점 1","잘한 점 2"],"focus":{"area":"가장 개선이 필요한 역량 이름","why":"왜 약한지 한 문장","how":["다음에 이렇게 해보라는 구체적 화법·행동 1","구체적 화법·행동 2"]},"nextStep":"다음에 어떤 훈련(고객 유형/거절 강도)을 하면 좋을지 한 문장"}`;
+}
+function generateCoaching(ctx){
+  if(DEMO_MODE){ renderDemoCoaching(); return; }
+  const prompt=buildCoachPrompt(ctx.persona, ctx.goal, ctx.convo, ctx.axisText);
   askAI(prompt).then(function(raw){
     const b=document.getElementById("coachBox"); if(!b) return;
     const d=extractJson(raw);
@@ -2378,9 +2381,44 @@ function coachingHtml(c){
     (c.focus?('<div class="cfocus"><div class="ca">가장 개선할 점 · '+esc(c.focus.area||'')+'</div>'+(c.focus.why?'<div class="cst">'+esc(c.focus.why)+'</div>':'')+(how?'<ul>'+how+'</ul>':'')+'</div>'):'')+
     (c.nextStep?'<div class="cnext">▶ 다음 훈련: '+esc(c.nextStep)+'</div>':'');
 }
+// 저장된 대화로 코칭을 재생성해 DB에 채워 넣고 객체를 반환(없으면 null)
+async function fetchPastCoaching(s){
+  if(!s) return null;
+  if(s.coaching) return s.coaching;
+  var msgs=Array.isArray(s.messages)?s.messages:[];
+  if(!msgs.length) return null;  // 근거가 될 대화가 없으면 코칭 생략
+  var axisText=AXES.map(function(a){ var v=(s.axis_avg||{})[a.k]; return a.label+' '+(v==null?'-':v)+'점'; }).join(', ');
+  var goal=(s.persona==='referral'?'만족 고객에게서 지인 소개 확보':'고객의 거절 극복');
+  var convo=msgs.map(function(m){ return (m.role==='fc'?'영업사원':'고객')+': '+m.text; }).join('\n');
+  var prompt=buildCoachPrompt(s.persona_name||s.persona||'고객', goal, convo, axisText);
+  try{
+    var raw=await askAI(prompt);
+    var d=extractJson(raw);
+    if(!d) return null;
+    s.coaching=d;
+    if(LAST_DETAIL && LAST_DETAIL.id===s.id) LAST_DETAIL.coaching=d;
+    try{ if(sb && AUTH_USER) sb.from('training_sessions').update({coaching:d}).eq('id',s.id).then(function(){},function(){}); }catch(e){}
+    return d;
+  }catch(e){ return null; }
+}
+// 지난 세션에 저장된 코칭이 없으면, 저장된 대화로 즉시 재생성해 표시
+async function ensurePastCoaching(s, elId){
+  var el=document.getElementById(elId); if(!el) return;
+  if(s && s.coaching){ el.innerHTML='<div class="acct-sec coach">'+coachingHtml(s.coaching)+'</div>'; return; }
+  if(!s || !Array.isArray(s.messages) || !s.messages.length){ el.innerHTML=''; return; }
+  el.innerHTML='<div class="acct-sec coach"><div class="coach-load">🤖 AI 코치가 종합 분석 중…</div></div>';
+  var d=await fetchPastCoaching(s);
+  el.innerHTML=d?('<div class="acct-sec coach">'+coachingHtml(d)+'</div>'):'';
+}
 // 지난 세션(내 계정 상세)을 저장된 데이터로 인쇄/PDF
-function printPastSession(){
+async function printPastSession(){
   var s=LAST_DETAIL; if(!s) return;
+  if(!s.coaching && Array.isArray(s.messages) && s.messages.length){
+    var btns=document.querySelectorAll('#acctBody .back-btn'); var pbtn=btns[btns.length-1];
+    var oldt=pbtn?pbtn.textContent:''; if(pbtn){ pbtn.disabled=true; pbtn.textContent='코칭 준비 중…'; }
+    await fetchPastCoaching(s);
+    if(pbtn){ pbtn.disabled=false; pbtn.textContent=oldt; }
+  }
   var pObj=null; for(var i=0;i<PERSONAS.length;i++){ if(PERSONAS[i].id===s.persona){pObj=PERSONAS[i];break;} }
   var passLine=(pObj && typeof passLineFor==='function')?passLineFor(pObj,s.cold||3):54;
   var scores=Array.isArray(s.scores)?s.scores:[];
@@ -2423,9 +2461,10 @@ async function openSessionDetail(id){
         '<div class="sd-sub">'+esc(coldTxt)+(coldTxt?' · ':'')+(s.turns||0)+'턴</div></div></div>'+
         (axHtml?'<div class="ms-prof" style="margin-top:13px">'+axHtml+'</div>':'')+
     '</div>'+
-    (s.coaching?('<div class="acct-sec coach">'+coachingHtml(s.coaching)+'</div>'):'')+
+    '<div id="sdCoach"></div>'+
     '<div class="acct-sec"><h4>💬 대화 내용</h4><div class="sd-conv">'+conv+'</div></div>';
   body.scrollTop=0;
+  ensurePastCoaching(s,'sdCoach');
 }
 async function cancelSubscription(){
   if(!confirm("정말 구독을 해지할까요?\n현재 이용 기간이 끝나면 자동 갱신되지 않습니다.")) return;
