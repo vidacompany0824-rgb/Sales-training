@@ -2072,7 +2072,15 @@ async function submitInquiry(){
     inqNote('문의가 접수됐어요. 순차적으로 답변드릴게요! 🙌',true);
     gq('inqSubject').value=''; gq('inqBody').value='';
     setTimeout(closeInquiry,1300);
-  }catch(e){ inqNote('접수 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.'); }
+  }catch(e){
+    var m=String(e&&e.message||e);
+    var hint = m.indexOf('db_error')>=0 ? '접수 저장에 실패했어요(문의 테이블 미설정). 관리자에게 알려주세요.'
+             : m.indexOf('404')>=0 ? '문의 접수 기능이 아직 준비 중이에요. 잠시 후 다시 시도해 주세요.'
+             : m.indexOf('server_env_missing')>=0 ? '서버 설정이 완료되지 않았어요. 잠시 후 다시 시도해 주세요.'
+             : m.indexOf('auth')>=0 ? '로그인이 만료됐어요. 새로고침 후 다시 시도해 주세요.'
+             : '접수 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.';
+    inqNote(hint+' ('+m+')');
+  }
   b.disabled=false;
 }
 function bootInquiry(){
