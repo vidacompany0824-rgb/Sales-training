@@ -616,6 +616,7 @@ textarea:focus{border-color:var(--brand)}
 .pa .paxrow .t .f{display:block;height:100%}
 .pa .paxrow .v{flex:0 0 30px;text-align:right;font-weight:700}
 .pa .pacoach{font-size:12.5px;line-height:1.55;margin:6px 0 8px}
+.pa .pacoach:empty{display:none;margin:0}
 .pa .pacoach h4{font-size:13px;margin:0 0 6px}
 .pa .pacoach .cst{margin:3px 0}
 .pa .pa-msg{font-size:12px;line-height:1.5;margin:4px 0;padding:6px 9px;border-radius:8px;page-break-inside:avoid}
@@ -1564,6 +1565,7 @@ ${ctx.convo}
       ${st}
       ${d.focus?`<div class="cfocus"><div class="ca">가장 개선할 점 · ${esc(d.focus.area||'')}</div>${d.focus.why?`<div class="cst">${esc(d.focus.why)}</div>`:''}${how?`<ul>${how}</ul>`:''}</div>`:''}
       ${d.nextStep?`<div class="cnext">▶ 다음 훈련: ${esc(d.nextStep)}</div>`:''}`;
+    try{ if(sb && state && state.recId){ sb.from('training_sessions').update({coaching:d}).eq('id',state.recId).then(function(){},function(){}); } }catch(e){}  // 지난 리포트에서도 볼 수 있게 저장
   }).catch(function(){ const b=document.getElementById("coachBox"); if(b) b.innerHTML='<h4>🤖 AI 종합 코칭</h4><div class="coach-load">코칭 생성 중 오류가 발생했어요.</div>'; });
 }
 function buildPrintArea(d){
@@ -2224,12 +2226,13 @@ async function saveSessionToDB(d){
   if(!sb || !AUTH_USER) return;
   var a=d.axisAvg||{};
   try{
-    await sb.from('training_sessions').insert({
+    var ins=await sb.from('training_sessions').insert({
       user_id:AUTH_USER.id, persona:d.persona, persona_name:d.personaName||null, cold:d.cold, turns:d.turns,
       avg_score:d.avg, best_score:d.best, trend:d.trend, passed:d.passed, grade:d.grade,
       empathy:a.empathy, needs:a.needs, evidence:a.evidence, delivery:a.delivery, rebuttal:a.rebuttal, closing:a.closing,
       messages:d.messages||null, turn_evals:d.turnEvals||null, improves:d.improves||null, scores:d.scores||null, axis_avg:a||null
-    });
+    }).select('id').maybeSingle();
+    if(ins && ins.data && ins.data.id && state){ state.recId=ins.data.id; }  // 뒤이어 생성될 AI 코칭을 이 행에 붙이기 위해 id 보관
   }catch(e){ console.warn('session save', e); }
 }
 
@@ -2363,6 +2366,17 @@ async function loadAccount(){
 function maskPhone(p){ p=String(p||'').replace(/[^0-9]/g,''); if(p.length<7) return p||'-'; return p.slice(0,3)+'****'+p.slice(-4); }
 /* 지난 세션 기록 보기 (리포트 + 대화 전문) */
 var LAST_DETAIL=null;
+// 저장된 AI 종합 코칭(JSON)을 HTML로 렌더 (상세 화면·인쇄 공용)
+function coachingHtml(c){
+  if(!c || typeof c!=='object') return '';
+  var st=(c.strengths||[]).map(function(s){return '<div class="cst">👍 '+esc(s)+'</div>';}).join('');
+  var how=((c.focus&&c.focus.how)||[]).map(function(h){return '<li>'+esc(h)+'</li>';}).join('');
+  return '<h4>🤖 AI 종합 코칭</h4>'+
+    (c.headline?'<div class="cst" style="font-weight:600">'+esc(c.headline)+'</div>':'')+
+    st+
+    (c.focus?('<div class="cfocus"><div class="ca">가장 개선할 점 · '+esc(c.focus.area||'')+'</div>'+(c.focus.why?'<div class="cst">'+esc(c.focus.why)+'</div>':'')+(how?'<ul>'+how+'</ul>':'')+'</div>'):'')+
+    (c.nextStep?'<div class="cnext">▶ 다음 훈련: '+esc(c.nextStep)+'</div>':'');
+}
 // 지난 세션(내 계정 상세)을 저장된 데이터로 인쇄/PDF
 function printPastSession(){
   var s=LAST_DETAIL; if(!s) return;
@@ -2378,7 +2392,7 @@ function printPastSession(){
     passed:!!s.passed, grade:(s.grade||grade(s.avg_score||0).g), improves:(Array.isArray(s.improves)?s.improves:[]),
     axisAvg:axisAvg, messages:(Array.isArray(s.messages)?s.messages:[])
   });
-  var pc=document.getElementById('paCoach'); if(pc) pc.innerHTML='';   // 지난 세션은 AI 종합코칭 미저장
+  var pc=document.getElementById('paCoach'); if(pc) pc.innerHTML = s.coaching ? coachingHtml(s.coaching) : '';   // 저장된 코칭 있으면 표시, 없으면 빈칸(:empty로 숨김)
   window.print();
 }
 async function openSessionDetail(id){
@@ -2408,6 +2422,7 @@ async function openSessionDetail(id){
         '<div class="sd-sub">'+esc(coldTxt)+(coldTxt?' · ':'')+(s.turns||0)+'턴</div></div></div>'+
         (axHtml?'<div class="ms-prof" style="margin-top:13px">'+axHtml+'</div>':'')+
     '</div>'+
+    (s.coaching?('<div class="acct-sec coach">'+coachingHtml(s.coaching)+'</div>'):'')+
     '<div class="acct-sec"><h4>💬 대화 내용</h4><div class="sd-conv">'+conv+'</div></div>';
   body.scrollTop=0;
 }
