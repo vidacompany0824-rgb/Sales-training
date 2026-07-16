@@ -1417,10 +1417,12 @@ ${convo}
   if(!DEMO_MODE){
     try{
       const r=await fetch(API_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
-      const j=await r.json();
+      const j=await r.json().catch(function(){return null;});
+      if(!r.ok || !j){ console.warn('[sales-coach] HTTP '+r.status, j); }
       const raw=(j&&j.text)?j.text:(j&&j.content&&j.content[0]&&j.content[0].text)?j.content[0].text:"";
       data=extractJson(raw);
-    }catch(e){ data=null; }
+      if(!data){ console.warn('[sales-coach] 응답에서 JSON을 못 읽음. 서버 응답:', j); }
+    }catch(e){ console.warn('[sales-coach] 호출 오류:', e); data=null; }
     if(!data){ DEMO_MODE=true; toast('🧪 데모 모드 — 내장 엔진이 응답합니다. (실시간 AI는 백엔드 배포 시 동작)'); }
   }
   if(!data){ await new Promise(res=>setTimeout(res,450)); data=demoTurn(text); }
