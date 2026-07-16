@@ -461,7 +461,14 @@ details.pbdetails[open]>summary{margin-bottom:10px}
 .coach .cfocus .ca{font-weight:700;color:var(--brand);font-size:13px;margin-bottom:3px}
 .coach ul{margin:6px 0 0;padding-left:18px;font-size:12.5px}.coach li{margin:3px 0;line-height:1.5}
 .coach .cnext{font-size:12px;color:var(--muted);margin-top:9px;border-top:1px dashed var(--line);padding-top:8px}
-.typing{font-size:13px;color:var(--muted);font-style:italic;padding:2px 4px}
+.typing{display:flex;align-items:center;gap:8px;width:fit-content;max-width:82%;margin:3px 0;padding:8px 13px;font-size:13px;color:#5b6472;border:1px solid #dfe9d4;border-radius:15px;border-bottom-left-radius:5px;background:linear-gradient(100deg,#f2f7ec 0%,#e6f2d8 40%,#f2f7ec 80%);background-size:220% 100%;animation:typingShine 1.7s linear infinite}
+@keyframes typingShine{0%{background-position:150% 0}100%{background-position:-150% 0}}
+.typing .tname{font-weight:700;color:#3B6D11}
+.typing .tdots{display:inline-flex;gap:4px;align-items:center;margin-left:1px}
+.typing .tdots i{width:6px;height:6px;border-radius:50%;background:#7ba648;animation:tbounce 1.25s infinite ease-in-out}
+.typing .tdots i:nth-child(2){animation-delay:.16s}
+.typing .tdots i:nth-child(3){animation-delay:.32s}
+@keyframes tbounce{0%,62%,100%{transform:translateY(0);opacity:.4}28%{transform:translateY(-5px);opacity:1}}
 .inbar{display:flex;flex-direction:column;gap:9px;padding:11px 14px;border-top:1px solid var(--line);background:#fff}
 .tools{display:flex;gap:7px}
 .tool{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:38px;border:1px solid var(--line);background:#fff;border-radius:10px;font:inherit;font-size:13px;font-weight:500;color:#374151;cursor:pointer;white-space:nowrap;transition:background .12s}
@@ -1385,7 +1392,7 @@ function togglePeek(i,btn){
 }
 function esc(s){return (s||"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function typing(on){let t=$("#typing");
-  if(on){if(!t){t=document.createElement("div");t.id="typing";t.className="typing";t.textContent=state.persona.name.split(" ")[0]+" 님이 입력 중…";log.appendChild(t);log.scrollTop=log.scrollHeight;}}
+  if(on){if(!t){t=document.createElement("div");t.id="typing";t.className="typing";t.innerHTML='<span class="tname">'+esc(state.persona.name.split(" ")[0])+'</span> 님이 입력 중<span class="tdots"><i></i><i></i><i></i></span>';log.appendChild(t);log.scrollTop=log.scrollHeight;}}
   else if(t)t.remove();}
 
 async function send(){
