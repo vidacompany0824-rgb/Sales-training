@@ -34,7 +34,7 @@ export default async (req) => {
 
   // 데이터 수집
   const now = Date.now();
-  const [payments, subs, sessions, pageviews, exits, profiles, phones, inquiries] = await Promise.all([
+  const [payments, subs, sessions, pageviews, exits, profiles, phones, inquiries, promos] = await Promise.all([
     sbGet(SUPA, SERVICE, "payments?select=user_id,amount,status,paid_at&order=paid_at.desc&limit=2000"),
     sbGet(SUPA, SERVICE, "subscriptions?select=user_id,status,current_period_end"),
     sbGet(SUPA, SERVICE, "training_sessions?select=user_id,created_at&limit=5000"),
@@ -43,6 +43,7 @@ export default async (req) => {
     sbGet(SUPA, SERVICE, "profiles?select=id,email,display_name,created_at"),
     sbGet(SUPA, SERVICE, "phone_identity?select=user_id,phone,verified,marketing_consent"),
     sbGet(SUPA, SERVICE, "inquiries?select=id,email,category,subject,message,status,created_at&order=created_at.desc&limit=200"),
+    sbGet(SUPA, SERVICE, "promo_codes?select=*&order=created_at.desc&limit=200"),
   ]);
 
   // 가입 경로(provider): GoTrue admin API 에서 조회
@@ -148,5 +149,6 @@ export default async (req) => {
     },
     exitPages, perUser, revenueByDay, series, customers,
     inquiries: inquiries || [],
+    promos: promos || [],
   });
 };
