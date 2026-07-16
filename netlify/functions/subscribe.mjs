@@ -119,7 +119,7 @@ export default async (req) => {
         headers: { Authorization: `PortOne ${PSECRET}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           billingKey,
-          orderName: "세일즈 훈련 구독 (월)",
+          orderName: "쑥쑥AI 구독 (월)",
           customer: { id: user.id, email: user.email || undefined },
           amount: { total: chargeAmount },
           currency: "KRW",
@@ -193,7 +193,7 @@ export default async (req) => {
       headers: { Authorization: `PortOne ${PSECRET}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         payment: {
-          billingKey, orderName: "세일즈 훈련 구독 (월)",
+          billingKey, orderName: "쑥쑥AI 구독 (월)",
           customer: { id: user.id }, amount: { total: AMOUNT }, currency: "KRW",
         },
         timeToPay: next.toISOString(),
