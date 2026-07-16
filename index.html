@@ -1321,8 +1321,8 @@ function startChat(p){
   inp.disabled=false;$("#send").disabled=false;inp.focus();
 }
 function reset(){
-  if(state && !state.closed && state.scores && state.scores.length){ saveSnapshot(); }  // 진행 중 → 이어서 하기용 저장(커밋 안 함)
-  else { persistSession(); clearSnapshot(); }                                            // 완료/빈 세션 → 커밋(대개 no-op) 후 정리
+  persistSession();   // 진행 중이라도 그때까지의 모든 점수를 저장(평균에 반영). 점수 없음/이미 커밋된 세션은 자동 skip.
+  clearSnapshot();
   stopSpeak(); stopRecog();
   stage.classList.remove("on"); wizReset();
   renderPicker(); renderStats(); updateDashToggle();
