@@ -166,8 +166,10 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .pw-price{background:#EAF3DE;border:1px solid #C0DD97;border-radius:12px;padding:14px;margin:16px 0 8px}
 .pw-price .amt{font-size:24px;font-weight:800;color:#2f5a0e}
 .pw-price .amt small{font-size:13px;color:#5b6472;font-weight:600}
-.pw-price .amt.disc{font-size:16px;color:#9aa3b2;font-weight:700;text-decoration:line-through;margin-right:7px}
-.pw-price .amt .final{color:#2f5a0e;text-decoration:none;font-size:24px}
+.pdisc{display:flex;align-items:baseline;justify-content:center;gap:9px;flex-wrap:wrap}
+.pdisc .old{font-size:.62em;color:#9aa3b2;font-weight:700;text-decoration:line-through}
+.pdisc .new{color:#2f5a0e}
+.pdnote{display:block;font-size:12px;color:#5b6472;font-weight:600;margin-top:4px}
 .pw-promo{display:flex;gap:7px;margin:10px 0 2px}
 .au-promo{margin:10px 0 2px}
 .pw-promo input{flex:1;min-width:0;width:100%;border:1px solid #d6dfca;border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;text-transform:uppercase}
@@ -2268,7 +2270,10 @@ function calcFinal(type,value){
 // 화면에 존재하는 모든 금액 표시(#pwAmt 페이월 / #acAmt 내 계정)를 현재 PROMO 기준으로 갱신
 function renderPrice(){
   var full='월 '+wonKR(SUB_PRICE)+'원 <small>· VAT 포함</small>';
-  var disc=PROMO?('<span class="amt disc">월 '+wonKR(SUB_PRICE)+'원</span><span class="final">월 '+wonKR(PROMO.final)+'원</span> <small>· 첫 결제 적용</small>'):full;
+  var disc=PROMO
+    ? '<span class="pdisc"><span class="old">월 '+wonKR(SUB_PRICE)+'원</span><span class="new">월 '+wonKR(PROMO.final)+'원</span></span>'
+      +'<span class="pdnote">첫 결제 적용 · 다음 달부터 정가</span>'
+    : full;
   var a=gq("pwAmt"); if(a) a.innerHTML=disc;
   var b=gq("acAmt"); if(b) b.innerHTML=disc;
 }
