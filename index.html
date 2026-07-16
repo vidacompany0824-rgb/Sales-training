@@ -1520,7 +1520,7 @@ function finish(won){
       ${impHtml}
     </div>
     <div class="rbtns">
-      <button class="send" onclick="startChat(state.persona)">같은 고객 재도전</button>
+      <button class="send" onclick="tryStart(state.persona)">같은 고객 재도전</button>
       <button class="scriptbtn" onclick="printReport()">🖨 인쇄 / PDF 저장</button>
       <button class="scriptbtn" onclick="openScripts()">📋 모범답안 스크립트</button>
       <button class="hintbtn" onclick="reset()">다른 고객 / 거절 강도 변경</button>
@@ -2362,12 +2362,32 @@ async function loadAccount(){
 }
 function maskPhone(p){ p=String(p||'').replace(/[^0-9]/g,''); if(p.length<7) return p||'-'; return p.slice(0,3)+'****'+p.slice(-4); }
 /* 지난 세션 기록 보기 (리포트 + 대화 전문) */
+var LAST_DETAIL=null;
+// 지난 세션(내 계정 상세)을 저장된 데이터로 인쇄/PDF
+function printPastSession(){
+  var s=LAST_DETAIL; if(!s) return;
+  var pObj=null; for(var i=0;i<PERSONAS.length;i++){ if(PERSONAS[i].id===s.persona){pObj=PERSONAS[i];break;} }
+  var passLine=(pObj && typeof passLineFor==='function')?passLineFor(pObj,s.cold||3):54;
+  var scores=Array.isArray(s.scores)?s.scores:[];
+  var trend=(typeof s.trend==='number')?s.trend:(scores.length?(scores[scores.length-1]-scores[0]):0);
+  var ax=s.axis_avg||{};
+  var axisAvg=(ax && Object.keys(ax).length)?AXES.map(function(a){ return {label:a.label,v:(ax[a.k]||0)}; }):[];
+  buildPrintArea({
+    persona:{name:(s.persona_name||s.persona||'고객')}, cold:(s.cold||3), passLine:passLine,
+    scores:scores, avg:(s.avg_score||0), best:(s.best_score||0), turns:(s.turns||0), trend:trend,
+    passed:!!s.passed, grade:(s.grade||grade(s.avg_score||0).g), improves:(Array.isArray(s.improves)?s.improves:[]),
+    axisAvg:axisAvg, messages:(Array.isArray(s.messages)?s.messages:[])
+  });
+  var pc=document.getElementById('paCoach'); if(pc) pc.innerHTML='';   // 지난 세션은 AI 종합코칭 미저장
+  window.print();
+}
 async function openSessionDetail(id){
   var body=gq("acctBody"); if(!body) return;
   body.innerHTML='<div style="padding:24px;color:#6b7280;font-size:13px;text-align:center">불러오는 중…</div>';
   var s=null;
   try{ var r=await sb.from('training_sessions').select('*').eq('id',id).eq('user_id',AUTH_USER.id).maybeSingle(); s=r.data; }catch(e){}
   if(!s){ body.innerHTML='<button class="back-btn" type="button" onclick="loadAccount()">← 최근 내역</button><div class="acct-sec">기록을 불러오지 못했습니다.</div>'; return; }
+  LAST_DETAIL=s;
   var gr=grade(s.avg_score||0);
   var name=s.persona_name||s.persona||'고객';
   var coldTxt=(s.cold && COLD[s.cold])?('거절 강도 '+COLD[s.cold].t):(s.cold?('거절 강도 '+s.cold):'');
@@ -2378,7 +2398,10 @@ async function openSessionDetail(id){
     ? msgs.map(function(m){ var mine=(m.role==='fc'); return '<div class="tx '+(mine?'me':'cu')+'"><div class="tb">'+esc(m.text)+'</div></div>'; }).join('')
     : '<div style="color:#6b7280;font-size:12.5px;padding:4px 0">저장된 대화가 없습니다. (기록 저장 기능 적용 이전 세션)</div>';
   body.innerHTML=
-    '<button class="back-btn" type="button" onclick="loadAccount()">← 최근 내역</button>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px">'+
+      '<button class="back-btn" type="button" style="margin:0" onclick="loadAccount()">← 최근 내역</button>'+
+      '<button class="back-btn" type="button" style="margin:0;border-color:#C0DD97;color:#2f5a0e;background:#EAF3DE" onclick="printPastSession()">🖨 인쇄 / PDF</button>'+
+    '</div>'+
     '<div class="acct-sec"><h4>'+esc(name)+' · '+fmtDate(s.created_at)+'</h4>'+
       '<div class="sd-top"><div class="sd-grade" style="color:'+gr.c+'">'+gr.g+'</div>'+
         '<div class="sd-meta"><div><b>평균 '+(s.avg_score||0)+'점</b> · 최고 '+(s.best_score||0)+'점 '+(s.passed?'· ✅ 합격':'· 미합격')+'</div>'+
