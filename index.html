@@ -1435,7 +1435,7 @@ ${convo}
   state.messages.push({role:"cust",text:data.customer||"…"}); addBubble("cust",p.emoji,data.customer||"…"); speak(data.customer||"");
   addTurnFooter(prevW,newW,state.turnEvals.length-1);
   saveSnapshot();
-  if(data.closed || nm==='convinced'){finish(true);return;}
+  if(data.closed || (nm==='convinced' && (state.turns||0)>=2)){finish(true);return;}
   inp.disabled=false;$("#send").disabled=false;inp.focus();
 }
 
@@ -1730,6 +1730,7 @@ function msSave(){
   if(k) g.weak=Math.max(1,Math.min(100,Math.round(+k.value||g.weak)));
   msSaveGoals(g); MS_EDIT=false; renderMySpace();
 }
+var MS_GEN=0;
 async function renderMySpace(){
   var el=gq('myspace'); if(!el) return;
   // 로그인+백엔드 있을 때만 개인 공간 표시. 데모/비로그인은 기존 로컬 대시보드 사용.
@@ -1737,6 +1738,8 @@ async function renderMySpace(){
   el.style.display='block';
   var _dt=gq('dashToggle'); if(_dt) _dt.style.display='none';   // 로그인 시 로컬 토글 숨김(개인 공간이 대체)
   var _dd=gq('dash'); if(_dd) _dd.classList.remove('on');
+  var _g=++MS_GEN;   // 최신 호출만 반영(경합 시 늦게 온 결과 무시)
+  if(!el.innerHTML){ el.innerHTML='<div class="ms-hero"><h2>🌱 훈련 공간</h2><div class="ms-sub">불러오는 중…</div></div>'; }
 
   var name=''; try{ name=(AUTH_USER.user_metadata&&AUTH_USER.user_metadata.name)||''; }catch(e){}
   if(!name){ name=((AUTH_USER.email||'').split('@')[0])||'회원'; }
@@ -1827,6 +1830,7 @@ async function renderMySpace(){
   else { subline='꾸준함이 실력을 만듭니다. 오늘도 한 세션 어때요?'; }
   var emptyHint=total?'':'<div class="ms-empty">아직 훈련 기록이 없어요. 아래에서 고객을 골라 첫 훈련을 시작하면 지표가 채워집니다.</div>';
 
+  if(_g!==MS_GEN) return;   // 그 사이 더 최근 렌더가 시작됐으면 이 결과는 버림
   el.innerHTML=
     '<div class="ms-hero"><h2>🌱 '+esc(name)+'님의 훈련 공간</h2><div class="ms-sub">'+subline+'</div>'+metrics+'</div>'+
     goalCard+profCard+emptyHint;
@@ -1893,7 +1897,6 @@ function setGateMode(m){
   gq("gtabLogin").classList.toggle("on",isLogin);
   gq("gtabSignup").classList.toggle("on",isSignup);
   function disp(id,on){ var el=gq(id); if(el) el.style.display = on?"":"none"; }
-  disp("gtabsWrap", !isRecovery);                 // 탭
   var tabs=document.querySelector('.gtabs'); if(tabs) tabs.style.display=isRecovery?"none":"flex";
   var emailField=gq("gEmail")?gq("gEmail").parentNode:null; if(emailField) emailField.style.display=isRecovery?"none":"block";
   disp("gForgot", isLogin);
@@ -2187,7 +2190,7 @@ function showPaywall(row){
   gq("paywall").classList.add("on");
   if(typeof trackStage==='function') trackStage('paywall');
 }
-function closePaywall(){ gq("paywall").classList.remove("on"); if(typeof trackStage==='function') trackStage('persona_select'); }
+function closePaywall(){ gq("paywall").classList.remove("on"); if(typeof showHome==='function') showHome(); }
 
 async function saveSessionToDB(d){
   if(!sb || !AUTH_USER) return;
