@@ -14,7 +14,7 @@
 //   SUPABASE_URL                 (필수)
 //   SUPABASE_SERVICE_ROLE_KEY    (필수)
 //   PROMO_IG_TYPE        = 'percent' | 'fixed'   (기본 'percent')
-//   PROMO_IG_VALUE       = 20                     (percent면 %, fixed면 원 · 기본 20)
+//   PROMO_IG_VALUE       = 50                     (percent면 %, fixed면 원 · 기본 50)
 //   PROMO_IG_EXPIRE_DAYS = 7                      (발급 후 유효기간(일) · 기본 7)
 //   PROMO_IG_PREFIX      = 'IG'                   (코드 접두사 · 기본 'IG')
 //   PROMO_ALLOWED_ORIGIN = https://내앱주소       (선택: 지정 시 해당 Origin 요청만 허용)
@@ -59,7 +59,7 @@ export default async (req) => {
 
   // 할인 조건 (환경변수로 조정 · 코드 수정 없이 변경 가능)
   const type = process.env.PROMO_IG_TYPE === "fixed" ? "fixed" : "percent";
-  let value = Math.round(Number(process.env.PROMO_IG_VALUE || 20));
+  let value = Math.round(Number(process.env.PROMO_IG_VALUE || 50));
   if (value < 0) value = 0;
   if (type === "percent" && value > 100) value = 100;
   const days = Math.max(1, Math.round(Number(process.env.PROMO_IG_EXPIRE_DAYS || 7)));
