@@ -166,6 +166,15 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .pw-price{background:#EAF3DE;border:1px solid #C0DD97;border-radius:12px;padding:14px;margin:16px 0 8px}
 .pw-price .amt{font-size:24px;font-weight:800;color:#2f5a0e}
 .pw-price .amt small{font-size:13px;color:#5b6472;font-weight:600}
+.pw-price .amt.disc{font-size:16px;color:#9aa3b2;font-weight:700;text-decoration:line-through;margin-right:7px}
+.pw-price .amt .final{color:#2f5a0e;text-decoration:none;font-size:24px}
+.pw-promo{display:flex;gap:7px;margin:10px 0 2px}
+.pw-promo input{flex:1;min-width:0;border:1px solid #d6dfca;border-radius:10px;padding:11px 12px;font:inherit;font-size:14px;text-transform:uppercase}
+.pw-promo input:focus{outline:none;border-color:#3B6D11;box-shadow:0 0 0 3px rgba(59,109,17,.12)}
+.pw-promo button{border:1px solid #3B6D11;background:#fff;color:#3B6D11;border-radius:10px;padding:0 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.pw-promo button:disabled{opacity:.5;cursor:default}
+.pw-pnote{font-size:12.5px;min-height:16px;margin:2px 2px 0;text-align:left}
+.pw-pnote.ok{color:#2f7d14;font-weight:600}.pw-pnote.err{color:#dc2626}
 .pw-btn{width:100%;border:none;background:#3B6D11;color:#fff;border-radius:12px;padding:14px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
 .pw-close{background:none;border:none;color:#94a3b8;font:inherit;font-size:13px;cursor:pointer;margin-top:12px}
 /* 내 계정 대시보드 */
@@ -807,8 +816,13 @@ textarea:focus{border-color:var(--brand)}
     <h2>무료 훈련을 다 쓰셨어요</h2>
     <p id="pwMsg">오늘 무료 세션을 모두 사용했습니다.<br>구독하면 <b>무제한</b>으로 훈련할 수 있어요.</p>
     <div class="pw-price">
-      <div class="amt">월 9,900원 <small>· VAT 포함</small></div>
+      <div class="amt" id="pwAmt">월 9,900원 <small>· VAT 포함</small></div>
     </div>
+    <div class="pw-promo">
+      <input id="pwPromo" type="text" placeholder="프로모션 코드 (선택)" autocapitalize="characters" autocomplete="off">
+      <button id="pwPromoApply" type="button">적용</button>
+    </div>
+    <div class="pw-pnote" id="pwPnote"></div>
     <button class="pw-btn" id="pwSub" type="button">구독하고 무제한 훈련하기</button>
     <button class="pw-close" id="pwClose" type="button">나중에</button>
   </div>
@@ -2239,7 +2253,44 @@ function showPaywall(row){
   gq("paywall").classList.add("on");
   if(typeof trackStage==='function') trackStage('paywall');
 }
-function closePaywall(){ gq("paywall").classList.remove("on"); if(typeof showHome==='function') showHome(); }
+function closePaywall(){ gq("paywall").classList.remove("on"); resetPromo(); if(typeof showHome==='function') showHome(); }
+
+/* ---------- 프로모션 코드 ---------- */
+var SUB_PRICE=9900;           // 표시·계산 기준가(백엔드 SUBSCRIPTION_AMOUNT와 동일하게 유지)
+var PROMO=null;               // {code,type,value,final}
+function wonKR(n){ return (n||0).toLocaleString('ko-KR'); }
+function pnote(msg,ok){ var n=gq("pwPnote"); if(!n) return; n.textContent=msg||''; n.className='pw-pnote'+(msg?(ok?' ok':' err'):''); }
+function renderPwAmt(){
+  var el=gq("pwAmt"); if(!el) return;
+  if(PROMO){ el.innerHTML='<span class="amt disc">월 '+wonKR(SUB_PRICE)+'원</span><span class="final">월 '+wonKR(PROMO.final)+'원</span> <small>· 첫 결제 적용</small>'; }
+  else{ el.innerHTML='월 '+wonKR(SUB_PRICE)+'원 <small>· VAT 포함</small>'; }
+}
+function resetPromo(){ PROMO=null; var i=gq("pwPromo"); if(i) i.value=''; pnote(''); renderPwAmt(); }
+function calcFinal(type,value){
+  var disc = type==='percent' ? Math.floor(SUB_PRICE*Math.min(100,value)/100) : value;
+  return Math.max(0, SUB_PRICE-disc);
+}
+async function applyPromo(){
+  var i=gq("pwPromo"); if(!i) return;
+  var code=(i.value||'').trim();
+  if(!code){ resetPromo(); pnote('코드를 입력해 주세요.'); return; }
+  if(!sb){ pnote('잠시 후 다시 시도해 주세요.'); return; }
+  var b=gq("pwPromoApply"); if(b) b.disabled=true;
+  try{
+    var res=await sb.rpc('preview_promo',{p_code:code});
+    var row=res && res.data && res.data[0];
+    if(res.error || !row){ PROMO=null; renderPwAmt(); pnote('코드를 확인할 수 없어요. 다시 시도해 주세요.'); }
+    else if(!row.valid){ PROMO=null; renderPwAmt(); pnote(row.reason||'적용할 수 없는 코드예요.'); }
+    else{
+      var fin=calcFinal(row.discount_type,row.discount_value);
+      PROMO={code:code.toUpperCase(),type:row.discount_type,value:row.discount_value,final:fin};
+      renderPwAmt();
+      var label = row.discount_type==='percent' ? (row.discount_value+'% 할인') : (wonKR(row.discount_value)+'원 할인');
+      pnote('✓ '+label+' 적용! 첫 결제 월 '+wonKR(fin)+'원', true);
+    }
+  }catch(e){ PROMO=null; renderPwAmt(); pnote('코드 확인 중 오류가 발생했어요.'); }
+  if(b) b.disabled=false;
+}
 
 async function saveSessionToDB(d){
   if(!sb || !AUTH_USER) return;
@@ -2266,7 +2317,8 @@ async function startSubscribe(trigBtn){
     alert("결제 설정(포트원 상점ID·채널키)이 아직 입력되지 않았습니다."); return;
   }
   var btn=(trigBtn&&trigBtn.tagName)?trigBtn:gq("pwSub"); btn.disabled=true; var old=btn.textContent; btn.textContent="카드 등록 중…";
-  try{ if(window.fbq) fbq('track','InitiateCheckout',{value:9900,currency:'KRW'}); }catch(_){}
+  var payVal=(PROMO?PROMO.final:SUB_PRICE);
+  try{ if(window.fbq) fbq('track','InitiateCheckout',{value:payVal,currency:'KRW'}); }catch(_){}
   try{
     // 1) 빌링키 발급 (카드 등록 창)
     var issue=await window.PortOne.requestIssueBillingKey({
@@ -2280,11 +2332,11 @@ async function startSubscribe(trigBtn){
     btn.textContent="결제 처리 중…";
     var sess=(await sb.auth.getSession()).data.session;
     var r=await fetch(SUBSCRIBE_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ billingKey:issue.billingKey, accessToken:sess&&sess.access_token })});
+      body:JSON.stringify({ billingKey:issue.billingKey, accessToken:sess&&sess.access_token, promoCode:(PROMO?PROMO.code:null) })});
     var j=await r.json();
     if(r.ok && j.ok){
       alert("구독 완료! 이제 무제한으로 이용하실 수 있어요. 🎉");
-      try{ if(window.fbq) fbq('track','Subscribe',{value:9900,currency:'KRW'}); }catch(_){}
+      try{ if(window.fbq) fbq('track','Subscribe',{value:payVal,currency:'KRW'}); }catch(_){}
       closePaywall();
       var t=gq("useTag"); if(t){ t.textContent="구독 · 무제한"; t.style.display="block"; }
       var _ac=gq("acct"); if(_ac && _ac.classList.contains("on")) loadAccount();  // 내 계정 열려 있으면 즉시 갱신
@@ -2298,9 +2350,11 @@ async function startSubscribe(trigBtn){
   }
 }
 (function(){
-  var s=gq("pwSub"), c=gq("pwClose");
+  var s=gq("pwSub"), c=gq("pwClose"), pa=gq("pwPromoApply"), pi=gq("pwPromo");
   if(s) s.onclick=startSubscribe;
   if(c) c.onclick=closePaywall;
+  if(pa) pa.onclick=applyPromo;
+  if(pi) pi.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); applyPromo(); } });
 })();
 
 /* ============================================================
