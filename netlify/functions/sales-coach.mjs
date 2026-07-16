@@ -31,13 +31,16 @@ export default async (req) => {
       headers: { "x-api-key": KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 1024,
+        max_tokens: 2000,
         messages: [{ role: "user", content: prompt }],
       }),
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) return json({ error: "anthropic_error", detail: j }, 502);
-    const text = (j.content && j.content[0] && j.content[0].text) || "";
+    // content 배열에서 '텍스트' 블록만 모아서 합침(추론 블록 등이 앞에 와도 안전)
+    const blocks = Array.isArray(j.content) ? j.content : [];
+    const text = blocks.filter(b => b && b.type === "text" && typeof b.text === "string").map(b => b.text).join("\n").trim();
+    if (!text) return json({ text: "", stop_reason: j.stop_reason || null, content_types: blocks.map(b => b && b.type) }, 200);
     return json({ text });
   } catch (e) {
     return json({ error: "proxy_error", message: String(e) }, 502);
