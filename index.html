@@ -609,10 +609,25 @@ textarea:focus{border-color:var(--brand)}
 .pa .sec{font-size:13px;font-weight:700;margin:14px 0 6px}
 .pa ul{margin:0;padding-left:18px;font-size:12.5px}.pa li{margin:3px 0}
 .pa .foot{margin-top:18px;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:8px}
+.pa .paxes{margin:6px 0 14px}
+.pa .paxrow{display:flex;align-items:center;gap:8px;font-size:12px;margin:4px 0}
+.pa .paxrow .l{flex:0 0 78px;color:#374151}
+.pa .paxrow .t{flex:1;height:7px;background:#eef2f7;border-radius:4px;overflow:hidden}
+.pa .paxrow .t .f{display:block;height:100%}
+.pa .paxrow .v{flex:0 0 30px;text-align:right;font-weight:700}
+.pa .pacoach{font-size:12.5px;line-height:1.55;margin:6px 0 8px}
+.pa .pacoach h4{font-size:13px;margin:0 0 6px}
+.pa .pacoach .cst{margin:3px 0}
+.pa .pa-msg{font-size:12px;line-height:1.5;margin:4px 0;padding:6px 9px;border-radius:8px;page-break-inside:avoid}
+.pa .pa-msg.cu{background:#f1f3ee}
+.pa .pa-msg.me{background:#eaf3de}
+.pa .pa-msg b{color:#2f5a0e;margin-right:4px}
 @media print{
   body{padding:0 !important;background:#fff !important}
   body > *:not(#printArea){display:none !important}
   #printArea{display:block !important}
+  .pa .pa-msg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pa .paxrow .t .f{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   @page{margin:14mm}
 }
 </style>
@@ -1506,13 +1521,13 @@ function finish(won){
     </div>
     <div class="rbtns">
       <button class="send" onclick="startChat(state.persona)">같은 고객 재도전</button>
-      <button class="scriptbtn" onclick="window.print()">🖨 인쇄 / PDF 저장</button>
+      <button class="scriptbtn" onclick="printReport()">🖨 인쇄 / PDF 저장</button>
       <button class="scriptbtn" onclick="openScripts()">📋 모범답안 스크립트</button>
       <button class="hintbtn" onclick="reset()">다른 고객 / 거절 강도 변경</button>
     </div>`;
   r.classList.add("on");
   if(typeof trackStage==='function') trackStage('report');
-  buildPrintArea({persona:state.persona,cold:state.cold,passLine:state.passLine,scores:sc,avg:avg,best:state.best,turns:state.turns,trend:trend,passed:passed,grade:gr.g,improves:[...new Set(state.improves)]});
+  buildPrintArea({persona:state.persona,cold:state.cold,passLine:state.passLine,scores:sc,avg:avg,best:state.best,turns:state.turns,trend:trend,passed:passed,grade:gr.g,improves:[...new Set(state.improves)],axisAvg:(state.axisCount?AXES.map(a=>({label:a.label,v:Math.round((state.axisSum[a.k]||0)/state.axisCount)})):[]),messages:(state.messages||[])});
   if(sc.length){
     const axisText=state.axisCount?AXES.map(a=>`${a.label} ${Math.round((state.axisSum[a.k]||0)/state.axisCount)}점`).join(", "):"데이터 없음";
     generateCoaching({persona:state.persona.name, goal:(state.persona.id==='referral'?'만족 고객에게서 지인 소개 확보':'고객의 거절 극복'), convo:state.messages.map(m=>`${m.role==='fc'?'영업사원':'고객'}: ${m.text}`).join("\n"), axisText:axisText});
@@ -1557,6 +1572,8 @@ function buildPrintArea(d){
   const imp=d.improves.slice(-5);
   const impHtml=imp.length?`<ul>${imp.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`:'<div style="font-size:12px;color:#9ca3af">보완점 데이터 없음</div>';
   const now=new Date().toLocaleString('ko-KR',{hour12:false});
+  const axHtml=(d.axisAvg&&d.axisAvg.length)?('<div class="sec">역량별 평균</div><div class="paxes">'+d.axisAvg.map(function(x){return '<div class="paxrow"><span class="l">'+esc(x.label)+'</span><span class="t"><span class="f" style="width:'+x.v+'%;background:'+axColor(x.v)+'"></span></span><span class="v">'+x.v+'</span></div>';}).join("")+'</div>'):'';
+  const convHtml=(d.messages&&d.messages.length)?('<div class="sec">대화 내용</div>'+d.messages.map(function(m){return '<div class="pa-msg '+(m.role==='fc'?'me':'cu')+'"><b>'+(m.role==='fc'?'나':'고객')+'</b>'+esc(m.text)+'</div>';}).join("")):'';
   document.getElementById("printArea").innerHTML=`<div class="pa">
     <h2>🎯 세일즈 거절극복 훈련 리포트</h2>
     <div class="meta">고객유형: ${esc(d.persona.name)} · 거절 강도 ${COLD[d.cold].t} · 합격선 평균 ${d.passLine}점 · 생성 ${now}</div>
@@ -1567,11 +1584,20 @@ function buildPrintArea(d){
       <div class="pa-m"><div class="n">${d.best}</div><div class="l">최고 점수</div></div>
       <div class="pa-m"><div class="n">${d.trend>=0?'+':''}${d.trend}</div><div class="l">첫→끝 변화</div></div>
     </div>
+    ${axHtml}
     <div class="sec">답변별 점수</div>
     <table><thead><tr><th>순번</th><th>코칭 점수</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="pacoach" id="paCoach"></div>
     <div class="sec">보완 포인트</div>${impHtml}
+    ${convHtml}
     <div class="foot">${COMPANY?esc(COMPANY)+' · ':''}세일즈 거절극복 훈련 · 세션 종료 시점 기준으로 생성된 리포트입니다.</div>
   </div>`;
+}
+// 인쇄 직전, 화면의 AI 종합 코칭을 인쇄 영역에 복사한 뒤 출력
+function printReport(){
+  var cb=document.getElementById('coachBox'), pc=document.getElementById('paCoach');
+  if(pc){ pc.innerHTML = (cb && cb.innerHTML) ? ('<div class="coach">'+cb.innerHTML+'</div>') : ''; }
+  window.print();
 }
 function grade(a){
   if(a>=85)return{g:"A",c:"#16a34a"}; if(a>=70)return{g:"B",c:"#22a06b"};
