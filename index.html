@@ -159,7 +159,7 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 #useTag{background:#EAF3DE;border:1px solid #C0DD97;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;font-weight:700;color:#2f5a0e;display:none;white-space:nowrap}
 #paywall{position:fixed;inset:0;z-index:9500;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px}
 #paywall.on{display:flex}
-.pw-card{background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.35);max-width:420px;width:100%;padding:30px 28px;text-align:center}
+.pw-card{background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.35);max-width:420px;width:100%;padding:30px 28px;text-align:center;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .pw-card .pw-ic{font-size:40px}
 .pw-card h2{font-size:21px;font-weight:800;color:#161b26;margin:8px 0 6px}
 .pw-card p{font-size:14px;color:#5b6472;margin-bottom:6px}
@@ -169,7 +169,9 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .pw-price .amt.disc{font-size:16px;color:#9aa3b2;font-weight:700;text-decoration:line-through;margin-right:7px}
 .pw-price .amt .final{color:#2f5a0e;text-decoration:none;font-size:24px}
 .pw-promo{display:flex;gap:7px;margin:10px 0 2px}
-.pw-promo input{flex:1;min-width:0;border:1px solid #d6dfca;border-radius:10px;padding:11px 12px;font:inherit;font-size:14px;text-transform:uppercase}
+.au-promo{margin:10px 0 2px}
+.pw-promo input{flex:1;min-width:0;width:100%;border:1px solid #d6dfca;border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;text-transform:uppercase}
+.pw-promo input::placeholder{text-transform:none;font-size:14px}
 .pw-promo input:focus{outline:none;border-color:#3B6D11;box-shadow:0 0 0 3px rgba(59,109,17,.12)}
 .pw-promo button{border:1px solid #3B6D11;background:#fff;color:#3B6D11;border-radius:10px;padding:0 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
 .pw-promo button:disabled{opacity:.5;cursor:default}
@@ -2255,42 +2257,43 @@ function showPaywall(row){
 }
 function closePaywall(){ gq("paywall").classList.remove("on"); resetPromo(); if(typeof showHome==='function') showHome(); }
 
-/* ---------- 프로모션 코드 ---------- */
+/* ---------- 프로모션 코드 (페이월·내 계정 공용) ---------- */
 var SUB_PRICE=9900;           // 표시·계산 기준가(백엔드 SUBSCRIPTION_AMOUNT와 동일하게 유지)
 var PROMO=null;               // {code,type,value,final}
 function wonKR(n){ return (n||0).toLocaleString('ko-KR'); }
-function pnote(msg,ok){ var n=gq("pwPnote"); if(!n) return; n.textContent=msg||''; n.className='pw-pnote'+(msg?(ok?' ok':' err'):''); }
-function renderPwAmt(){
-  var el=gq("pwAmt"); if(!el) return;
-  if(PROMO){ el.innerHTML='<span class="amt disc">월 '+wonKR(SUB_PRICE)+'원</span><span class="final">월 '+wonKR(PROMO.final)+'원</span> <small>· 첫 결제 적용</small>'; }
-  else{ el.innerHTML='월 '+wonKR(SUB_PRICE)+'원 <small>· VAT 포함</small>'; }
-}
-function resetPromo(){ PROMO=null; var i=gq("pwPromo"); if(i) i.value=''; pnote(''); renderPwAmt(); }
 function calcFinal(type,value){
   var disc = type==='percent' ? Math.floor(SUB_PRICE*Math.min(100,value)/100) : value;
   return Math.max(0, SUB_PRICE-disc);
 }
-async function applyPromo(){
-  var i=gq("pwPromo"); if(!i) return;
+// 화면에 존재하는 모든 금액 표시(#pwAmt 페이월 / #acAmt 내 계정)를 현재 PROMO 기준으로 갱신
+function renderPrice(){
+  var full='월 '+wonKR(SUB_PRICE)+'원 <small>· VAT 포함</small>';
+  var disc=PROMO?('<span class="amt disc">월 '+wonKR(SUB_PRICE)+'원</span><span class="final">월 '+wonKR(PROMO.final)+'원</span> <small>· 첫 결제 적용</small>'):full;
+  var a=gq("pwAmt"); if(a) a.innerHTML=disc;
+  var b=gq("acAmt"); if(b) b.innerHTML=disc;
+}
+function setPnote(id,msg,ok){ var n=gq(id); if(!n) return; n.textContent=msg||''; n.className=(n.className.split(' ')[0])+(msg?(ok?' ok':' err'):''); }
+function resetPromo(){ PROMO=null; var i=gq("pwPromo"); if(i) i.value=''; var i2=gq("acPromo"); if(i2) i2.value=''; setPnote("pwPnote",''); setPnote("acPnote",''); renderPrice(); }
+// inputId·noteId 로 어느 화면에서든 코드 적용
+async function applyPromoField(inputId, noteId){
+  var i=gq(inputId); if(!i) return;
   var code=(i.value||'').trim();
-  if(!code){ resetPromo(); pnote('코드를 입력해 주세요.'); return; }
-  if(!sb){ pnote('잠시 후 다시 시도해 주세요.'); return; }
-  var b=gq("pwPromoApply"); if(b) b.disabled=true;
+  if(!code){ PROMO=null; renderPrice(); setPnote(noteId,'코드를 입력해 주세요.'); return; }
+  if(!sb){ setPnote(noteId,'잠시 후 다시 시도해 주세요.'); return; }
   try{
     var res=await sb.rpc('preview_promo',{p_code:code});
     var row=res && res.data && res.data[0];
-    if(res.error || !row){ PROMO=null; renderPwAmt(); pnote('코드를 확인할 수 없어요. 다시 시도해 주세요.'); }
-    else if(!row.valid){ PROMO=null; renderPwAmt(); pnote(row.reason||'적용할 수 없는 코드예요.'); }
-    else{
-      var fin=calcFinal(row.discount_type,row.discount_value);
-      PROMO={code:code.toUpperCase(),type:row.discount_type,value:row.discount_value,final:fin};
-      renderPwAmt();
-      var label = row.discount_type==='percent' ? (row.discount_value+'% 할인') : (wonKR(row.discount_value)+'원 할인');
-      pnote('✓ '+label+' 적용! 첫 결제 월 '+wonKR(fin)+'원', true);
-    }
-  }catch(e){ PROMO=null; renderPwAmt(); pnote('코드 확인 중 오류가 발생했어요.'); }
-  if(b) b.disabled=false;
+    if(res.error || !row){ PROMO=null; renderPrice(); setPnote(noteId,'코드를 확인할 수 없어요. 다시 시도해 주세요.'); return; }
+    if(!row.valid){ PROMO=null; renderPrice(); setPnote(noteId,row.reason||'적용할 수 없는 코드예요.'); return; }
+    var fin=calcFinal(row.discount_type,row.discount_value);
+    PROMO={code:code.toUpperCase(),type:row.discount_type,value:row.discount_value,final:fin};
+    renderPrice();
+    var label = row.discount_type==='percent' ? (row.discount_value+'% 할인') : (wonKR(row.discount_value)+'원 할인');
+    setPnote(noteId,'✓ '+label+' 적용! 첫 결제 월 '+wonKR(fin)+'원', true);
+  }catch(e){ PROMO=null; renderPrice(); setPnote(noteId,'코드 확인 중 오류가 발생했어요.'); }
 }
+function applyPromo(){ applyPromoField("pwPromo","pwPnote"); }       // 페이월
+function applyPromoAcct(){ applyPromoField("acPromo","acPnote"); }   // 내 계정
 
 async function saveSessionToDB(d){
   if(!sb || !AUTH_USER) return;
@@ -2365,6 +2368,7 @@ function openAccount(){ gq("acct").classList.add("on"); loadAccount(); if(typeof
 function closeAccount(){ gq("acct").classList.remove("on"); if(typeof trackStage==='function') trackStage('persona_select'); }
 async function loadAccount(){
   if(!sb || !AUTH_USER){ gq("acctBody").innerHTML='<div style="padding:20px;color:#6b7280">로그인이 필요합니다.</div>'; return; }
+  PROMO=null;  // 계정 화면 새로 열 때 프로모 상태 초기화
   var email=AUTH_USER.email||"-", joined=fmtDate(AUTH_USER.created_at);
   // 이용량 (RPC로 오늘 사용량/한도 조회 — 증가 없이)
   var used="-", limit="-";
@@ -2374,7 +2378,9 @@ async function loadAccount(){
     '<div class="acct-upsell">'+
       '<div class="au-t">🌱 무제한으로 훈련하기</div>'+
       '<div class="au-d">무료 플랜은 하루 5회까지예요. 구독하면 한도 없이 무제한으로 연습할 수 있어요.</div>'+
-      '<div class="au-p">월 9,900원 <small>· VAT 포함</small></div>'+
+      '<div class="au-p" id="acAmt">월 9,900원 <small>· VAT 포함</small></div>'+
+      '<div class="pw-promo au-promo"><input id="acPromo" type="text" placeholder="프로모션 코드 (선택)" autocapitalize="characters" autocomplete="off"><button id="acPromoApply" type="button">적용</button></div>'+
+      '<div class="pw-pnote" id="acPnote"></div>'+
       '<button class="au-btn" id="acctSubBtn" type="button">구독하고 무제한 훈련하기 →</button>'+
     '</div>';
   var isSub=false, sub=null;
@@ -2425,6 +2431,8 @@ async function loadAccount(){
   if(cb) cb.onclick=cancelSubscription;
   var asb=gq("acctSubBtn");
   if(asb) asb.onclick=function(){ startSubscribe(this); };
+  var acpa=gq("acPromoApply"); if(acpa) acpa.onclick=applyPromoAcct;
+  var acpi=gq("acPromo"); if(acpi) acpi.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); applyPromoAcct(); } });
   var mt=gq("mktToggle");
   if(mt) mt.onchange=async function(){
     var on=mt.checked; mt.disabled=true;
