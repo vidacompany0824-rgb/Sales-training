@@ -1906,17 +1906,18 @@ async function renderRanking(cold){
   if(!sb || !AUTH_USER){ el.innerHTML=head+'<div class="rank-load">로그인 후 이용할 수 있어요.</div>'; return; }
   var rows=[];
   try{
-    var q=await sb.from('training_sessions').select('persona,cold,avg_score,best_score,passed').eq('user_id',AUTH_USER.id).limit(1000);
+    var q=await sb.from('training_sessions').select('persona,persona_name,cold,avg_score,best_score,passed').eq('user_id',AUTH_USER.id).limit(1000);
     rows=q.data||[];
   }catch(e){ rows=[]; }
   if(rankCold) rows=rows.filter(function(r){ return (+r.cold)===rankCold; });
   if(!rows.length){ el.innerHTML=head+'<div class="rank-load">'+(rankCold?'거절 강도 '+rankCold+'단계 훈련 기록이 아직 없어요.':'아직 훈련 기록이 없어요. 훈련을 시작해보세요.')+'</div>'; return; }
+  function personaName(id){ for(var i=0;i<PERSONAS.length;i++){ if(PERSONAS[i].id===id) return PERSONAS[i].name; } return id||'고객'; }
   var map={};
-  rows.forEach(function(r){ var k=r.persona||'기타'; var m=map[k]||(map[k]={persona:k,n:0,sum:0,best:0,pass:0,coldSum:0}); m.n++; m.sum+=(+r.avg_score||0); m.best=Math.max(m.best,+r.best_score||0); if(r.passed)m.pass++; m.coldSum+=(+r.cold||0); });
-  var list=Object.keys(map).map(function(k){ var m=map[k]; return {persona:m.persona,n:m.n,avg:Math.round(m.sum/m.n),best:m.best,pass:Math.round(m.pass/m.n*100),avgCold:(m.coldSum/m.n).toFixed(1)}; });
+  rows.forEach(function(r){ var k=r.persona||'기타'; var m=map[k]||(map[k]={label:(r.persona_name||personaName(r.persona)),n:0,sum:0,best:0,pass:0,coldSum:0}); if(r.persona_name) m.label=r.persona_name; m.n++; m.sum+=(+r.avg_score||0); m.best=Math.max(m.best,+r.best_score||0); if(r.passed)m.pass++; m.coldSum+=(+r.cold||0); });
+  var list=Object.keys(map).map(function(k){ var m=map[k]; return {label:m.label,n:m.n,avg:Math.round(m.sum/m.n),best:m.best,pass:Math.round(m.pass/m.n*100),avgCold:(m.coldSum/m.n).toFixed(1)}; });
   list.sort(function(a,b){ return b.avg-a.avg || b.best-a.best; });
   var body=list.map(function(f,i){ var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-    return '<tr class="rrow"><td class="rk">'+medal+'</td><td class="rf">'+esc(f.persona)+'</td><td>'+f.n+'</td><td>'+f.avgCold+'</td><td class="rv">'+f.avg+'<span class="rvb"> / '+f.best+'</span></td><td>'+f.pass+'%</td></tr>';
+    return '<tr class="rrow"><td class="rk">'+medal+'</td><td class="rf">'+esc(f.label)+'</td><td>'+f.n+'</td><td>'+f.avgCold+'</td><td class="rv">'+f.avg+'<span class="rvb"> / '+f.best+'</span></td><td>'+f.pass+'%</td></tr>';
   }).join("");
   el.innerHTML=head+'<div class="rank-wrap"><table class="rank"><thead><tr><th>순위</th><th>고객</th><th>세션</th><th>거절강도</th><th>평균 / 최고</th><th>합격률</th></tr></thead><tbody>'+body+'</tbody></table></div><div class="rank-note">'+(rankCold?'거절 강도 '+rankCold+'단계만 · ':'')+'평균 점수 기준 정렬 · 내 계정 누적 기록</div>';
 }
