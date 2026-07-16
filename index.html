@@ -2327,15 +2327,20 @@ async function startSubscribe(trigBtn){
   var btn=(trigBtn&&trigBtn.tagName)?trigBtn:gq("pwSub"); btn.disabled=true; var old=btn.textContent; btn.textContent="카드 등록 중…";
   var payVal=(PROMO?PROMO.final:SUB_PRICE);
   try{ if(window.fbq) fbq('track','InitiateCheckout',{value:payVal,currency:'KRW'}); }catch(_){}
+  // 결제창(카카오페이 등)이 우리 모달에 가려지거나 잘리지 않도록, 열기 직전에 모달을 닫아 전체화면 확보
+  var acctEl=gq("acct"), pwEl=gq("paywall");
+  var acctWasOpen=!!(acctEl && acctEl.classList.contains("on"));
+  if(acctEl) acctEl.classList.remove("on");
+  if(pwEl) pwEl.classList.remove("on");
   try{
     // 1) 빌링키 발급 (카드 등록 창)
     var issue=await window.PortOne.requestIssueBillingKey({
       storeId:PORTONE_STORE_ID, channelKey:PORTONE_CHANNEL_KEY, billingKeyMethod:"EASY_PAY",
       issueId:"issue-"+(crypto.randomUUID?crypto.randomUUID():Date.now()),
-      issueName:"세일즈 훈련 구독",
+      issueName:"쑥쑥AI 구독",
       customer:{ customerId:AUTH_USER.id, email:AUTH_USER.email }
     });
-    if(!issue || issue.code){ alert("카드 등록 실패 ["+((issue&&issue.code)||"")+"]: "+((issue&&issue.message)||"취소됨")); btn.disabled=false; btn.textContent=old; return; }
+    if(!issue || issue.code){ alert("카드 등록 실패 ["+((issue&&issue.code)||"")+"]: "+((issue&&issue.message)||"취소됨")); btn.disabled=false; btn.textContent=old; if(acctWasOpen) openAccount(); return; }
     // 2) 서버에 구독 결제 요청 (로그인 토큰 함께 전달)
     btn.textContent="결제 처리 중…";
     var sess=(await sb.auth.getSession()).data.session;
@@ -2345,16 +2350,16 @@ async function startSubscribe(trigBtn){
     if(r.ok && j.ok){
       alert("구독 완료! 이제 무제한으로 이용하실 수 있어요. 🎉");
       try{ if(window.fbq) fbq('track','Subscribe',{value:payVal,currency:'KRW'}); }catch(_){}
-      closePaywall();
       var t=gq("useTag"); if(t){ t.textContent="구독 · 무제한"; t.style.display="block"; }
-      var _ac=gq("acct"); if(_ac && _ac.classList.contains("on")) loadAccount();  // 내 계정 열려 있으면 즉시 갱신
+      resetPromo();
+      if(acctWasOpen) openAccount(); else if(typeof showHome==='function') showHome();  // 구독 상태 갱신해 다시 표시
     }else{
       alert("결제 처리 실패: "+((j&&(j.error||j.message))||("HTTP "+r.status))+"\n다시 시도하거나 다른 카드를 사용해 주세요.");
-      btn.disabled=false; btn.textContent=old;
+      btn.disabled=false; btn.textContent=old; if(acctWasOpen) openAccount();
     }
   }catch(e){
     var em=(e&&(e.message||e.code))?(("["+((e&&e.code)||"")+"] ")+(e.message||"")):String(e);
-    alert("결제 오류: "+em); btn.disabled=false; btn.textContent=old;
+    alert("결제 오류: "+em); btn.disabled=false; btn.textContent=old; if(acctWasOpen) openAccount();
   }
 }
 (function(){
