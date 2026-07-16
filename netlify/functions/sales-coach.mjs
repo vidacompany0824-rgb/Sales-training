@@ -32,7 +32,6 @@ export default async (req) => {
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 1024,
-        temperature: 0.8,   // 매 턴 표현이 다양해지도록 약간의 무작위성
         messages: [{ role: "user", content: prompt }],
       }),
     });
