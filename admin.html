@@ -62,7 +62,12 @@ h1{font-size:22px;font-weight:800;letter-spacing:-.02em;display:flex;align-items
 .ch-st .sv{font-size:14.5px;font-weight:800;color:#2f4a17;line-height:1.2;white-space:nowrap}
 .ch-st .sl{font-size:10.5px;color:var(--sub);margin-top:2px}
 .ch-st.up .sv{color:#15803d}.ch-st.down .sv{color:#dc2626}
-.ch-chips{display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 8px;scrollbar-width:none}
+.ch-bar{display:flex;align-items:center;gap:12px;margin-bottom:2px}
+.ch-range{flex:0 0 auto;display:inline-flex;background:#f1f4ec;border:1px solid var(--line);border-radius:9px;padding:3px}
+.rgbtn{border:none;background:transparent;border-radius:7px;padding:6px 10px;font:inherit;font-size:12px;font-weight:600;color:var(--sub);cursor:pointer;white-space:nowrap}
+.rgbtn:hover{color:#3B6D11}
+.rgbtn.on{background:#fff;color:#2f4a17;box-shadow:0 1px 3px rgba(31,36,48,.12)}
+.ch-chips{flex:1;min-width:0;display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 8px;scrollbar-width:none}
 .ch-chips::-webkit-scrollbar{display:none}
 .chchip{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 13px;font:inherit;font-size:12.5px;font-weight:600;color:#4b5563;cursor:pointer;white-space:nowrap;transition:.12s}
 .chchip:hover{border-color:#cfe0bb;background:#f8fbf4}
@@ -133,6 +138,10 @@ table.ctab .muted{color:#b6bcc6}
   .ch-st{min-width:66px;padding:6px 9px}
   .ch-st .sv{font-size:13px}
   .chchip{padding:8px 12px;font-size:12px}
+  .ch-bar{flex-direction:column;align-items:stretch;gap:6px}
+  .ch-range{width:100%;justify-content:space-between;overflow-x:auto;scrollbar-width:none}
+  .ch-range::-webkit-scrollbar{display:none}
+  .rgbtn{flex:1;padding:8px 6px;font-size:11.5px}
   .ch-canvas{height:230px}
   /* 표: 폰트/여백 축소 */
   table.ctab th,table.ctab td{padding:7px 6px;font-size:11.5px}
@@ -206,7 +215,7 @@ async function loadStats(){
   var sess=(await sb.auth.getSession()).data.session;
   if(!sess){ showGate(); return; }
   try{
-    var r=await fetch(ADMIN_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessToken:sess.access_token})});
+    var r=await fetch(ADMIN_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessToken:sess.access_token, days:RANGE_DAYS})});
     var j=await r.json();
     if(r.status===401||(j&&j.error==='auth_failed')){ try{ await sb.auth.signOut(); }catch(e){} $("who").textContent=''; showGate(); $("gmsg").textContent='세션이 만료됐어요. 다시 로그인해 주세요.'; return; }
     if(r.status===403){ $("content").innerHTML='<div class="loading">이 계정은 관리자가 아닙니다. (ADMIN_EMAIL 환경변수와 로그인 계정을 확인하세요)</div>'; return; }
@@ -257,23 +266,23 @@ function render(j){
   $("content").innerHTML=
     '<div class="grid">'+kpiHtml+'</div>'+
     '<div class="panel">'+
-      '<div class="ch-h"><div><h3 id="chTitle">📈 상세 추이</h3><div class="ch-sub" id="chSub">최근 14일</div></div>'+
+      '<div class="ch-h"><div><h3 id="chTitle">상세 추이</h3><div class="ch-sub" id="chSub"></div></div>'+
         '<div class="ch-stats" id="chStats"></div></div>'+
-      '<div class="ch-chips" id="chChips"></div>'+
+      '<div class="ch-bar"><div class="ch-chips" id="chChips"></div><div class="ch-range" id="chRange"></div></div>'+
       '<div class="ch-canvas"><canvas id="mainChart"></canvas></div>'+
     '</div>'+
     '<div class="cols">'+
-      '<div class="panel"><h3>👤 사용자별 세션 이용수 (상위 30)</h3><table><thead><tr><th>사용자</th><th class="r">세션수</th></tr></thead><tbody>'+perHtml+'</tbody></table></div>'+
-      '<div class="panel"><h3>🚪 이탈 단계 (어디서 나갔나)</h3><table><thead><tr><th>단계</th><th class="r">이탈수</th></tr></thead><tbody>'+exHtml+'</tbody></table></div>'+
+      '<div class="panel"><h3>사용자별 세션 이용수 (상위 30)</h3><table><thead><tr><th>사용자</th><th class="r">세션수</th></tr></thead><tbody>'+perHtml+'</tbody></table></div>'+
+      '<div class="panel"><h3>이탈 단계 (어디서 나갔나)</h3><table><thead><tr><th>단계</th><th class="r">이탈수</th></tr></thead><tbody>'+exHtml+'</tbody></table></div>'+
     '</div>'+
     '<div class="panel"><div class="cust-h">'+
-      '<h3 class="fold-h" id="custToggle">🧾 고객 원장 ('+(j.customers||[]).length+'명) <span class="caret">▾</span><span class="fold-hint" id="custHint"></span></h3>'+
+      '<h3 class="fold-h" id="custToggle">고객 원장 ('+(j.customers||[]).length+'명) <span class="caret">▾</span><span class="fold-hint" id="custHint"></span></h3>'+
       '<div class="cust-tools" id="custTools"><input type="text" id="custSearch" placeholder="이메일·이름·번호 검색"><label class="cust-chk"><input type="checkbox" id="custMkt"> 마케팅 동의자만</label><button class="btn" id="custCsv" type="button">CSV 내보내기</button></div></div>'+
       '<div class="fold-body" id="custBody"><div class="cust-wrap scroll"><table class="ctab" id="custTable"></table></div></div></div>'+
-    '<div class="panel"><h3>💬 문의 ('+(j.inquiries||[]).length+'건'+(inqOpen?' · 미처리 '+inqOpen+'건':'')+')</h3>'+
+    '<div class="panel"><h3>문의 ('+(j.inquiries||[]).length+'건'+(inqOpen?' · 미처리 '+inqOpen+'건':'')+')</h3>'+
       '<div class="cust-wrap"><table class="ctab">'+
         '<thead><tr><th>날짜</th><th>이메일</th><th>분류</th><th>내용</th><th>상태</th></tr></thead><tbody>'+inqHtml+'</tbody></table></div></div>'+
-    '<div class="panel"><h3>🎟 프로모션 코드 ('+(j.promos||[]).length+'개)</h3>'+
+    '<div class="panel"><h3>프로모션 코드 ('+(j.promos||[]).length+'개)</h3>'+
       '<div class="promo-form">'+
         '<div class="pf code"><label>코드</label><input id="pcCode" type="text" placeholder="WELCOME20"></div>'+
         '<div class="pf"><label>할인 방식</label><select id="pcType"><option value="percent">정률 %</option><option value="fixed">정액 원</option></select></div>'+
@@ -304,7 +313,7 @@ function render(j){
   Array.prototype.forEach.call(document.querySelectorAll('.k.clickable'),function(el){
     el.onclick=function(){ selectMetric(el.getAttribute('data-k')); };
   });
-  renderChips(); drawMain();
+  renderChips(); renderRangeBtns(); drawMain();
 
   // 고객 원장
   CUST=j.customers||[];
@@ -324,20 +333,37 @@ function render(j){
    ============================================================ */
 var SERIES={}, SDAYS=[], MAIN_CHART=null;
 var METRICS=[
-  {k:"visitors",  label:"방문자(순)", icon:"👣", color:"#3B6D11", type:"line", fmt:"num", unit:"명"},
-  {k:"pageviews", label:"페이지뷰",   icon:"📄", color:"#5a9420", type:"line", fmt:"num", unit:"회"},
-  {k:"sessions",  label:"훈련 세션",  icon:"🎯", color:"#4e9a2f", type:"bar",  fmt:"num", unit:"회"},
-  {k:"newUsers",  label:"신규 가입",  icon:"🙌", color:"#2f7d6b", type:"bar",  fmt:"num", unit:"명"},
-  {k:"payCount",  label:"결제건수",   icon:"🧾", color:"#c98a00", type:"bar",  fmt:"num", unit:"건"},
-  {k:"payAmount", label:"결제금액",   icon:"💰", color:"#b45309", type:"bar",  fmt:"won", unit:""}
+  {k:"visitors",  label:"방문자(순)", color:"#3B6D11", type:"line", fmt:"num", unit:"명"},
+  {k:"pageviews", label:"페이지뷰",   color:"#5a9420", type:"line", fmt:"num", unit:"회"},
+  {k:"sessions",  label:"훈련 세션",  color:"#4e9a2f", type:"bar",  fmt:"num", unit:"회"},
+  {k:"newUsers",  label:"신규 가입",  color:"#2f7d6b", type:"bar",  fmt:"num", unit:"명"},
+  {k:"payCount",  label:"결제건수",   color:"#c98a00", type:"bar",  fmt:"num", unit:"건"},
+  {k:"payAmount", label:"결제금액",   color:"#b45309", type:"bar",  fmt:"won", unit:""}
 ];
+/* 조회 기간 (일) — 서버에 days 로 전달 */
+var RANGES=[7,14,30,90,180];
+var RANGE_DAYS=(function(){ try{ return Math.max(7,Math.min(365, +localStorage.getItem('admin_range')||14)); }catch(e){ return 14; } })();
+function setRange(d){
+  RANGE_DAYS=d; try{ localStorage.setItem('admin_range',String(d)); }catch(e){}
+  renderRangeBtns();
+  loadStats();   // 서버에서 해당 기간 시계열을 다시 받아옴
+}
+function renderRangeBtns(){
+  var el=$("chRange"); if(!el) return;
+  el.innerHTML=RANGES.map(function(d){
+    return '<button class="rgbtn'+(d===RANGE_DAYS?' on':'')+'" data-d="'+d+'" type="button">'+(d>=30?(d/30)+'개월':d+'일')+'</button>';
+  }).join('');
+  Array.prototype.forEach.call(el.querySelectorAll('.rgbtn'),function(b){
+    b.onclick=function(){ setRange(+b.getAttribute('data-d')); };
+  });
+}
 var CUR_METRIC=(function(){ try{ return localStorage.getItem('admin_metric')||'visitors'; }catch(e){ return 'visitors'; } })();
 function metricOf(k){ for(var i=0;i<METRICS.length;i++){ if(METRICS[i].k===k) return METRICS[i]; } return METRICS[0]; }
 function fmtMetric(m,v){ return m.fmt==='won' ? won(v) : ((+v||0).toLocaleString('ko-KR')+(m.unit||'')); }
 function renderChips(){
   var el=$("chChips"); if(!el) return;
   el.innerHTML=METRICS.map(function(m){
-    return '<button class="chchip'+(m.k===CUR_METRIC?' on':'')+'" data-k="'+m.k+'" type="button"><i style="background:'+m.color+'"></i>'+m.icon+' '+m.label+'</button>';
+    return '<button class="chchip'+(m.k===CUR_METRIC?' on':'')+'" data-k="'+m.k+'" type="button"><i style="background:'+m.color+'"></i>'+m.label+'</button>';
   }).join('');
   Array.prototype.forEach.call(el.querySelectorAll('.chchip'),function(b){
     b.onclick=function(){ selectMetric(b.getAttribute('data-k')); };
@@ -368,8 +394,8 @@ function drawMain(){
   var delta=prevSum?Math.round((recentSum-prevSum)/prevSum*100):(recentSum?100:0);
   var dCls=delta>0?'up':(delta<0?'down':'');
   var dTxt=(delta>0?'▲ ':(delta<0?'▼ ':''))+Math.abs(delta)+'%';
-  var t=$("chTitle"); if(t) t.textContent=m.icon+' '+m.label+' 추이';
-  var s=$("chSub"); if(s) s.textContent='최근 '+days.length+'일 · 카드나 아래 버튼으로 지표를 바꿔보세요';
+  var t=$("chTitle"); if(t) t.textContent=m.label+' 추이';
+  var s=$("chSub"); if(s) s.textContent='최근 '+days.length+'일'+(days.length?(' · '+days[0]+' ~ '+days[days.length-1]):'');
   var st=$("chStats");
   if(st) st.innerHTML=
     '<div class="ch-st"><div class="sv">'+fmtMetric(m,total)+'</div><div class="sl">합계</div></div>'+
