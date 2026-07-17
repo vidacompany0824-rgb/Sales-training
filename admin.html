@@ -52,12 +52,20 @@ td.r,th.r{text-align:right}
 .bar{height:7px;background:#eaf0e2;border-radius:20px;overflow:hidden;display:inline-block;width:90px;vertical-align:middle;margin-right:8px}
 .bar span{display:block;height:100%;background:var(--brand);border-radius:20px}
 .loading{color:var(--sub);font-size:14px;padding:40px;text-align:center}
+/* 접기/펼치기 */
+.fold-h{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;margin-bottom:0}
+.fold-h:hover{color:#3B6D11}
+.fold-h .caret{font-size:11px;color:var(--sub);transition:transform .18s}
+.fold-h.closed .caret{transform:rotate(-90deg)}
+.fold-body.closed{display:none}
+.fold-hint{font-size:11.5px;color:var(--sub);font-weight:600;margin-left:2px}
 /* 고객 원장 */
 .cust-h{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
 .cust-tools{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .cust-tools input[type=text],#custSearch{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:13px;width:200px}
 .cust-chk{font-size:12.5px;color:var(--sub);display:flex;align-items:center;gap:5px;cursor:pointer}
 .cust-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cust-wrap.scroll{max-height:440px;overflow-y:auto}
 table.ctab{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
 table.ctab th{text-align:left;color:var(--sub);font-weight:600;font-size:11px;padding:8px 8px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff}
 table.ctab td{padding:8px 8px;border-bottom:1px solid #f1f3f6}
@@ -194,9 +202,10 @@ function render(j){
       '<div class="panel"><h3>👤 사용자별 세션 이용수 (상위 30)</h3><table><thead><tr><th>사용자</th><th class="r">세션수</th></tr></thead><tbody>'+perHtml+'</tbody></table></div>'+
       '<div class="panel"><h3>🚪 이탈 단계 (어디서 나갔나)</h3><table><thead><tr><th>단계</th><th class="r">이탈수</th></tr></thead><tbody>'+exHtml+'</tbody></table></div>'+
     '</div>'+
-    '<div class="panel"><div class="cust-h"><h3>🧾 고객 원장 ('+(j.customers||[]).length+'명)</h3>'+
-      '<div class="cust-tools"><input type="text" id="custSearch" placeholder="이메일·이름·번호 검색"><label class="cust-chk"><input type="checkbox" id="custMkt"> 마케팅 동의자만</label><button class="btn" id="custCsv" type="button">CSV 내보내기</button></div></div>'+
-      '<div class="cust-wrap"><table class="ctab" id="custTable"></table></div></div>'+
+    '<div class="panel"><div class="cust-h">'+
+      '<h3 class="fold-h" id="custToggle">🧾 고객 원장 ('+(j.customers||[]).length+'명) <span class="caret">▾</span><span class="fold-hint" id="custHint"></span></h3>'+
+      '<div class="cust-tools" id="custTools"><input type="text" id="custSearch" placeholder="이메일·이름·번호 검색"><label class="cust-chk"><input type="checkbox" id="custMkt"> 마케팅 동의자만</label><button class="btn" id="custCsv" type="button">CSV 내보내기</button></div></div>'+
+      '<div class="fold-body" id="custBody"><div class="cust-wrap scroll"><table class="ctab" id="custTable"></table></div></div></div>'+
     '<div class="panel"><h3>💬 문의 ('+(j.inquiries||[]).length+'건'+(inqOpen?' · 미처리 '+inqOpen+'건':'')+')</h3>'+
       '<div class="cust-wrap"><table class="ctab">'+
         '<thead><tr><th>날짜</th><th>이메일</th><th>분류</th><th>내용</th><th>상태</th></tr></thead><tbody>'+inqHtml+'</tbody></table></div></div>'+
@@ -239,9 +248,23 @@ function render(j){
   if($("custMkt")) $("custMkt").onchange=renderCustomers;
   if($("custCsv")) $("custCsv").onclick=custCSV;
   renderCustomers();
+  if($("custToggle")) $("custToggle").onclick=toggleCust;
+  applyCustFold(custFoldClosed());   // 지난번 접힘/펼침 상태 복원
 
   if($("pcAdd")) $("pcAdd").onclick=createPromo;
 }
+
+/* ===== 고객 원장 접기/펼치기 (상태는 브라우저에 기억) ===== */
+function custFoldClosed(){ try{ return localStorage.getItem('admin_fold_cust')==='1'; }catch(e){ return false; } }
+function applyCustFold(closed){
+  var h=$("custToggle"), b=$("custBody"), t=$("custTools"), hint=$("custHint");
+  if(h) h.classList.toggle('closed',closed);
+  if(b) b.classList.toggle('closed',closed);
+  if(t) t.style.display=closed?'none':'';
+  if(hint) hint.textContent=closed?'· 펼쳐서 보기':'';
+  try{ localStorage.setItem('admin_fold_cust',closed?'1':'0'); }catch(e){}
+}
+function toggleCust(){ var b=$("custBody"); if(!b) return; applyCustFold(!b.classList.contains('closed')); }
 
 /* ===== 프로모션 코드 ===== */
 function promoRows(list){
