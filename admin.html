@@ -75,6 +75,24 @@ h1{font-size:22px;font-weight:800;letter-spacing:-.02em;display:flex;align-items
 .chchip.on{background:#3B6D11;border-color:#3B6D11;color:#fff;box-shadow:0 3px 10px rgba(59,109,17,.28)}
 .chchip.on i{background:#fff!important}
 .ch-canvas{position:relative;height:290px}
+/* ===== 광고 효율 ===== */
+.ad-in{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#f6faf0;border:1px solid #e2ecd5;border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.ad-in label{font-size:12.5px;font-weight:700;color:#2f4a17;white-space:nowrap}
+.ad-in .adwrap{position:relative;display:inline-flex;align-items:center}
+.ad-in input{border:1px solid var(--line);border-radius:9px;padding:9px 30px 9px 11px;font:inherit;font-size:15px;font-weight:700;width:170px;text-align:right;background:#fff}
+.ad-in input:focus{outline:none;border-color:#3B6D11;box-shadow:0 0 0 3px rgba(59,109,17,.12)}
+.ad-in .wonx{position:absolute;right:11px;font-size:13px;color:var(--sub);pointer-events:none}
+.ad-in .adnote{font-size:11.5px;color:var(--sub);margin-left:auto}
+.admsg{font-size:12px;font-weight:600}
+.admsg.ok{color:var(--good)}.admsg.err{color:#dc2626}
+.ad-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ad-c{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 12px;text-align:center;border-top:3px solid #c98a00}
+.ad-c.roas{border-top-color:#3B6D11}
+.ad-c .av{font-size:19px;font-weight:800;letter-spacing:-.02em;color:#2f4a17;white-space:nowrap}
+.ad-c.roas .av{color:#3B6D11}
+.ad-c .al{font-size:11.5px;color:var(--sub);margin-top:4px}
+.ad-c .ad-sub{font-size:10.5px;color:#b6bcc6;margin-top:2px}
+.ad-empty{font-size:12.5px;color:var(--sub);text-align:center;padding:10px 4px}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;color:var(--sub);font-weight:600;font-size:11.5px;padding:7px 6px;border-bottom:1px solid var(--line)}
@@ -137,6 +155,12 @@ table.ctab .muted{color:#b6bcc6}
   .ch-stats::-webkit-scrollbar{display:none}
   .ch-st{min-width:66px;padding:6px 9px}
   .ch-st .sv{font-size:13px}
+  .ad-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .ad-c .av{font-size:16px}
+  .ad-in{padding:10px 11px;gap:7px}
+  .ad-in input{width:100%;flex:1}
+  .ad-in .adwrap{flex:1;min-width:0}
+  .ad-in .adnote{margin-left:0;width:100%}
   .chchip{padding:8px 12px;font-size:12px}
   .ch-bar{flex-direction:column;align-items:stretch;gap:6px}
   .ch-range{width:100%;justify-content:space-between;overflow-x:auto;scrollbar-width:none}
@@ -188,6 +212,7 @@ const SUPABASE_URL="https://pzotfitbuxwoaenvdfju.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6b3RmaXRidXh3b2FlbnZkZmp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5OTU4ODksImV4cCI6MjA5OTU3MTg4OX0.A-2Buu9hKLW_2ORgxFfMQcL9u9vzKLWZBf3R4v0XAQc";
 const ADMIN_ENDPOINT="/.netlify/functions/admin-stats";
 const PROMO_ENDPOINT="/.netlify/functions/admin-promo";
+const ADSPEND_ENDPOINT="/.netlify/functions/admin-adspend";
 
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
@@ -271,6 +296,17 @@ function render(j){
       '<div class="ch-bar"><div class="ch-chips" id="chChips"></div><div class="ch-range" id="chRange"></div></div>'+
       '<div class="ch-canvas"><canvas id="mainChart"></canvas></div>'+
     '</div>'+
+    '<div class="panel">'+
+      '<h3>광고 효율 <span style="font-weight:600;font-size:12px;color:#6b7280" id="adPeriod"></span></h3>'+
+      '<div class="ad-in">'+
+        '<label for="adSpend">집행 광고비</label>'+
+        '<span class="adwrap"><input id="adSpend" type="number" min="0" step="1000" inputmode="numeric" placeholder="0"><span class="wonx">원</span></span>'+
+        '<button class="btn p" id="adSave" type="button">저장</button>'+
+        '<span class="admsg" id="adMsg"></span>'+
+        '<span class="adnote">선택한 기간에 쓴 광고비를 입력하면 아래 지표가 자동 계산돼요. 기간별로 따로 저장됩니다.</span>'+
+      '</div>'+
+      '<div class="ad-grid" id="adGrid"></div>'+
+    '</div>'+
     '<div class="cols">'+
       '<div class="panel"><h3>사용자별 세션 이용수 (상위 30)</h3><table><thead><tr><th>사용자</th><th class="r">세션수</th></tr></thead><tbody>'+perHtml+'</tbody></table></div>'+
       '<div class="panel"><h3>이탈 단계 (어디서 나갔나)</h3><table><thead><tr><th>단계</th><th class="r">이탈수</th></tr></thead><tbody>'+exHtml+'</tbody></table></div>'+
@@ -314,6 +350,10 @@ function render(j){
     el.onclick=function(){ selectMetric(el.getAttribute('data-k')); };
   });
   renderChips(); renderRangeBtns(); drawMain();
+
+  // 광고 효율
+  AD_SPEND=j.adSpend||{}; RANGE_PAYERS=j.rangePayers||0;
+  bootAdEfficiency();
 
   // 고객 원장
   CUST=j.customers||[];
@@ -432,6 +472,57 @@ function drawMain(){
               callback:function(v){ if(m.fmt==='won'){ return v>=10000?((v/10000).toLocaleString('ko-KR')+'만'):v.toLocaleString('ko-KR'); } return (+v).toLocaleString('ko-KR'); }} }
       }}
   });
+}
+/* ============================================================
+   ===== 광고 효율 (광고비 대비 CPA / CAC / ROAS) =====
+   선택한 기간의 광고비를 입력하면, 같은 기간의 실적으로 1인당 비용을 계산합니다.
+   광고비는 기간별로 서버(ad_spend)에 저장돼 다른 기기에서도 그대로 보입니다.
+   ============================================================ */
+var AD_SPEND={}, RANGE_PAYERS=0;
+function sumSeries(k){ return (SERIES[k]||[]).reduce(function(a,b){return a+(+b||0);},0); }
+function perCost(spend,n){ return n>0 ? Math.round(spend/n) : null; }
+function adCard(val,label,sub,cls){
+  var v=(val==null)?'—':won(val);
+  return '<div class="ad-c '+(cls||'')+'"><div class="av">'+v+'</div><div class="al">'+label+'</div><div class="ad-sub">'+sub+'</div></div>';
+}
+function renderAdEfficiency(){
+  var g=$("adGrid"); if(!g) return;
+  var p=$("adPeriod"); if(p) p.textContent='· 최근 '+RANGE_DAYS+'일 기준';
+  var spend=Math.max(0, Math.round(+($("adSpend")&&$("adSpend").value)||0));
+  var visitors=sumSeries('visitors'), signups=sumSeries('newUsers'), revenue=sumSeries('payAmount');
+  var payers=RANGE_PAYERS||0;
+  if(!spend){
+    g.innerHTML='<div class="ad-empty" style="grid-column:1/-1">광고비를 입력하면 방문자·가입자·결제자 1인당 비용과 ROAS가 계산됩니다.</div>';
+    return;
+  }
+  var roas=spend>0?Math.round(revenue/spend*100):0;
+  g.innerHTML=
+    adCard(perCost(spend,visitors),'방문자 1인당 비용','방문자 '+visitors.toLocaleString('ko-KR')+'명')+
+    adCard(perCost(spend,signups),'가입자 1인당 비용','가입 '+signups.toLocaleString('ko-KR')+'명')+
+    adCard(perCost(spend,payers),'결제자 1인당 비용 (CAC)','결제자 '+payers.toLocaleString('ko-KR')+'명')+
+    '<div class="ad-c roas"><div class="av">'+roas+'%</div><div class="al">ROAS (광고 수익률)</div><div class="ad-sub">매출 '+won(revenue)+' / 광고비 '+won(spend)+'</div></div>';
+}
+function adMsg(t,ok){ var e=$("adMsg"); if(!e) return; e.textContent=t||''; e.className='admsg'+(t?(ok?' ok':' err'):''); }
+async function saveAdSpend(){
+  var amount=Math.max(0, Math.round(+($("adSpend").value)||0));
+  var b=$("adSave"); if(b) b.disabled=true; adMsg('저장 중…');
+  try{
+    var sess=(await sb.auth.getSession()).data.session;
+    var r=await fetch(ADSPEND_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({accessToken:sess&&sess.access_token, days:RANGE_DAYS, amount:amount})});
+    var j=await r.json().catch(function(){return {};});
+    if(r.ok && j.ok){ AD_SPEND[RANGE_DAYS]=amount; adMsg('✓ 저장됨',true); setTimeout(function(){adMsg('');},1800); }
+    else{ adMsg('저장 실패: '+((j&&j.error)||('HTTP '+r.status))); }
+  }catch(e){ adMsg('저장 중 오류가 발생했어요.'); }
+  if(b) b.disabled=false;
+}
+function bootAdEfficiency(){
+  var inp=$("adSpend"); if(!inp) return;
+  inp.value=(AD_SPEND[RANGE_DAYS]!=null && AD_SPEND[RANGE_DAYS]>0)?AD_SPEND[RANGE_DAYS]:'';
+  inp.oninput=renderAdEfficiency;                       // 입력하는 즉시 지표 갱신
+  inp.onkeydown=function(e){ if(e.key==='Enter') saveAdSpend(); };
+  var b=$("adSave"); if(b) b.onclick=saveAdSpend;
+  renderAdEfficiency();
 }
 /* ===== 고객 원장 접기/펼치기 (상태는 브라우저에 기억) ===== */
 function custFoldClosed(){ try{ return localStorage.getItem('admin_fold_cust')==='1'; }catch(e){ return false; } }
