@@ -35,11 +35,11 @@ export default async (req) => {
   // 데이터 수집
   const now = Date.now();
   const [payments, subs, sessions, pageviews, exits, profiles, phones, inquiries, promos] = await Promise.all([
-    sbGet(SUPA, SERVICE, "payments?select=user_id,amount,status,paid_at&order=paid_at.desc&limit=2000"),
+    sbGet(SUPA, SERVICE, "payments?select=user_id,amount,status,paid_at&order=paid_at.desc&limit=10000"),
     sbGet(SUPA, SERVICE, "subscriptions?select=user_id,status,current_period_end"),
-    sbGet(SUPA, SERVICE, "training_sessions?select=user_id,created_at&limit=5000"),
-    sbGet(SUPA, SERVICE, "analytics_events?type=eq.pageview&select=visit_id,page,created_at&order=created_at.desc&limit=5000"),
-    sbGet(SUPA, SERVICE, "analytics_events?type=eq.exit&select=page,duration_sec,created_at&order=created_at.desc&limit=5000"),
+    sbGet(SUPA, SERVICE, "training_sessions?select=user_id,created_at&order=created_at.desc&limit=20000"),
+    sbGet(SUPA, SERVICE, "analytics_events?type=eq.pageview&select=visit_id,page,created_at&order=created_at.desc&limit=20000"),
+    sbGet(SUPA, SERVICE, "analytics_events?type=eq.exit&select=page,duration_sec,created_at&order=created_at.desc&limit=20000"),
     sbGet(SUPA, SERVICE, "profiles?select=id,email,display_name,created_at"),
     sbGet(SUPA, SERVICE, "phone_identity?select=user_id,phone,verified,marketing_consent"),
     sbGet(SUPA, SERVICE, "inquiries?select=id,email,category,subject,message,status,created_at&order=created_at.desc&limit=200"),
@@ -86,8 +86,8 @@ export default async (req) => {
 
   const totalSessions = sessions.length;
 
-  // ===== 일자별 시계열(최근 14일) — 카드별 그래프용 =====
-  const DAYS = 14;
+  // ===== 일자별 시계열 — 상세 추이 차트용 (기간은 프론트에서 선택: 기본 14일) =====
+  const DAYS = Math.min(365, Math.max(7, Math.round(Number(body.days) || 14)));
   const dayKeys = [];
   for (let i = DAYS - 1; i >= 0; i--) dayKeys.push(new Date(now - i * 86400000).toISOString().slice(0, 10));
   const zero = () => dayKeys.reduce((o, d) => (o[d] = 0, o), {});
