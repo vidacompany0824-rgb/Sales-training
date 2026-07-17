@@ -34,7 +34,7 @@ export default async (req) => {
 
   // 데이터 수집
   const now = Date.now();
-  const [payments, subs, sessions, pageviews, exits, profiles, phones, inquiries, promos] = await Promise.all([
+  const [payments, subs, sessions, pageviews, exits, profiles, phones, inquiries, promos, adSpendRows] = await Promise.all([
     sbGet(SUPA, SERVICE, "payments?select=user_id,amount,status,paid_at&order=paid_at.desc&limit=10000"),
     sbGet(SUPA, SERVICE, "subscriptions?select=user_id,status,current_period_end"),
     sbGet(SUPA, SERVICE, "training_sessions?select=user_id,created_at&order=created_at.desc&limit=20000"),
@@ -44,6 +44,7 @@ export default async (req) => {
     sbGet(SUPA, SERVICE, "phone_identity?select=user_id,phone,verified,marketing_consent"),
     sbGet(SUPA, SERVICE, "inquiries?select=id,email,category,subject,message,status,created_at&order=created_at.desc&limit=200"),
     sbGet(SUPA, SERVICE, "promo_codes?select=*&order=created_at.desc&limit=200"),
+    sbGet(SUPA, SERVICE, "ad_spend?select=range_days,amount"),
   ]);
 
   // 가입 경로(provider): GoTrue admin API 에서 조회
@@ -109,6 +110,15 @@ export default async (req) => {
   // 하위호환: 기존 매출 차트용
   const revenueByDay = dayKeys.map(d => ({ day: d, amount: dPayAmount[d] }));
 
+  // 광고 효율용: 선택 기간 내 '순 결제자 수'(중복 제거) — 일별 합으로는 구할 수 없어 여기서 계산
+  const winStart = dayKeys[0];
+  const rangePayers = new Set(
+    paid.filter(p => (p.paid_at || "").slice(0, 10) >= winStart).map(p => p.user_id).filter(Boolean)
+  ).size;
+  // 기간별 광고비 { range_days: amount }
+  const adSpend = {};
+  (adSpendRows || []).forEach(r => { adSpend[r.range_days] = +r.amount || 0; });
+
   // ===== 고객 원장 (CRM) =====
   const phoneById = {}; phones.forEach(p => { phoneById[p.user_id] = p; });
   const subStatusById = {};
@@ -150,5 +160,6 @@ export default async (req) => {
     exitPages, perUser, revenueByDay, series, customers,
     inquiries: inquiries || [],
     promos: promos || [],
+    adSpend, rangeDays: DAYS, rangePayers,
   });
 };
