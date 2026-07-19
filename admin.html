@@ -223,9 +223,12 @@ const STAGE_LABELS={
   landing:"① 랜딩(광고 유입)", service_intro:"서비스 소개(로그인)",
   login:"② 로그인 화면", signup:"② 회원가입 화면", phone_verify:"② 휴대폰 인증",
   persona_select:"③ 고객 선택", coldness_select:"④ 거절 강도 선택",
-  ranking:"🏆 랭킹 화면", home:"🏠 홈",
+  ranking:"랭킹 화면", home:"홈",
+  guest_trial_start:"⓪ 게스트 체험 시작", guest_trial_done:"⓪ 게스트 체험 종료",
+  signup_prompt:"가입 유도(체험 후)", signup_done:"가입 완료",
+  verify_at_checkout:"결제 전 휴대폰 인증", promo_offer:"프로모 오퍼",
   chat:"⑤ 대화(훈련 중)", report:"⑥ 리포트",
-  account:"내 계정", paywall:"구독 안내(페이월)"
+  account:"내 계정", paywall:"구독 안내(페이월)", subscribe:"구독 완료"
 };
 function stageLabel(p){ if(STAGE_LABELS[p]) return STAGE_LABELS[p]; if(p==="/"||p==="/index.html"||p==="/index") return "(구버전·미분류)"; return esc(p); }
 const CARD_COLOR={b:"#3B6D11",g:"#4e9a2f",a:"#c98a00",p:"#2f7d6b","":"#64748b"};
