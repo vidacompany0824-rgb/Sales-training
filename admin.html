@@ -93,6 +93,24 @@ h1{font-size:22px;font-weight:800;letter-spacing:-.02em;display:flex;align-items
 .ad-c .al{font-size:11.5px;color:var(--sub);margin-top:4px}
 .ad-c .ad-sub{font-size:10.5px;color:#b6bcc6;margin-top:2px}
 .ad-empty{font-size:12.5px;color:var(--sub);text-align:center;padding:10px 4px}
+/* ===== 온보딩 퍼널 ===== */
+.fn-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #f1f3f6}
+.fn-row:last-child{border-bottom:none}
+.fn-lab{flex:0 0 132px;font-size:12.5px;font-weight:600;color:#2f4a17;display:flex;align-items:center;gap:7px}
+.fn-lab .fn-dot{width:22px;height:22px;border-radius:50%;background:#EAF3DE;color:#3B6D11;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.fn-track{flex:1;min-width:0;height:26px;background:#f1f4ec;border-radius:8px;overflow:hidden;position:relative}
+.fn-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#7cae3b,#3B6D11);min-width:2px;transition:width .5s}
+.fn-val{position:absolute;left:9px;top:0;height:26px;display:flex;align-items:center;font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.fn-conv{flex:0 0 92px;text-align:right;font-size:12px;color:var(--sub)}
+.fn-conv b{color:#2f4a17;font-weight:800}
+.fn-conv .drop{color:#dc2626;font-weight:700;font-size:11px}
+.fn-note{font-size:11.5px;color:var(--sub);margin-top:10px;line-height:1.5}
+@media(max-width:560px){
+  .fn-lab{flex-basis:96px;font-size:11.5px}
+  .fn-lab .fn-dot{width:19px;height:19px}
+  .fn-conv{flex-basis:64px}
+  .fn-track{height:24px}
+}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;color:var(--sub);font-weight:600;font-size:11.5px;padding:7px 6px;border-bottom:1px solid var(--line)}
@@ -310,6 +328,10 @@ function render(j){
       '</div>'+
       '<div class="ad-grid" id="adGrid"></div>'+
     '</div>'+
+    '<div class="panel">'+
+      '<h3>온보딩 퍼널 <span style="font-weight:600;font-size:12px;color:#6b7280">· 방문 → 체험 → 가입 → 결제</span></h3>'+
+      '<div id="funnel"></div>'+
+    '</div>'+
     '<div class="cols">'+
       '<div class="panel"><h3>사용자별 세션 이용수 (상위 30)</h3><table><thead><tr><th>사용자</th><th class="r">세션수</th></tr></thead><tbody>'+perHtml+'</tbody></table></div>'+
       '<div class="panel"><h3>이탈 단계 (어디서 나갔나)</h3><table><thead><tr><th>단계</th><th class="r">이탈수</th></tr></thead><tbody>'+exHtml+'</tbody></table></div>'+
@@ -357,6 +379,9 @@ function render(j){
   // 광고 효율
   AD_SPEND=j.adSpend||{}; RANGE_PAYERS=j.rangePayers||0;
   bootAdEfficiency();
+
+  // 온보딩 퍼널
+  renderFunnel(j.periodVisitors||0, j.stageCounts||{});
 
   // 고객 원장
   CUST=j.customers||[];
@@ -526,6 +551,41 @@ function bootAdEfficiency(){
   inp.onkeydown=function(e){ if(e.key==='Enter') saveAdSpend(); };
   var b=$("adSave"); if(b) b.onclick=saveAdSpend;
   renderAdEfficiency();
+}
+/* ============================================================
+   ===== 온보딩 퍼널 (방문 → 게스트 체험 → 가입 → 결제) =====
+   trackStage 'stage' 이벤트로 각 단계 '도달 순방문수'를 집계해 전환율을 봅니다.
+   ============================================================ */
+var FUNNEL_STEPS=[
+  {key:"__visitors", label:"방문"},
+  {key:"guest_trial_start", label:"게스트 체험"},
+  {key:"guest_trial_done", label:"체험 완료"},
+  {key:"signup_prompt", label:"가입 유도 도달"},
+  {key:"signup_done", label:"가입 완료"},
+  {key:"paywall", label:"페이월 도달"},
+  {key:"subscribe", label:"결제 완료"}
+];
+function renderFunnel(visitors, counts){
+  var el=$("funnel"); if(!el) return;
+  var top=Math.max(1, visitors||0);
+  var rows=FUNNEL_STEPS.map(function(s){ return { label:s.label, n:(s.key==='__visitors'?(visitors||0):(counts[s.key]||0)) }; });
+  var hasData=rows.some(function(r,i){ return i>0 && r.n>0; });
+  var html=rows.map(function(r,i){
+    var w=Math.max(0, Math.min(100, Math.round(r.n/top*100)));
+    var conv='';
+    if(i>0){
+      var prev=rows[i-1].n||0;
+      var rate=prev>0?Math.round(r.n/prev*100):0;
+      var drop=prev>0?(prev-r.n):0;
+      conv='<div class="fn-conv"><b>'+rate+'%</b>'+(drop>0?'<br><span class="drop">-'+drop.toLocaleString('ko-KR')+'명</span>':'')+'</div>';
+    }else{
+      conv='<div class="fn-conv">기준</div>';
+    }
+    return '<div class="fn-row"><div class="fn-lab"><span class="fn-dot">'+(i+1)+'</span>'+esc(r.label)+'</div>'+
+      '<div class="fn-track"><div class="fn-fill" style="width:'+w+'%"></div><div class="fn-val">'+r.n.toLocaleString('ko-KR')+'명</div></div>'+conv+'</div>';
+  }).join('');
+  el.innerHTML=html+'<div class="fn-note">각 단계에 도달한 <b>순 방문 수</b>(중복 제거) 기준. 오른쪽 %는 바로 이전 단계 대비 전환율이에요. '+
+    (hasData?'':'<br>· 아직 새 흐름 데이터가 없어요. 새 앱(index.html) 배포 후 방문이 쌓이면 채워집니다.')+'</div>';
 }
 /* ===== 고객 원장 접기/펼치기 (상태는 브라우저에 기억) ===== */
 function custFoldClosed(){ try{ return localStorage.getItem('admin_fold_cust')==='1'; }catch(e){ return false; } }
