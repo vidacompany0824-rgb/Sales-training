@@ -34,7 +34,7 @@ export default async (req) => {
 
   // 데이터 수집
   const now = Date.now();
-  const [payments, subs, sessions, pageviews, exits, profiles, phones, inquiries, promos, adSpendRows] = await Promise.all([
+  const [payments, subs, sessions, pageviews, exits, profiles, phones, inquiries, promos, adSpendRows, stageEvents] = await Promise.all([
     sbGet(SUPA, SERVICE, "payments?select=user_id,amount,status,paid_at&order=paid_at.desc&limit=10000"),
     sbGet(SUPA, SERVICE, "subscriptions?select=user_id,status,current_period_end"),
     sbGet(SUPA, SERVICE, "training_sessions?select=user_id,created_at&order=created_at.desc&limit=20000"),
@@ -45,6 +45,7 @@ export default async (req) => {
     sbGet(SUPA, SERVICE, "inquiries?select=id,email,category,subject,message,status,created_at&order=created_at.desc&limit=200"),
     sbGet(SUPA, SERVICE, "promo_codes?select=*&order=created_at.desc&limit=200"),
     sbGet(SUPA, SERVICE, "ad_spend?select=range_days,amount"),
+    sbGet(SUPA, SERVICE, "analytics_events?type=eq.stage&select=visit_id,page,created_at&order=created_at.desc&limit=20000"),
   ]);
 
   // 가입 경로(provider): GoTrue admin API 에서 조회
@@ -119,6 +120,14 @@ export default async (req) => {
   const adSpend = {};
   (adSpendRows || []).forEach(r => { adSpend[r.range_days] = +r.amount || 0; });
 
+  // 온보딩 퍼널: 각 단계에 '도달한 순 방문 수'(기간 내, 중복 제거)
+  const stageVisits = {};
+  (stageEvents || []).forEach(e => { const d = (e.created_at || "").slice(0, 10); if (d >= winStart && e.page) { (stageVisits[e.page] = stageVisits[e.page] || new Set()).add(e.visit_id); } });
+  const stageCounts = {};
+  Object.keys(stageVisits).forEach(k => { stageCounts[k] = stageVisits[k].size; });
+  // 기간 내 순 방문자(퍼널 1단계 기준)
+  const periodVisitors = new Set(pageviews.filter(v => (v.created_at || "").slice(0, 10) >= winStart).map(v => v.visit_id).filter(Boolean)).size;
+
   // ===== 고객 원장 (CRM) =====
   const phoneById = {}; phones.forEach(p => { phoneById[p.user_id] = p; });
   const subStatusById = {};
@@ -161,5 +170,6 @@ export default async (req) => {
     inquiries: inquiries || [],
     promos: promos || [],
     adSpend, rangeDays: DAYS, rangePayers,
+    stageCounts, periodVisitors,
   });
 };
