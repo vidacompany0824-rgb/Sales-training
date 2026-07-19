@@ -194,6 +194,23 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .pw-pnote.ok{color:#2f7d14;font-weight:600}.pw-pnote.err{color:#dc2626}
 .pw-btn{width:100%;border:none;background:#3B6D11;color:#fff;border-radius:12px;padding:14px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
 .pw-close{background:none;border:none;color:#94a3b8;font:inherit;font-size:13px;cursor:pointer;margin-top:12px}
+.promo-badge{display:inline-block;background:#EAF3DE;border:1px solid #C0DD97;color:#2f5a0e;font-size:12px;font-weight:800;padding:5px 12px;border-radius:999px;margin:0 0 12px}
+/* 게스트 체험: 추천 답변 칩 */
+.gsug{display:flex;flex-direction:column;gap:6px;padding-bottom:2px;margin-bottom:2px;border-bottom:1px dashed var(--line)}
+.gsug-h{font-size:11.5px;font-weight:700;color:#2f5a0e}.gsug-h span{color:var(--muted);font-weight:500}
+.gsug-b{text-align:left;border:1px solid #C0DD97;background:#f6faf0;color:#2c3a1c;border-radius:10px;padding:9px 11px;font:inherit;font-size:12.5px;line-height:1.45;cursor:pointer}
+.gsug-b:hover{background:#EAF3DE}
+/* 게스트 체험: 미니 결과 모달 */
+#guestResult{position:fixed;inset:0;z-index:9550;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px}
+#guestResult.on{display:flex}
+.gr-card{background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.35);max-width:400px;width:100%;padding:30px 26px;text-align:center}
+.gr-ic{font-size:42px}
+.gr-card h2{font-size:22px;font-weight:800;color:#161b26;margin:6px 0 2px}
+.gr-score{font-size:44px;font-weight:800;color:#3B6D11;line-height:1.1;margin:6px 0 12px}
+.gr-tip{font-size:13.5px;color:#4b5563;line-height:1.6;background:#f6faf0;border:1px solid #e2ecd5;border-radius:12px;padding:12px 14px;margin-bottom:18px}
+.gr-btn{width:100%;border:none;background:#3B6D11;color:#fff;border-radius:12px;padding:15px;font:inherit;font-size:15.5px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(47,90,14,.3)}
+.gr-btn:active{transform:translateY(1px)}
+.gr-note{font-size:12px;color:#94a3b8;margin-top:12px}
 /* 내 계정 대시보드 */
 #acctBtn,#introBtn{background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#2f5a0e;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none;white-space:nowrap}
 #acct{position:fixed;inset:0;z-index:9400;background:rgba(15,23,42,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
@@ -832,16 +849,29 @@ textarea:focus{border-color:var(--brand)}
     <div class="pw-ic" id="pwIc">🚀</div>
     <h2 id="pwTitle">무료 훈련을 다 쓰셨어요</h2>
     <p id="pwMsg">오늘 무료 세션을 모두 사용했습니다.<br>구독하면 <b>무제한</b>으로 훈련할 수 있어요.</p>
+    <div class="promo-badge" id="pwPromoBadge" style="display:none">🎟 인스타 50% 코드 자동 적용</div>
     <div class="pw-price">
       <div class="amt" id="pwAmt">월 9,900원 <small>· VAT 포함</small></div>
     </div>
-    <div class="pw-promo">
+    <div class="pw-promo" id="pwPromoWrap">
       <input id="pwPromo" type="text" placeholder="프로모션 코드 (선택)" autocapitalize="characters" autocomplete="off">
       <button id="pwPromoApply" type="button">적용</button>
     </div>
     <div class="pw-pnote" id="pwPnote"></div>
     <button class="pw-btn" id="pwSub" type="button">구독하고 무제한 훈련하기</button>
     <button class="pw-close" id="pwClose" type="button">나중에</button>
+  </div>
+</div>
+
+<!-- 게스트 30초 체험 · 미니 결과 -->
+<div id="guestResult">
+  <div class="gr-card">
+    <div class="gr-ic" id="grEmoji">🎉</div>
+    <h2 id="grTitle">체험 완료!</h2>
+    <div class="gr-score" id="grScore">0점</div>
+    <div class="gr-tip" id="grTip"></div>
+    <button class="gr-btn" id="grContinue" type="button">결과 저장하고 계속하기 →</button>
+    <div class="gr-note">가입하면 하루 5회 무료로 계속 훈련할 수 있어요.</div>
   </div>
 </div>
 
@@ -1361,6 +1391,79 @@ function resumeSession(){
 /* ---------- chat ---------- */
 function pickOpener(p){ var a=(p&&p.openers&&p.openers.length)?p.openers:[(p&&p.opener)||""]; return a[Math.floor(Math.random()*a.length)]; }
 function passLineFor(p,cold){return Math.max(50,Math.min(90,[0,60,68,75][p.diff]+(cold-3)*3));}
+/* ============================================================
+   ===== 게스트 30초 체험 (로그인 없이 · 3턴 캡) =====
+   랜딩 히어로 CTA → 고정 페르소나(김 부장)와 실전 대화 → 미니 결과 → 가입 유도.
+   비용·남용 통제를 위해 GUEST_CAP 턴으로 제한합니다.
+   ============================================================ */
+var GUEST_CAP=3;
+var GUEST_PERSONA={ id:"guest_boss", guest:true, emoji:"🧑‍💼", name:"김 부장 (결정권자)", diff:3,
+  tag:"이미 보험 많음", desc:"“보험은 이미 여러 개 들었어요.”",
+  opener:"보험은 이미 여러 개 들었어요. 더 들 생각 없습니다.",
+  openers:["보험은 이미 여러 개 들었어요. 더 들 생각 없습니다."],
+  traits:"회사 결정권을 쥔 40~50대 부장. 이미 보험이 충분하다고 여기고 시간을 아까워한다. 근거 없는 영업 멘트엔 단호하고 거절 강도가 높다. 다만 자신을 인정해주고 '부담 없는 점검' 같은 구체적 다음 행동을 제안하면 서서히 누그러진다." };
+var GUEST_SUGGEST=[
+  "이미 잘 준비해두셨네요. 그런데 최근 상품 개편으로 같은 보험료에 보장이 더 좋아진 경우가 많아서요, 딱 5분만 무료로 점검해보시면 어떨까요?",
+  "새로 가입하시라는 게 아니라, 지금 가진 보험에 공백은 없는지만 확인해드리려는 거예요. 확인만 해도 남는 거니까요.",
+  "부장님처럼 바쁘신 분들이 놓치기 쉬운 게 보장 중복이에요. 딱 3분, 점검만 해도 아끼실 수 있습니다."
+];
+function startGuestTrial(){
+  hideLanding();
+  var g=gq("gate"); if(g) g.classList.add("hide");
+  if(typeof listHideAll==='function') listHideAll();
+  coldness=4;
+  startChat(GUEST_PERSONA);
+  if(state) state.guest=true;
+  var st=gq("tSt"); if(st) st.textContent="30초 체험 · "+GUEST_CAP+"턴";
+  var eb=document.querySelectorAll('#stage .endbtn'); Array.prototype.forEach.call(eb,function(b){ b.style.display='none'; });  // 체험 중엔 리포트/목록 버튼 숨김
+  renderGuestSuggest();
+  if(typeof trackStage==='function') trackStage('guest_trial_start');
+}
+function renderGuestSuggest(){
+  if(!state || !state.guest) return;
+  hideGuestSuggest();
+  var bar=gq("inbar"); if(!bar) return;
+  var left=Math.max(0, GUEST_CAP-(state.turns||0));
+  var wrap=document.createElement("div"); wrap.id="guestSuggest"; wrap.className="gsug";
+  wrap.innerHTML='<div class="gsug-h">💡 추천 답변 <span>· '+left+'턴 남음</span></div>'+
+    GUEST_SUGGEST.map(function(s,i){ return '<button class="gsug-b" type="button" data-i="'+i+'">'+esc(s)+'</button>'; }).join('');
+  bar.insertBefore(wrap, bar.firstChild);
+  Array.prototype.forEach.call(wrap.querySelectorAll('.gsug-b'),function(b){
+    b.onclick=function(){ inp.value=GUEST_SUGGEST[+b.getAttribute('data-i')]; hideGuestSuggest(); send(); };
+  });
+}
+function hideGuestSuggest(){ var w=gq("guestSuggest"); if(w) w.remove(); }
+function finishGuest(){
+  if(!state) return;
+  state.closed=true; stopSpeak(); stopRecog();
+  inp.disabled=true; $("#send").disabled=true; var ib=gq("inbar"); if(ib) ib.style.display="none";
+  hideGuestSuggest();
+  var sc=state.scores||[];
+  var avg=sc.length?Math.round(sc.reduce(function(a,b){return a+b;},0)/sc.length):0;
+  var won=(state.moodW>=70)||(sc.length>=2 && avg>=(state.passLine||70));
+  var tip="";
+  for(var i=state.turnEvals.length-1;i>=0;i--){ var ev=state.turnEvals[i]; if(ev){ tip=ev.good||ev.tip||ev.improve||""; if(tip) break; } }
+  if(!tip) tip="고객의 말을 먼저 인정하고, 부담 없는 다음 행동(무료 점검)을 제안하면 설득력이 올라가요.";
+  gq("grEmoji").textContent=won?"🎉":"💪";
+  gq("grTitle").textContent=won?"설득 성공!":"체험 완료!";
+  gq("grScore").innerHTML=avg+'<span style="font-size:15px;font-weight:600;color:var(--muted)">점</span>';
+  gq("grTip").textContent=tip;
+  gq("guestResult").classList.add("on");
+  if(typeof trackStage==='function') trackStage('guest_trial_done');
+}
+function closeGuestResult(){ var m=gq("guestResult"); if(m) m.classList.remove("on"); }
+function guestToSignup(){
+  closeGuestResult();
+  if(stage) stage.classList.remove("on");
+  state=null;
+  var eb=document.querySelectorAll('#stage .endbtn'); Array.prototype.forEach.call(eb,function(b){ b.style.display=''; });  // 버튼 원복
+  var g=gq("gate"); if(g) g.classList.remove("hide");
+  setGateMode("signup");
+  var gs=gq("gsubText"); if(gs) gs.textContent="방금 실력을 저장하고 매일 무료로 훈련하세요";
+  var n=gq("gNote"); if(n) n.innerHTML="🌱 카카오로 3초 만에 가입하고 <b>하루 5회 무료</b>로 훈련할 수 있어요. (휴대폰 인증은 나중에)";
+  try{ var e=gq("gEmail"); if(e) e.focus(); }catch(_){}
+  if(typeof trackStage==='function') trackStage('signup_prompt');
+}
 function startChat(p){
   clearSnapshot(); var _rb=document.getElementById('resumeBar'); if(_rb)_rb.style.display='none';
   const pass=passLineFor(p,coldness);
@@ -1491,7 +1594,12 @@ ${convo}
   const prevW=state.moodW||18; const nm=data.mood||"cold"; setMood(nm); const newW=(MOODS[nm]||MOODS.cold).w; state.moodW=newW;
   state.messages.push({role:"cust",text:data.customer||"…"}); addBubble("cust",p.emoji,data.customer||"…"); speak(data.customer||"");
   addTurnFooter(prevW,newW,state.turnEvals.length-1);
-  saveSnapshot();
+  if(!state.guest) saveSnapshot();
+  // 게스트 30초 체험: 3턴 캡(또는 조기 설득) 후 미니 결과로 종료
+  if(state.guest){
+    if((state.turns||0)>=GUEST_CAP || data.closed || nm==='convinced'){ finishGuest(); return; }
+    inp.disabled=false;$("#send").disabled=false;inp.focus(); renderGuestSuggest(); return;
+  }
   if(data.closed || (nm==='convinced' && (state.turns||0)>=2)){finish(true);return;}
   inp.disabled=false;$("#send").disabled=false;inp.focus();
 }
@@ -2015,10 +2123,11 @@ function adaptLandingForUser(){
     if(lg) lg.style.display="none";
     if(mt) mt.style.display="none";
   }else{
-    if(s1){ s1.textContent="무료로 시작하기 →"; s1.onclick=function(){ landingToAuth("signup"); }; }
-    if(s2){ s2.textContent="지금 무료로 시작하기 →"; s2.onclick=function(){ landingToAuth("signup"); }; }
+    // 비로그인: 가입 전 '30초 체험'을 먼저 시켜 가치를 보여줌
+    if(s1){ s1.textContent="지금 30초 체험하기 →"; s1.onclick=startGuestTrial; }
+    if(s2){ s2.textContent="지금 30초 무료 체험 →"; s2.onclick=startGuestTrial; }
     if(lg) lg.style.display="";
-    if(mt) mt.style.display="";
+    if(mt){ mt.textContent="로그인·카드 등록 없이 바로 · 30초면 끝"; mt.style.display=""; }
   }
 }
 function openIntro(){ adaptLandingForUser(); showLanding(); var l=gq("landing"); if(l){ try{ l.scrollTop=0; }catch(e){} } }
@@ -2032,7 +2141,8 @@ function onAuthed(user){
   gq("acctBtn").style.display="block";
   var ib=gq("introBtn"); if(ib) ib.style.display="block";
   bootApp();
-  checkPhoneVerified().then(function(ok){ if(!ok){ showPhoneGate(); } else { maybeApplyInstaPromo(); } });   // 인증 필수: 미인증 시 게이트 / 인증 완료면 대기 중 프로모 자동 적용
+  // 휴대폰 인증은 가입 직후 강제하지 않음 → 결제 직전(startSubscribe)에만 요구.
+  maybeApplyInstaPromo();   // 대기 중 인스타 프로모가 있으면 결제 화면에 자동 적용
 }
 /* ===== 휴대폰 SMS 인증 게이트 (첫 사용 시 · 필수) ===== */
 var pgCooldown=0, pgTimer=null;
@@ -2085,7 +2195,12 @@ async function pgVerifyCode(){
     var sess=(await sb.auth.getSession()).data.session;
     var r=await fetch(VERIFY_OTP_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:sess&&sess.access_token, phone:phone, code:code, marketing:gq('pgMkt').checked})});
     var j=await r.json();
-    if(r.ok && j.ok){ pgMsg('인증 완료! 🎉',true); try{ if(window.fbq) fbq('track','CompleteRegistration'); }catch(_){} if(pgTimer)clearInterval(pgTimer); setTimeout(function(){ hidePhoneGate(); bootApp(); maybeApplyInstaPromo(); },700); }
+    if(r.ok && j.ok){ pgMsg('인증 완료! 🎉',true); try{ if(window.fbq) fbq('track','CompleteRegistration'); }catch(_){} if(pgTimer)clearInterval(pgTimer);
+      setTimeout(function(){
+        hidePhoneGate();
+        if(PENDING_SUBSCRIBE){ PENDING_SUBSCRIBE=false; showPaywall(); }   // 결제 직전 인증이었으면 페이월로 복귀해 결제 이어가기
+        else { bootApp(); maybeApplyInstaPromo(); }
+      },700); }
     else{ pgMsg((j&&j.message)||('인증 실패: '+((j&&j.error)||('HTTP '+r.status)))); btn.disabled=false; }
   }catch(e){ pgMsg('인증 중 오류가 발생했어요.'); btn.disabled=false; }
 }
@@ -2165,7 +2280,7 @@ async function gateSubmit(){
     if(gMode==="signup"){
       var r=await sb.auth.signUp({email:email,password:pw});
       if(r.error){ gateMsg(r.error.message); }
-      else if(r.data.session){ onAuthed(r.data.session.user); }   // 이메일 인증 꺼진 경우 즉시 로그인
+      else if(r.data.session){ try{ if(typeof trackStage==='function') trackStage('signup_done'); }catch(_){} onAuthed(r.data.session.user); }   // 이메일 인증 꺼진 경우 즉시 로그인
       else { gateMsg("가입 완료! 이메일 인증이 켜져 있으면 메일함을 확인하세요.",true); setGateMode("login"); }
     }else{
       var l=await sb.auth.signInWithPassword({email:email,password:pw});
@@ -2180,6 +2295,7 @@ function bootAuth(){
   var _lg=gq("lpLogin"); if(_lg) _lg.onclick=function(){ landingToAuth("login"); };
   var _xc=gq("lpClose"); if(_xc) _xc.onclick=hideLanding;
   var _ib=gq("introBtn"); if(_ib) _ib.onclick=openIntro;
+  var _gc=gq("grContinue"); if(_gc) _gc.onclick=guestToSignup;   // 게스트 미니결과 → 가입
   adaptLandingForUser();   // 기본(비로그인) CTA 세팅
   // 광고 유입(?ad=1 등)일 때만 랜딩 노출. 그 외에는 바로 실행 페이지(로그인/앱)로.
   // 이미 로그인된 사용자는 아래 getSession → onAuthed 에서 랜딩을 자동으로 닫고 앱으로 진입.
@@ -2273,6 +2389,7 @@ function showPaywall(row){
   if(m && row && typeof row.limit_==='number'){
     m.innerHTML="오늘 무료 세션 "+row.limit_+"회를 모두 사용했습니다.<br>구독하면 <b>무제한</b>으로 훈련할 수 있어요.";
   }
+  if(typeof renderPrice==='function') renderPrice();   // 프로모 유무에 따라 가격·입력칸·배지·버튼 문구 동기화
   gq("paywall").classList.add("on");
   if(typeof trackStage==='function') trackStage('paywall');
 }
@@ -2281,12 +2398,19 @@ function closePaywall(){ gq("paywall").classList.remove("on"); resetPromo(); if(
 /* ---------- 프로모션 코드 (페이월·내 계정 공용) ---------- */
 var SUB_PRICE=9900;           // 표시·계산 기준가(백엔드 SUBSCRIPTION_AMOUNT와 동일하게 유지)
 var PROMO=null;               // {code,type,value,final}
+var PENDING_SUBSCRIBE=false;  // 결제 직전 휴대폰 인증 대기 플래그
 function wonKR(n){ return (n||0).toLocaleString('ko-KR'); }
 function calcFinal(type,value){
   var disc = type==='percent' ? Math.floor(SUB_PRICE*Math.min(100,value)/100) : value;
   return Math.max(0, SUB_PRICE-disc);
 }
-// 화면에 존재하는 모든 금액 표시(#pwAmt 페이월 / #acAmt 내 계정)를 현재 PROMO 기준으로 갱신
+// 프로모 할인율(%) — 배지·버튼 문구에 표기
+function promoPct(){
+  if(!PROMO) return 0;
+  return PROMO.type==='percent' ? Math.round(PROMO.value) : Math.round((SUB_PRICE-PROMO.final)/SUB_PRICE*100);
+}
+// 화면에 존재하는 모든 금액 표시(#pwAmt 페이월 / #acAmt 내 계정)를 현재 PROMO 기준으로 갱신.
+// 프로모 유무에 따라 가격·입력칸·배지·버튼 문구를 §4 분기 그대로 처리.
 function renderPrice(){
   var full='월 '+wonKR(SUB_PRICE)+'원 <small>· VAT 포함</small>';
   var disc=PROMO
@@ -2295,6 +2419,15 @@ function renderPrice(){
     : full;
   var a=gq("pwAmt"); if(a) a.innerHTML=disc;
   var b=gq("acAmt"); if(b) b.innerHTML=disc;
+  var hasPromo=!!PROMO, pct=promoPct();
+  // 코드 있으면: 자동적용 배지 노출 + 코드 입력칸 숨김 / 없으면 반대
+  var badge=gq("pwPromoBadge"); if(badge){ badge.style.display=hasPromo?'inline-block':'none'; if(hasPromo) badge.textContent='🎟 인스타 '+pct+'% 코드 자동 적용'; }
+  var wrap=gq("pwPromoWrap"); if(wrap) wrap.style.display=hasPromo?'none':'flex';
+  // 페이월 구독 버튼 문구 분기
+  var sub=gq("pwSub"); if(sub) sub.textContent=hasPromo?('무제한으로 훈련하기 · 첫 결제 '+pct+'% ('+wonKR(PROMO.final)+'원)'):('무제한으로 훈련하기 · 월 '+wonKR(SUB_PRICE)+'원');
+  // 내 계정 구독 버튼 문구 분기(있을 때만)
+  var asb=gq("acctSubBtn"); if(asb) asb.textContent=hasPromo?('무제한으로 훈련하기 · 첫 결제 '+pct+'% →'):'구독하고 무제한 훈련하기 →';
+  var acw=gq("acPromoWrap"); if(acw) acw.style.display=hasPromo?'none':'flex';
 }
 function setPnote(id,msg,ok){ var n=gq(id); if(!n) return; n.textContent=msg||''; n.className=(n.className.split(' ')[0])+(msg?(ok?' ok':' err'):''); }
 function resetPromo(){ PROMO=null; var i=gq("pwPromo"); if(i) i.value=''; var i2=gq("acPromo"); if(i2) i2.value=''; setPnote("pwPnote",''); setPnote("acPnote",''); renderPrice(); }
@@ -2417,7 +2550,21 @@ async function startSubscribe(trigBtn){
   if(!PORTONE_STORE_ID || !PORTONE_CHANNEL_KEY || !window.PortOne){
     alert("결제 설정(포트원 상점ID·채널키)이 아직 입력되지 않았습니다."); return;
   }
-  var btn=(trigBtn&&trigBtn.tagName)?trigBtn:gq("pwSub"); btn.disabled=true; var old=btn.textContent; btn.textContent="카드 등록 중…";
+  var btn=(trigBtn&&trigBtn.tagName)?trigBtn:gq("pwSub"); btn.disabled=true; var old=btn.textContent;
+  // 결제 직전에만 휴대폰 인증 요구(가입 때는 안 함). 미인증이면 인증 게이트 → 인증 후 페이월로 복귀해 재개.
+  btn.textContent="확인 중…";
+  var verified=await checkPhoneVerified();
+  if(!verified){
+    PENDING_SUBSCRIBE=true;
+    var pwEl0=gq("paywall"); if(pwEl0) pwEl0.classList.remove("on");
+    var acctEl0=gq("acct"); if(acctEl0) acctEl0.classList.remove("on");
+    showPhoneGate();
+    var pw=gq("pgWho"); if(pw) pw.textContent='결제 전 본인확인 · 한 번만 인증하면 됩니다';
+    btn.disabled=false; btn.textContent=old;
+    if(typeof trackStage==='function') trackStage('verify_at_checkout');
+    return;
+  }
+  btn.textContent="카드 등록 중…";
   var payVal=(PROMO?PROMO.final:SUB_PRICE);
   try{ if(window.fbq) fbq('track','InitiateCheckout',{value:payVal,currency:'KRW'}); }catch(_){}
   // 결제창(카카오페이 등)이 우리 모달에 가려지거나 잘리지 않도록, 열기 직전에 모달을 닫아 전체화면 확보
@@ -2443,6 +2590,7 @@ async function startSubscribe(trigBtn){
     if(r.ok && j.ok){
       alert("구독 완료! 이제 무제한으로 이용하실 수 있어요. 🎉");
       try{ if(window.fbq) fbq('track','Subscribe',{value:payVal,currency:'KRW'}); }catch(_){}
+      try{ if(typeof trackStage==='function') trackStage('subscribe'); }catch(_){}
       var t=gq("useTag"); if(t){ t.textContent="구독 · 무제한"; t.style.display="block"; }
       try{ localStorage.removeItem('ig_promo_code'); localStorage.removeItem('ig_promo_pending'); }catch(_){}  // 인스타 프로모: 결제 완료 후 정리
       resetPromo();
@@ -2483,7 +2631,7 @@ async function loadAccount(){
       '<div class="au-t">🌱 무제한으로 훈련하기</div>'+
       '<div class="au-d">무료 플랜은 하루 5회까지예요. 구독하면 한도 없이 무제한으로 연습할 수 있어요.</div>'+
       '<div class="au-p" id="acAmt">월 9,900원 <small>· VAT 포함</small></div>'+
-      '<div class="pw-promo au-promo"><input id="acPromo" type="text" placeholder="프로모션 코드 (선택)" autocapitalize="characters" autocomplete="off"><button id="acPromoApply" type="button">적용</button></div>'+
+      '<div class="pw-promo au-promo" id="acPromoWrap"><input id="acPromo" type="text" placeholder="프로모션 코드 (선택)" autocapitalize="characters" autocomplete="off"><button id="acPromoApply" type="button">적용</button></div>'+
       '<div class="pw-pnote" id="acPnote"></div>'+
       '<button class="au-btn" id="acctSubBtn" type="button">구독하고 무제한 훈련하기 →</button>'+
     '</div>';
