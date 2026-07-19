@@ -1423,13 +1423,14 @@ function renderGuestSuggest(){
   if(!state || !state.guest) return;
   hideGuestSuggest();
   var bar=gq("inbar"); if(!bar) return;
+  var list=(state.suggest && state.suggest.length)?state.suggest.slice(0,3):GUEST_SUGGEST;  // 맥락 추천이 있으면 그걸, 없으면(첫 턴) 기본
   var left=Math.max(0, GUEST_CAP-(state.turns||0));
   var wrap=document.createElement("div"); wrap.id="guestSuggest"; wrap.className="gsug";
-  wrap.innerHTML='<div class="gsug-h">💡 추천 답변 <span>· '+left+'턴 남음</span></div>'+
-    GUEST_SUGGEST.map(function(s,i){ return '<button class="gsug-b" type="button" data-i="'+i+'">'+esc(s)+'</button>'; }).join('');
+  wrap.innerHTML='<div class="gsug-h">💡 이렇게 답해보세요 <span>· '+left+'턴 남음</span></div>'+
+    list.map(function(s,i){ return '<button class="gsug-b" type="button" data-i="'+i+'">'+esc(s)+'</button>'; }).join('');
   bar.insertBefore(wrap, bar.firstChild);
   Array.prototype.forEach.call(wrap.querySelectorAll('.gsug-b'),function(b){
-    b.onclick=function(){ inp.value=GUEST_SUGGEST[+b.getAttribute('data-i')]; hideGuestSuggest(); send(); };
+    b.onclick=function(){ inp.value=list[+b.getAttribute('data-i')]; hideGuestSuggest(); send(); };
   });
 }
 function hideGuestSuggest(){ var w=gq("guestSuggest"); if(w) w.remove(); }
@@ -1569,8 +1570,9 @@ score(총점)는 이 역량들을 종합한 설득력이며, good/improve/tip은
 [대화 기록]
 ${convo}
 
+${state.guest?'[추천 답변] 방금 만든 고객의 대사에 자연스럽게 이어질, 영업사원(FC)이 할 만한 다음 답변 후보 3개를 만드세요. 각 1~2문장 구어체, 서로 다른 접근(① 공감·인정 ② 질문으로 니즈 확인 ③ 근거·부담낮춘 제안), 고객이 방금 한 말에 구체적으로 반응해 대화가 이어지게. 아래 JSON의 suggest 배열에 넣으세요.\n':''}
 [출력] 반드시 아래 JSON 하나만. 다른 말 금지.
-{"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장","improve":"개선점 한 문장","tip":"더 나은 화법 제안 한 문장","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false}`;
+{"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장","improve":"개선점 한 문장","tip":"더 나은 화법 제안 한 문장","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false${state.guest?',"suggest":["영업사원 답변 후보1","후보2","후보3"]':''}}`;
   let data=null;
   if(!DEMO_MODE){
     try{
@@ -1597,6 +1599,7 @@ ${convo}
   if(!state.guest) saveSnapshot();
   // 게스트 30초 체험: 3턴 캡(또는 조기 설득) 후 미니 결과로 종료
   if(state.guest){
+    if(Array.isArray(data.suggest) && data.suggest.length){ state.suggest=data.suggest.filter(function(s){return s && String(s).trim();}); }  // 맥락 맞춘 추천 답변 갱신
     if((state.turns||0)>=GUEST_CAP || data.closed || nm==='convinced'){ finishGuest(); return; }
     inp.disabled=false;$("#send").disabled=false;inp.focus(); renderGuestSuggest(); return;
   }
@@ -2815,7 +2818,20 @@ gq("acct").addEventListener("click",function(e){ if(e.target.id==="acct") closeA
    ============================================================ */
 /* 현재 앱 단계(스테이지) — 이탈 페이지를 정밀 분류하기 위해 화면 전환 시 갱신 */
 var CUR_STAGE='login';
-function trackStage(s){ if(s) CUR_STAGE=s; }
+var _stageSent={};   // 방문당 같은 단계는 한 번만 기록(퍼널 중복 방지)
+function trackStage(s){
+  if(!s) return;
+  CUR_STAGE=s;
+  // 퍼널용: 이 방문이 단계 s에 '도달'했음을 1회 기록
+  try{
+    if(sb && !_stageSent[s]){
+      _stageSent[s]=1;
+      var vid=sessionStorage.getItem('visit_id');
+      if(!vid){ vid=(crypto.randomUUID?crypto.randomUUID():String(Date.now())); sessionStorage.setItem('visit_id',vid); }
+      sb.from('analytics_events').insert({visit_id:vid,user_id:(AUTH_USER?AUTH_USER.id:null),type:'stage',page:s}).then(function(){},function(){});
+    }
+  }catch(e){}
+}
 function trackVisit(){
   if(!sb) return;
   var vid; try{ vid=sessionStorage.getItem('visit_id'); if(!vid){ vid=(crypto.randomUUID?crypto.randomUUID():String(Date.now())); sessionStorage.setItem('visit_id',vid); } }catch(e){ vid=String(Date.now()); }
