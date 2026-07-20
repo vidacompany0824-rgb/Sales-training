@@ -14,6 +14,24 @@ async function sbGet(SUPA, SERVICE, path) {
   if (!r.ok) return [];
   return r.json().catch(() => []);
 }
+// PostgREST는 한 요청당 최대 1,000행만 반환(db-max-rows) → Range로 페이지 단위로 전부 받아옴.
+// 큰 테이블(pageview/session/payment/stage 등)의 카운트가 1,000에서 잘리는 문제 해결.
+async function sbGetAll(SUPA, SERVICE, path) {
+  const PAGE = 1000, MAX_PAGES = 60;   // 안전 상한 6만 행
+  let from = 0, out = [];
+  for (let i = 0; i < MAX_PAGES; i++) {
+    const r = await fetch(`${SUPA}/rest/v1/${path}`, {
+      headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Range-Unit": "items", Range: `${from}-${from + PAGE - 1}` },
+    });
+    if (!r.ok) break;
+    const rows = await r.json().catch(() => []);
+    if (!Array.isArray(rows) || rows.length === 0) break;
+    out = out.concat(rows);
+    if (rows.length < PAGE) break;
+    from += PAGE;
+  }
+  return out;
+}
 
 export default async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
@@ -35,17 +53,17 @@ export default async (req) => {
   // 데이터 수집
   const now = Date.now();
   const [payments, subs, sessions, pageviews, exits, profiles, phones, inquiries, promos, adSpendRows, stageEvents] = await Promise.all([
-    sbGet(SUPA, SERVICE, "payments?select=user_id,amount,status,paid_at&order=paid_at.desc&limit=10000"),
-    sbGet(SUPA, SERVICE, "subscriptions?select=user_id,status,current_period_end"),
-    sbGet(SUPA, SERVICE, "training_sessions?select=user_id,created_at&order=created_at.desc&limit=20000"),
-    sbGet(SUPA, SERVICE, "analytics_events?type=eq.pageview&select=visit_id,page,created_at&order=created_at.desc&limit=20000"),
-    sbGet(SUPA, SERVICE, "analytics_events?type=eq.exit&select=page,duration_sec,created_at&order=created_at.desc&limit=20000"),
-    sbGet(SUPA, SERVICE, "profiles?select=id,email,display_name,created_at"),
-    sbGet(SUPA, SERVICE, "phone_identity?select=user_id,phone,verified,marketing_consent"),
+    sbGetAll(SUPA, SERVICE, "payments?select=user_id,amount,status,paid_at&order=paid_at.desc"),
+    sbGetAll(SUPA, SERVICE, "subscriptions?select=user_id,status,current_period_end"),
+    sbGetAll(SUPA, SERVICE, "training_sessions?select=user_id,created_at&order=created_at.desc"),
+    sbGetAll(SUPA, SERVICE, "analytics_events?type=eq.pageview&select=visit_id,page,created_at&order=created_at.desc"),
+    sbGetAll(SUPA, SERVICE, "analytics_events?type=eq.exit&select=page,duration_sec,created_at&order=created_at.desc"),
+    sbGetAll(SUPA, SERVICE, "profiles?select=id,email,display_name,created_at&order=created_at.desc"),
+    sbGetAll(SUPA, SERVICE, "phone_identity?select=user_id,phone,verified,marketing_consent"),
     sbGet(SUPA, SERVICE, "inquiries?select=id,email,category,subject,message,status,created_at&order=created_at.desc&limit=200"),
     sbGet(SUPA, SERVICE, "promo_codes?select=*&order=created_at.desc&limit=200"),
     sbGet(SUPA, SERVICE, "ad_spend?select=range_days,amount"),
-    sbGet(SUPA, SERVICE, "analytics_events?type=eq.stage&select=visit_id,page,created_at&order=created_at.desc&limit=20000"),
+    sbGetAll(SUPA, SERVICE, "analytics_events?type=eq.stage&select=visit_id,page,created_at&order=created_at.desc"),
   ]);
 
   // 가입 경로(provider): GoTrue admin API 에서 조회
