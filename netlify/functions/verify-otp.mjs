@@ -20,18 +20,31 @@ async function sbFetch(SUPA, SERVICE, path, init = {}) {
   });
 }
 
-// 관리자 알림 문자(솔라피). 환경변수 없으면 조용히 건너뜀.
-async function notifyAdmin(text) {
-  const KEY = process.env.SOLAPI_API_KEY, SECRET = process.env.SOLAPI_API_SECRET, FROM = onlyDigits(process.env.SOLAPI_SENDER), TO = onlyDigits(process.env.ADMIN_PHONE);
-  if (!KEY || !SECRET || !FROM || !TO) return;
+// 솔라피 발송 공통(문자·알림톡). 키 없으면 조용히 건너뜀.
+async function solapiSend(message) {
+  const KEY = process.env.SOLAPI_API_KEY, SECRET = process.env.SOLAPI_API_SECRET;
+  if (!KEY || !SECRET) return;
   const date = new Date().toISOString();
   const salt = crypto.randomBytes(32).toString("hex");
   const signature = crypto.createHmac("sha256", SECRET).update(date + salt).digest("hex");
-  await fetch("https://api.solapi.com/messages/v4/send", {
+  return fetch("https://api.solapi.com/messages/v4/send", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `HMAC-SHA256 apiKey=${KEY}, date=${date}, salt=${salt}, signature=${signature}` },
-    body: JSON.stringify({ message: { to: TO, from: FROM, text } }),
+    body: JSON.stringify({ message }),
   });
+}
+// 관리자 알림 문자
+async function notifyAdmin(text) {
+  const FROM = onlyDigits(process.env.SOLAPI_SENDER), TO = onlyDigits(process.env.ADMIN_PHONE);
+  if (!FROM || !TO) return;
+  await solapiSend({ to: TO, from: FROM, text });
+}
+// 사용자에게 알림톡 발송(실패 시 문자 대체발송). SOLAPI_PFID·templateId 없으면 건너뜀.
+async function sendAlimtalk(to, templateId, variables) {
+  const FROM = onlyDigits(process.env.SOLAPI_SENDER), PF = process.env.SOLAPI_PFID;
+  to = onlyDigits(to);
+  if (!to || !FROM || !PF || !templateId) return;
+  await solapiSend({ to, from: FROM, kakaoOptions: { pfId: PF, templateId, variables: variables || {}, disableSms: false } });
 }
 
 export default async (req) => {
@@ -81,11 +94,15 @@ export default async (req) => {
   if (!rowUp.ok) return json({ error: "db_error" }, 500);
   await sbFetch(SUPA, SERVICE, `phone_verifications?user_id=eq.${user.id}`, { method: "DELETE" });
 
-  // 관리자에게 신규 가입(인증 완료) 알림 문자 — 실패해도 인증은 성공 처리
+  // 관리자에게 휴대폰 인증 완료 알림 문자 — 실패해도 인증은 성공 처리
+  // (신규 '가입' 알림은 notify-signup 함수가 가입 시점에 별도로 1회 발송)
   try {
     const brand = process.env.OTP_BRAND || "쑥쑥AI";
-    await notifyAdmin(`[${brand}] 새 회원 가입 · ${user.email || "-"} · ${phone}`);
+    await notifyAdmin(`[${brand}] 📱 휴대폰 인증 완료 · ${user.email || "-"} · ${phone}`);
   } catch (_) {}
+
+  // 사용자에게 회원가입 환영 알림톡(정보성)
+  try { await sendAlimtalk(phone, process.env.ALIMTALK_TPL_WELCOME, {}); } catch (_) {}
 
   return json({ ok: true, message: "휴대폰 인증이 완료됐어요." });
 };
