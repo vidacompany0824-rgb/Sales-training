@@ -1,0 +1,39 @@
+// netlify/functions/challenge-status.mjs
+// 공개 · 오늘 챌린지 상품권이 남아있는지(참여 가능한지) 판별.
+// 개인정보 없이 상태만 반환하므로 인증 불필요.
+//
+// 응답: { ok, open, reason, eventOver }
+//   open=true  → 오늘 도전 가능(상품권 여유 있음)
+//   open=false, reason="today_full"  → 오늘 수량 마감(내일 다시)
+//   open=false, reason="budget_out"  → 이벤트 예산 소진(종료)
+//
+// 필요한 Netlify 환경변수: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+//   (선택) CHALLENGE_PRIZE(5만) · CHALLENGE_BUDGET(100만) · CHALLENGE_DAILY(1)
+
+function json(o, s) {
+  return new Response(JSON.stringify(o), { status: s || 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+}
+async function sbGet(SUPA, SERVICE, path) {
+  const r = await fetch(`${SUPA}/rest/v1/${path}`, { headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` } });
+  if (!r.ok) return [];
+  return r.json().catch(() => []);
+}
+const PRIZE = Number(process.env.CHALLENGE_PRIZE || 50000);
+const BUDGET = Number(process.env.CHALLENGE_BUDGET || 1000000);
+const DAILY = Number(process.env.CHALLENGE_DAILY || 1);
+
+export default async () => {
+  const SUPA = process.env.SUPABASE_URL, SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SUPA || !SERVICE) return json({ ok: true, open: true, reason: "ok" });   // 백엔드 미설정 시 열림 처리
+
+  try {
+    const awards = await sbGet(SUPA, SERVICE, "challenge_awards?select=amount,created_at");
+    const used = (awards || []).reduce((a, x) => a + (Number(x.amount) || 0), 0);
+    const today = (awards || []).filter(x => (x.created_at || "").slice(0, 10) === new Date().toISOString().slice(0, 10)).length;
+    if (used + PRIZE > BUDGET) return json({ ok: true, open: false, reason: "budget_out", eventOver: true });
+    if (today >= DAILY) return json({ ok: true, open: false, reason: "today_full", eventOver: false });
+    return json({ ok: true, open: true, reason: "ok", eventOver: false });
+  } catch (e) {
+    return json({ ok: true, open: true, reason: "ok" });   // 오류 시 막지 않음
+  }
+};
