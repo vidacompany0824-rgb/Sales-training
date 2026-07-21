@@ -44,11 +44,14 @@ async function notifyAdmin(text) {
   await solapiSend({ to: TO, from: FROM, text });
 }
 // 사용자 알림톡(실패 시 문자 대체발송). SOLAPI_PFID·templateId 없으면 건너뜀.
-async function sendAlimtalk(to, templateId, variables) {
+// fallbackText: 알림톡 실패 시 SMS로 보낼 내용(있으면 대체발송, 없으면 알림톡만 시도).
+async function sendAlimtalk(to, templateId, variables, fallbackText) {
   const FROM = onlyDigits(process.env.SOLAPI_SENDER), PF = process.env.SOLAPI_PFID;
   to = onlyDigits(to);
   if (!to || !FROM || !PF || !templateId) return;
-  await solapiSend({ to, from: FROM, kakaoOptions: { pfId: PF, templateId, variables: variables || {}, disableSms: false } });
+  const msg = { to, from: FROM, kakaoOptions: { pfId: PF, templateId, variables: variables || {}, disableSms: !fallbackText } };
+  if (fallbackText) msg.text = fallbackText;
+  await solapiSend(msg);
 }
 async function getUserPhone(SUPA, SERVICE, uid) {
   try {
@@ -182,7 +185,11 @@ export default async (req) => {
   // 3.5) 사용자에게 결제 완료 알림톡(정보성)
   try {
     const uphone = await getUserPhone(SUPA, SERVICE, user.id);
-    if (uphone) await sendAlimtalk(uphone, process.env.ALIMTALK_TPL_PAYMENT, { "#{금액}": chargeAmount.toLocaleString("ko-KR"), "#{다음결제일}": next.toISOString().slice(0, 10) });
+    if (uphone) {
+      const brand2 = process.env.OTP_BRAND || "쑥쑥AI";
+      const amtStr = chargeAmount.toLocaleString("ko-KR"), nextStr = next.toISOString().slice(0, 10);
+      await sendAlimtalk(uphone, process.env.ALIMTALK_TPL_PAYMENT, { "#{금액}": amtStr, "#{다음결제일}": nextStr }, `[${brand2}] 구독 결제가 완료됐어요. 결제금액 ${amtStr}원 · 다음 결제일 ${nextStr}. 감사합니다.`);
+    }
   } catch (_) {}
 
   // 4) 다음달 정기결제 예약 (실패해도 결제/구독은 유효 → 경고만)
