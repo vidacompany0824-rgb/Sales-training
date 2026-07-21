@@ -40,11 +40,14 @@ async function notifyAdmin(text) {
   await solapiSend({ to: TO, from: FROM, text });
 }
 // 사용자에게 알림톡 발송(실패 시 문자 대체발송). SOLAPI_PFID·templateId 없으면 건너뜀.
-async function sendAlimtalk(to, templateId, variables) {
+// fallbackText: 알림톡 실패 시 SMS로 보낼 내용(있으면 대체발송, 없으면 알림톡만 시도).
+async function sendAlimtalk(to, templateId, variables, fallbackText) {
   const FROM = onlyDigits(process.env.SOLAPI_SENDER), PF = process.env.SOLAPI_PFID;
   to = onlyDigits(to);
   if (!to || !FROM || !PF || !templateId) return;
-  await solapiSend({ to, from: FROM, kakaoOptions: { pfId: PF, templateId, variables: variables || {}, disableSms: false } });
+  const msg = { to, from: FROM, kakaoOptions: { pfId: PF, templateId, variables: variables || {}, disableSms: !fallbackText } };
+  if (fallbackText) msg.text = fallbackText;
+  await solapiSend(msg);
 }
 
 export default async (req) => {
@@ -102,7 +105,10 @@ export default async (req) => {
   } catch (_) {}
 
   // 사용자에게 회원가입 환영 알림톡(정보성)
-  try { await sendAlimtalk(phone, process.env.ALIMTALK_TPL_WELCOME, {}); } catch (_) {}
+  try {
+    const brand2 = process.env.OTP_BRAND || "쑥쑥AI";
+    await sendAlimtalk(phone, process.env.ALIMTALK_TPL_WELCOME, {}, `[${brand2}] 인증이 완료됐어요! 지금 바로 AI 세일즈 훈련을 시작해보세요. https://ssukssukai.com`);
+  } catch (_) {}
 
   return json({ ok: true, message: "휴대폰 인증이 완료됐어요." });
 };
