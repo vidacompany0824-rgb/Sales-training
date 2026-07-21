@@ -57,7 +57,10 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 #lpClose{position:fixed;top:12px;right:12px;z-index:9110;width:36px;height:36px;border-radius:50%;border:none;background:rgba(0,0,0,.30);color:#fff;font-size:18px;line-height:1;cursor:pointer;display:none;align-items:center;justify-content:center}
 #landing.show #lpClose{display:flex}
 .lp{max-width:480px;margin:0 auto;padding-bottom:40px}
-.lp-hero{background:linear-gradient(168deg,#2f5a0e 0%,#3B6D11 48%,#5a9420 100%);color:#fff;padding:52px 26px 40px;text-align:center;border-radius:0 0 28px 28px;box-shadow:0 12px 34px rgba(47,90,14,.28)}
+.lp-chal-top{padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:6px}
+.lp-chal .chal-pay{font-size:11.5px;color:#dfeccb;margin-top:10px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:7px 11px;line-height:1.5}
+.lp-chal .chal-pay b{color:#fff}
+.lp-hero{background:linear-gradient(168deg,#2f5a0e 0%,#3B6D11 48%,#5a9420 100%);color:#fff;padding:44px 26px 36px;text-align:center;border-radius:24px;box-shadow:0 12px 34px rgba(47,90,14,.28);margin:0 16px}
 .lp-badge{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#eaf3de;font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;margin-bottom:16px}
 .lp-logo{font-size:34px;margin-bottom:6px}
 .lp-h1{font-size:26px;line-height:1.32;font-weight:800;letter-spacing:-.02em;margin:6px 0 10px}
@@ -741,6 +744,18 @@ textarea:focus{border-color:var(--brand)}
 <div id="landing">
   <button id="lpClose" type="button" aria-label="닫기">✕</button>
   <div class="lp">
+    <div class="lp-sec lp-chal-top">
+      <div class="lp-chal">
+        <div class="chal-badge">🔥 진행 중 이벤트</div>
+        <div class="chal-t">철벽 고객 챌린지</div>
+        <div class="chal-prize"><span class="pz-l">🎁 신세계 상품권</span><span class="pz-amt">5만원권</span></div>
+        <div class="chal-d">가장 까다로운 <b>거절 강도 5</b> 고객을<br>한 세션에서 <b>90점 이상</b>으로 설득하면 성공!</div>
+        <div class="chal-sub">실력만 있으면 누구나 도전 가능</div>
+        <div class="chal-pay">📱 지급 방법 · <b>인증 휴대폰으로 모바일 상품권(신세계) 발송</b></div>
+        <button class="chal-cta" id="lpChalBtn" type="button">🔥 지금 도전하기 →</button>
+      </div>
+    </div>
+
     <div class="lp-hero">
       <div class="lp-badge">🌱 현직 설계사들이 쓰는 AI 세일즈 훈련</div>
       <div class="lp-logo">🌱</div>
@@ -754,17 +769,6 @@ textarea:focus{border-color:var(--brand)}
         <span class="hp-by">— 현직 설계사 정○○</span>
       </div>
       <button class="lp-login" id="lpLogin" type="button">이미 계정이 있어요 · 로그인</button>
-    </div>
-
-    <div class="lp-sec" style="padding-top:22px">
-      <div class="lp-chal">
-        <div class="chal-badge">🔥 진행 중 이벤트</div>
-        <div class="chal-t">철벽 고객 챌린지</div>
-        <div class="chal-prize"><span class="pz-l">🎁 신세계 상품권</span><span class="pz-amt">5만원권</span></div>
-        <div class="chal-d">가장 까다로운 <b>거절 강도 5</b> 고객을<br>한 세션에서 <b>90점 이상</b>으로 설득하면 성공!</div>
-        <div class="chal-sub">실력만 있으면 누구나 · 대화록 확인 후 지급</div>
-        <button class="chal-cta" id="lpChalBtn" type="button">🔥 지금 도전하기 →</button>
-      </div>
     </div>
 
     <div class="lp-sec">
