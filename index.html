@@ -2156,6 +2156,12 @@ async function startChallenge(){
   if(open){ goChallengeTraining(); return; }
   showChallengeClosed(reason);
 }
+// 비로그인 사용자가 랜딩에서 '챌린지 도전하기'를 누르면 → 가입 유도(챌린지는 계정·상품권 필요)
+function challengeSignup(){
+  if(typeof trackStage==='function') trackStage('challenge_click');
+  landingToAuth('signup');
+  var n=gq('gNote'); if(n) n.innerHTML='🔥 <b>철벽 고객 챌린지</b> · 가입하고 거절 강도 5에서 90점+ 달성하면 <b>신세계 상품권 5만원권</b>! (하루 5회 무료로 도전 가능)';
+}
 function goChallengeTraining(){
   if(typeof gotoPersona==='function') gotoPersona();
   setTimeout(function(){ toast('🔥 챌린지: 가장 어려운 고객을 고르고 거절 강도를 5로 설정해 90점+에 도전하세요!'); },250);
@@ -2296,7 +2302,7 @@ function adaptLandingForUser(){
     // 비로그인: 가입 전 '30초 체험'을 먼저 시켜 가치를 보여줌
     if(s1){ s1.textContent="지금 30초 체험하기 →"; s1.onclick=startGuestTrial; }
     if(s2){ s2.textContent="지금 30초 무료 체험 →"; s2.onclick=startGuestTrial; }
-    if(ch){ ch.textContent="🔥 지금 도전하기 →"; ch.onclick=startGuestTrial; }  // 비로그인: 체험→가입→챌린지 흐름으로
+    if(ch){ ch.textContent="🔥 가입하고 도전하기 →"; ch.onclick=challengeSignup; }  // 비로그인: 챌린지는 계정·상품권 필요 → 가입으로
     if(lg) lg.style.display="";
     if(mt){ mt.textContent="로그인·카드 등록 없이 바로 · 30초면 끝"; mt.style.display=""; }
   }
