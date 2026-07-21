@@ -1,0 +1,55 @@
+// netlify/functions/challenge-remind-signup.mjs
+// '내일 다시 도전 알림' 신청 — 마케팅 수신 동의 + 리마인더 등록.
+//
+// 요청(JSON POST): { accessToken }
+// 필요한 Netlify 환경변수: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+
+function json(o, s) {
+  return new Response(JSON.stringify(o), { status: s || 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+}
+async function sbGet(SUPA, SERVICE, path) {
+  const r = await fetch(`${SUPA}/rest/v1/${path}`, { headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` } });
+  if (!r.ok) return [];
+  return r.json().catch(() => []);
+}
+
+export default async (req) => {
+  if (req.method !== "POST") return json({ error: "POST only" }, 405);
+  const SUPA = process.env.SUPABASE_URL, SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SUPA || !SERVICE) return json({ error: "server_env_missing" }, 500);
+
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  if (!body.accessToken) return json({ error: "missing_params" }, 400);
+
+  let user;
+  try {
+    const ures = await fetch(`${SUPA}/auth/v1/user`, { headers: { Authorization: `Bearer ${body.accessToken}`, apikey: SERVICE } });
+    user = await ures.json();
+    if (!ures.ok || !user || !user.id) return json({ error: "auth_failed" }, 401);
+  } catch (e) { return json({ error: "auth_error" }, 401); }
+
+  const H = { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json" };
+
+  // 1) 리마인더 등록(있으면 재요청 시각만 갱신)
+  try {
+    await fetch(`${SUPA}/rest/v1/challenge_reminder?on_conflict=user_id`, {
+      method: "POST",
+      headers: { ...H, Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify({ user_id: user.id, requested_at: new Date().toISOString(), notified_at: null }),
+    });
+  } catch (_) {}
+
+  // 2) 마케팅 수신 동의 ON (휴대폰 인증 완료자만 실제 반영 — 알림톡/문자 발송 대상)
+  let hasPhone = false;
+  try {
+    const ph = await sbGet(SUPA, SERVICE, `phone_identity?user_id=eq.${encodeURIComponent(user.id)}&select=phone,verified`);
+    hasPhone = !!(ph[0] && ph[0].verified && ph[0].phone);
+    if (hasPhone) {
+      await fetch(`${SUPA}/rest/v1/phone_identity?user_id=eq.${encodeURIComponent(user.id)}`, {
+        method: "PATCH", headers: H, body: JSON.stringify({ marketing_consent: true }),
+      });
+    }
+  } catch (_) {}
+
+  return json({ ok: true, hasPhone });   // hasPhone=false면 앱이 '휴대폰 인증 필요' 안내
+};
