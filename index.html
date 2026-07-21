@@ -111,6 +111,8 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .lp-chal .chal-d{font-size:13.5px;line-height:1.65;color:#eaf3de;margin-top:14px}
 .lp-chal .chal-d b{color:#fff}
 .lp-chal .chal-sub{font-size:11.5px;color:#c8dbb0;margin-top:12px}
+.lp-chal .chal-cta{display:block;width:100%;margin-top:16px;background:#ffd76a;color:#5a3d00;border:none;border-radius:13px;padding:15px;font:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.28)}
+.lp-chal .chal-cta:active{transform:translateY(1px)}
 /* 앱 홈 챌린지 배너 */
 .home-chal{display:flex;align-items:center;gap:13px;background:linear-gradient(120deg,#2f5a0e,#3B6D11);color:#fff;border-radius:15px;padding:14px 16px;margin-bottom:16px;box-shadow:0 6px 18px rgba(47,90,14,.24);cursor:pointer}
 .home-chal .hc-ic{font-size:26px;flex:0 0 auto}
@@ -754,6 +756,17 @@ textarea:focus{border-color:var(--brand)}
       <button class="lp-login" id="lpLogin" type="button">이미 계정이 있어요 · 로그인</button>
     </div>
 
+    <div class="lp-sec" style="padding-top:22px">
+      <div class="lp-chal">
+        <div class="chal-badge">🔥 진행 중 이벤트</div>
+        <div class="chal-t">철벽 고객 챌린지</div>
+        <div class="chal-prize"><span class="pz-l">🎁 신세계 상품권</span><span class="pz-amt">5만원권</span></div>
+        <div class="chal-d">가장 까다로운 <b>거절 강도 5</b> 고객을<br>한 세션에서 <b>90점 이상</b>으로 설득하면 성공!</div>
+        <div class="chal-sub">실력만 있으면 누구나 · 대화록 확인 후 지급</div>
+        <button class="chal-cta" id="lpChalBtn" type="button">🔥 지금 도전하기 →</button>
+      </div>
+    </div>
+
     <div class="lp-sec">
       <h2>이런 고민, 있으셨죠?</h2>
       <div class="lp-lead">혼자서는 늘기 어려운 것들</div>
@@ -804,16 +817,6 @@ textarea:focus{border-color:var(--brand)}
           <div class="rv-txt">자체 교육이 전무하다시피 해서 체계적인 상담 훈련이 절실했어요. 쑥쑥AI를 거의 끼고 살았습니다. 사무실에서, 집에서, 이동하면서 미친 듯이 연습했고 지금은 <b>3배 업적을 꾸준히</b> 하고 있습니다.</div>
           <div class="rv-who"><div class="rv-av">황</div><div class="rv-meta"><div class="rv-name">황○○ 설계사</div><div class="rv-role">GA 소속</div></div><div class="rv-badge">업적 3배</div></div>
         </div>
-      </div>
-    </div>
-
-    <div class="lp-sec">
-      <div class="lp-chal">
-        <div class="chal-badge">🔥 진행 중 이벤트</div>
-        <div class="chal-t">철벽 고객 챌린지</div>
-        <div class="chal-prize"><span class="pz-l">🎁 신세계 상품권</span><span class="pz-amt">5만원권</span></div>
-        <div class="chal-d">가장 까다로운 <b>거절 강도 5</b> 고객을<br>한 세션에서 <b>90점 이상</b>으로 설득하면 성공!</div>
-        <div class="chal-sub">실력만 있으면 누구나 · 대화록 확인 후 지급</div>
       </div>
     </div>
 
@@ -2282,16 +2285,18 @@ function landingToAuth(mode){
 //  - 로그인: CTA를 '앱으로 돌아가기'로 바꿔 소개만 보고 앱으로 복귀
 function adaptLandingForUser(){
   var loggedIn=!!AUTH_USER;
-  var s1=gq("lpStart"), s2=gq("lpStart2"), lg=gq("lpLogin"), mt=document.querySelector('.lp-microtrust');
+  var s1=gq("lpStart"), s2=gq("lpStart2"), lg=gq("lpLogin"), mt=document.querySelector('.lp-microtrust'), ch=gq("lpChalBtn");
   if(loggedIn){
     if(s1){ s1.textContent="← 앱으로 돌아가기"; s1.onclick=hideLanding; }
     if(s2){ s2.textContent="← 앱으로 돌아가기"; s2.onclick=hideLanding; }
+    if(ch){ ch.textContent="🔥 지금 도전하기 →"; ch.onclick=function(){ hideLanding(); startChallenge(); }; }  // 로그인 사용자: 바로 챌린지
     if(lg) lg.style.display="none";
     if(mt) mt.style.display="none";
   }else{
     // 비로그인: 가입 전 '30초 체험'을 먼저 시켜 가치를 보여줌
     if(s1){ s1.textContent="지금 30초 체험하기 →"; s1.onclick=startGuestTrial; }
     if(s2){ s2.textContent="지금 30초 무료 체험 →"; s2.onclick=startGuestTrial; }
+    if(ch){ ch.textContent="🔥 지금 도전하기 →"; ch.onclick=startGuestTrial; }  // 비로그인: 체험→가입→챌린지 흐름으로
     if(lg) lg.style.display="";
     if(mt){ mt.textContent="로그인·카드 등록 없이 바로 · 30초면 끝"; mt.style.display=""; }
   }
