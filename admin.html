@@ -93,6 +93,35 @@ h1{font-size:22px;font-weight:800;letter-spacing:-.02em;display:flex;align-items
 .ad-c .al{font-size:11.5px;color:var(--sub);margin-top:4px}
 .ad-c .ad-sub{font-size:10.5px;color:#b6bcc6;margin-top:2px}
 .ad-empty{font-size:12.5px;color:var(--sub);text-align:center;padding:10px 4px}
+/* ===== 챌린지 ===== */
+.ch-sum{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.ch-sc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 14px;text-align:center;min-width:96px;border-top:3px solid #c98a00}
+.ch-sc .v{font-size:17px;font-weight:800;color:#2f4a17;white-space:nowrap}
+.ch-sc .l{font-size:10.5px;color:var(--sub);margin-top:3px}
+.chg-pay{border:none;border-radius:8px;padding:6px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.chg-pay.pay{background:#3B6D11;color:#fff}
+.chg-pay.pay:hover{background:#2f5a0e}
+.chg-pay.undo{background:#f1f3f6;color:#6b7280;border:1px solid var(--line)}
+.chg-paid{color:#15803d;font-weight:800;font-size:12px}
+.chg-view{color:#3B6D11;cursor:pointer;font-weight:600;font-size:12px;text-decoration:underline}
+.chg-view.del{color:#94a3b8}
+.chg-wait{font-weight:800;font-size:12px}
+.chg-copy{display:inline-block;margin-left:6px;border:1px solid var(--line);background:#f6faf0;color:#2f5a0e;border-radius:6px;padding:1px 7px;font-size:10.5px;font-weight:700;cursor:pointer}
+.chg-copy:hover{background:#EAF3DE}
+.chg-send{font-size:12px;color:#2f4a17;background:#f6faf0;border:1px solid #e2ecd5;border-radius:10px;padding:9px 12px;margin-bottom:10px;line-height:1.55}
+.chg-send b{color:#8A6100}
+/* 대화록 모달 */
+#chgModal{position:fixed;inset:0;z-index:60;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:18px}
+#chgModal.on{display:flex}
+.chg-card{background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.34)}
+.chg-h{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--line)}
+.chg-h h3{font-size:15px;font-weight:800}
+.chg-h .x{border:none;background:#f1f3f6;border-radius:8px;width:30px;height:30px;font-size:15px;color:#6b7280;cursor:pointer}
+.chg-body{padding:14px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.chg-tx{display:flex}.chg-tx.me{justify-content:flex-end}
+.chg-tx .b{max-width:82%;font-size:13px;line-height:1.5;padding:9px 12px;border-radius:13px}
+.chg-tx.cu .b{background:#f1f3ee;color:#2c2c2a;border-top-left-radius:4px}
+.chg-tx.me .b{background:#3B6D11;color:#fff;border-top-right-radius:4px}
 /* ===== 온보딩 퍼널 ===== */
 .fn-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #f1f3f6}
 .fn-row:last-child{border-bottom:none}
@@ -224,6 +253,11 @@ table.ctab .muted{color:#b6bcc6}
   <div id="content"><div class="loading">로그인 후 데이터를 불러옵니다…</div></div>
 </div>
 
+<div id="chgModal"><div class="chg-card">
+  <div class="chg-h"><h3 id="chgTitle">대화록</h3><button class="x" id="chgClose" type="button">✕</button></div>
+  <div class="chg-body" id="chgConv"></div>
+</div></div>
+
 <script>
 /* ===== 설정 ===== 앱과 동일한 Supabase 값 (anon은 공개 안전) */
 const SUPABASE_URL="https://pzotfitbuxwoaenvdfju.supabase.co";
@@ -231,6 +265,7 @@ const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const ADMIN_ENDPOINT="/.netlify/functions/admin-stats";
 const PROMO_ENDPOINT="/.netlify/functions/admin-promo";
 const ADSPEND_ENDPOINT="/.netlify/functions/admin-adspend";
+const CHALLENGE_ENDPOINT="/.netlify/functions/admin-challenge";
 
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
@@ -244,7 +279,7 @@ const STAGE_LABELS={
   ranking:"랭킹 화면", home:"홈",
   guest_trial_start:"⓪ 게스트 체험 시작", guest_trial_done:"⓪ 게스트 체험 종료",
   signup_prompt:"가입 유도(체험 후)", signup_done:"가입 완료",
-  verify_at_checkout:"결제 전 휴대폰 인증", promo_offer:"프로모 오퍼",
+  verify_at_checkout:"결제 전 휴대폰 인증", promo_offer:"프로모 오퍼", challenge_click:"챌린지 도전 클릭", challenge_remind_signup:"챌린지 알림 신청",
   chat:"⑤ 대화(훈련 중)", report:"⑥ 리포트",
   account:"내 계정", paywall:"구독 안내(페이월)", subscribe:"구독 완료"
 };
@@ -332,6 +367,13 @@ function render(j){
       '<h3>온보딩 퍼널 <span style="font-weight:600;font-size:12px;color:#6b7280">· 방문 → 체험 → 가입 → 결제</span></h3>'+
       '<div id="funnel"></div>'+
     '</div>'+
+    '<div class="panel">'+
+      '<h3>철벽 고객 챌린지 <span style="font-weight:600;font-size:12px;color:#6b7280">· 거절강도5 · 90점+ · 4턴+ 달성자</span></h3>'+
+      '<div class="chg-send">📮 <b>발송 방법</b> · 대화록 확인 → 신세계 모바일상품권 <b>5만원권</b> 구매 → 달성자 <b>인증 휴대폰으로 MMS(또는 카톡 선물하기)</b> 발송 → 여기서 <b>‘지급 처리’</b> 클릭.</div>'+
+      '<div class="ch-sum" id="chSum"></div>'+
+      '<div class="cust-wrap"><table class="ctab"><thead><tr><th>달성일</th><th>이메일</th><th>휴대폰</th><th class="r">최고/평균</th><th>턴</th><th>대화</th><th>지급</th></tr></thead><tbody id="chgBody"></tbody></table></div>'+
+      '<div style="font-size:11.5px;color:#6b7280;margin-top:8px;line-height:1.5">지급 전 <b>대화</b>를 눌러 대화록을 확인하세요. 예산 100만원·1일 1장 한도는 지급 시 자동 적용됩니다(초과 시 지급 버튼이 막힘).</div>'+
+    '</div>'+
     '<div class="cols">'+
       '<div class="panel"><h3>사용자별 세션 이용수 (상위 30)</h3><table><thead><tr><th>사용자</th><th class="r">세션수</th></tr></thead><tbody>'+perHtml+'</tbody></table></div>'+
       '<div class="panel"><h3>이탈 단계 (어디서 나갔나)</h3><table><thead><tr><th>단계</th><th class="r">이탈수</th></tr></thead><tbody>'+exHtml+'</tbody></table></div>'+
@@ -382,6 +424,10 @@ function render(j){
 
   // 온보딩 퍼널
   renderFunnel(j.periodVisitors||0, j.stageCounts||{});
+
+  // 챌린지
+  CHALLENGERS=j.challengers||[];
+  renderChallenge(j.challenge||{}, CHALLENGERS);
 
   // 고객 원장
   CUST=j.customers||[];
@@ -553,6 +599,87 @@ function bootAdEfficiency(){
   renderAdEfficiency();
 }
 /* ============================================================
+   ===== 철벽 고객 챌린지 (달성자 확인 · 상품권 지급 처리) =====
+   ============================================================ */
+var CHALLENGERS=[];
+function won2(n){ return (Number(n)||0).toLocaleString('ko-KR')+'원'; }
+function renderChallenge(c, list){
+  var sum=$("chSum"); if(sum){
+    sum.innerHTML=
+      '<div class="ch-sc"><div class="v">'+(c.achievers||0)+'명</div><div class="l">누적 달성자</div></div>'+
+      '<div class="ch-sc"><div class="v">'+(c.paidCount||0)+'장</div><div class="l">지급 완료</div></div>'+
+      '<div class="ch-sc"><div class="v">'+won2(c.used||0)+'</div><div class="l">사용 예산</div></div>'+
+      '<div class="ch-sc"><div class="v">'+won2(c.remaining!=null?c.remaining:0)+'</div><div class="l">남은 예산</div></div>'+
+      '<div class="ch-sc"><div class="v">'+(c.todayCount||0)+'장</div><div class="l">오늘 지급</div></div>';
+  }
+  // 오늘 지급 가능 여부(예산·일 1장 한도) — 지급 버튼을 미리 상태로 안내(4번: 세이브/대기)
+  var prize=c.prize||50000, remaining=(c.remaining!=null?c.remaining:0), today=c.todayCount||0, DAILY=1;
+  var budgetOut=(remaining<prize), dayOut=(today>=DAILY);
+  var b=$("chgBody"); if(!b) return;
+  if(!list.length){ b.innerHTML='<tr><td colspan="7" class="muted" style="padding:16px">아직 조건(거절강도5·90점+·4턴+)을 달성한 세션이 없습니다.</td></tr>'; return; }
+  b.innerHTML=list.map(function(a){
+    var act;
+    if(a.paid){ act='<span class="chg-paid">지급완료</span> <span class="chg-view del" onclick="chgUnpay('+a.session_id+')">취소</span>'; }
+    else if(budgetOut){ act='<span class="chg-wait" style="color:#dc2626">예산 소진</span>'; }
+    else if(dayOut){ act='<span class="chg-wait" style="color:#b7791f" title="오늘 1장 지급 완료 — 내일 지급 가능">내일 지급 가능</span>'; }
+    else{ act='<button class="chg-pay pay" type="button" onclick="chgPay('+a.session_id+')">지급 처리</button>'; }
+    var phone=esc(a.phone||'');
+    var phoneCell = phone ? (phone+' <span class="chg-copy" title="번호 복사" onclick="copyPhone(\''+phone.replace(/[^0-9]/g,'')+'\',this)">복사</span>') : '-';
+    return '<tr>'+
+      '<td>'+fmtD(a.at)+'</td>'+
+      '<td>'+esc(a.email||'-')+'</td>'+
+      '<td>'+phoneCell+'</td>'+
+      '<td class="r"><b>'+(a.best||0)+'</b> / '+(a.avg||0)+'</td>'+
+      '<td>'+(a.turns||0)+'</td>'+
+      '<td><span class="chg-view" onclick="chgViewConv('+a.session_id+')">대화</span></td>'+
+      '<td>'+act+'</td></tr>';
+  }).join('');
+}
+function copyPhone(num, el){
+  function done(){ if(el){ var o=el.textContent; el.textContent='복사됨'; setTimeout(function(){ el.textContent=o; },1200); } }
+  try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(num).then(done, function(){ fallback(); }); return; } }catch(e){}
+  fallback();
+  function fallback(){ try{ var t=document.createElement('textarea'); t.value=num; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); done(); }catch(e){ alert('복사 실패: '+num); } }
+}
+async function chgAction(action, sessionId){
+  var sess=(await sb.auth.getSession()).data.session;
+  var r=await fetch(CHALLENGE_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:sess&&sess.access_token, action:action, sessionId:sessionId})});
+  var j=await r.json().catch(function(){return{};});
+  return {ok:r.ok&&j.ok, j:j};
+}
+async function chgPay(sessionId){
+  if(!confirm('이 달성자에게 신세계 상품권 5만원권을 지급 처리할까요?\n(대화록을 먼저 확인하세요)')) return;
+  var res=await chgAction('pay', sessionId);
+  if(res.ok){ alert('지급 처리됐어요. 상품권은 직접 발송해 주세요.'); loadStats(); }
+  else{
+    var e=res.j.error;
+    var msg = e==='budget_exhausted' ? '예산(100만원)이 모두 소진되어 더 지급할 수 없어요.'
+            : e==='daily_limit' ? '오늘 지급 한도(1장)에 도달했어요. 내일 다시 처리하세요.'
+            : e==='not_qualified' ? '이 세션은 챌린지 조건을 충족하지 않아요.'
+            : '지급 실패: '+(e||'오류');
+    alert(msg);
+    if(e==='budget_exhausted'||e==='daily_limit') loadStats();
+  }
+}
+async function chgUnpay(sessionId){
+  if(!confirm('지급 처리를 취소할까요?')) return;
+  var res=await chgAction('unpay', sessionId);
+  if(res.ok) loadStats(); else alert('취소 실패: '+(res.j.error||'오류'));
+}
+async function chgViewConv(sessionId){
+  var m=$("chgModal"), body=$("chgConv"), t=$("chgTitle");
+  if(t) t.textContent='대화록 확인';
+  if(body) body.innerHTML='<div class="muted" style="padding:10px">불러오는 중…</div>';
+  if(m) m.classList.add('on');
+  try{
+    var r=await sb.from('training_sessions').select('messages,best_score,avg_score,cold,turns,persona_name').eq('id',sessionId).maybeSingle();
+    var s=r.data;
+    var msgs=(s&&Array.isArray(s.messages))?s.messages:[];
+    if(t&&s) t.textContent='대화록 · '+esc(s.persona_name||'')+' · 최고 '+(s.best_score||0)+'점 · '+(s.turns||0)+'턴';
+    body.innerHTML=msgs.length?msgs.map(function(mm){var me=(mm.role==='fc');return '<div class="chg-tx '+(me?'me':'cu')+'"><div class="b">'+esc(mm.text)+'</div></div>';}).join(''):'<div class="muted" style="padding:10px">저장된 대화가 없습니다.</div>';
+  }catch(e){ body.innerHTML='<div class="muted" style="padding:10px">대화를 불러오지 못했습니다.</div>'; }
+}
+/* ============================================================
    ===== 온보딩 퍼널 (방문 → 게스트 체험 → 가입 → 결제) =====
    trackStage 'stage' 이벤트로 각 단계 '도달 순방문수'를 집계해 전환율을 봅니다.
    ============================================================ */
@@ -689,6 +816,7 @@ $("loginBtn").onclick=async function(){
 $("pw").addEventListener("keydown",function(e){ if(e.key==="Enter") $("loginBtn").click(); });
 $("logout").onclick=async function(){ await sb.auth.signOut(); location.reload(); };
 $("reload").onclick=loadStats;
+(function(){ var m=$("chgModal"), x=$("chgClose"); function close(){ if(m) m.classList.remove('on'); } if(x) x.onclick=close; if(m) m.addEventListener('click',function(e){ if(e.target.id==='chgModal') close(); }); })();
 
 function onAuthed(user){ $("who").textContent=user.email||""; hideGate(); loadStats(); }
 
