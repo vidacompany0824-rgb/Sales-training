@@ -66,6 +66,10 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .lp-cta{display:block;width:100%;background:#fff;color:#2f5a0e;border:none;border-radius:14px;padding:16px;font:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 10px 26px rgba(0,0,0,.22)}
 .lp-cta:active{transform:translateY(1px)}
 .lp-microtrust{font-size:12px;color:#d5e8bd;margin-top:12px}
+.lp-hero-proof{margin:16px auto 0;max-width:340px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:11px 14px;text-align:center}
+.lp-hero-proof .hp-stars{display:block;color:#ffd76a;font-size:13px;letter-spacing:2px}
+.lp-hero-proof .hp-q{display:block;color:#fff;font-size:13px;line-height:1.5;margin-top:4px;font-weight:600}
+.lp-hero-proof .hp-by{display:block;color:#d5e8bd;font-size:11.5px;margin-top:4px}
 .lp-login{display:inline-block;margin-top:14px;color:#eaf3de;font-size:13px;text-decoration:underline;cursor:pointer;background:none;border:none;font:inherit}
 .lp-sec{padding:30px 26px 4px}
 .lp-sec h2{font-size:19px;font-weight:800;color:#1f2a16;letter-spacing:-.01em;margin-bottom:4px;text-align:center}
@@ -714,12 +718,17 @@ textarea:focus{border-color:var(--brand)}
   <button id="lpClose" type="button" aria-label="닫기">✕</button>
   <div class="lp">
     <div class="lp-hero">
-      <div class="lp-badge">🌱 보험 영업조직을 위한 AI 성장 파트너</div>
+      <div class="lp-badge">🌱 현직 설계사들이 쓰는 AI 세일즈 훈련</div>
       <div class="lp-logo">🌱</div>
-      <div class="lp-h1">거절이 두렵지 않은 영업,<br><b>AI와 매일 실전처럼 연습</b>하세요</div>
-      <div class="lp-sub">까다로운 고객을 AI가 그대로 연기합니다. 실제 상담 전에 무한히 연습하고, 6가지 역량을 실시간으로 채점받으세요.</div>
+      <div class="lp-h1">“이미 보험 있어요.”<br>이 말에 <b>말문 막히시나요?</b></div>
+      <div class="lp-sub">가입도, 카드도 필요 없어요.<br>지금 <b>30초 만에</b> AI 고객과 실전 대화부터 해보세요.<br>6가지 세일즈 역량은 자동으로 채점됩니다.</div>
       <button class="lp-cta" id="lpStart" type="button">무료로 시작하기 →</button>
       <div class="lp-microtrust">회원가입 30초 · 카드 등록 없이 무료 1일 5회</div>
+      <div class="lp-hero-proof">
+        <span class="hp-stars">★★★★★</span>
+        <span class="hp-q">“꾸준히 연습했더니 이제는 영업에 자신감이 생겼어요.”</span>
+        <span class="hp-by">— 현직 설계사 정○○</span>
+      </div>
       <button class="lp-login" id="lpLogin" type="button">이미 계정이 있어요 · 로그인</button>
     </div>
 
@@ -1440,21 +1449,21 @@ function passLineFor(p,cold){return Math.max(50,Math.min(90,[0,60,68,75][p.diff]
    비용·남용 통제를 위해 GUEST_CAP 턴으로 제한합니다.
    ============================================================ */
 var GUEST_CAP=3;
-var GUEST_PERSONA={ id:"guest_boss", guest:true, emoji:"🧑‍💼", name:"김 부장 (결정권자)", diff:3,
-  tag:"이미 보험 많음", desc:"“보험은 이미 여러 개 들었어요.”",
-  opener:"보험은 이미 여러 개 들었어요. 더 들 생각 없습니다.",
-  openers:["보험은 이미 여러 개 들었어요. 더 들 생각 없습니다."],
-  traits:"회사 결정권을 쥔 40~50대 부장. 이미 보험이 충분하다고 여기고 시간을 아까워한다. 근거 없는 영업 멘트엔 단호하고 거절 강도가 높다. 다만 자신을 인정해주고 '부담 없는 점검' 같은 구체적 다음 행동을 제안하면 서서히 누그러진다." };
+var GUEST_PERSONA={ id:"guest_boss", guest:true, emoji:"🙂", name:"김대리 (첫 상담 고객)", diff:2,
+  tag:"관심은 있음", desc:"“설명은 한번 들어볼게요.”",
+  opener:"아, 보험이요? 관심이 아주 없진 않은데… 이미 하나 있어서 더 필요할까 싶긴 해요.",
+  openers:["아, 보험이요? 관심이 아주 없진 않은데… 이미 하나 있어서 더 필요할까 싶긴 해요."],
+  traits:"대화가 잘 통하는 합리적인 30대 직장인. 처음엔 가볍게 망설이며 거절하지만 마음이 열려 있는 편이다. 진심 어린 인정과 '부담 없는 점검' 같은 구체적 제안엔 금방 누그러진다. 좋은 답변이 한두 번 나오면 눈에 띄게 호의적으로 바뀌고, 3턴 안에 '그럼 한번 봐주세요' 정도로 마음을 연다. 무례하지 않고 예의 바르게 반응한다." };
 var GUEST_SUGGEST=[
-  "이미 잘 준비해두셨네요. 그런데 최근 상품 개편으로 같은 보험료에 보장이 더 좋아진 경우가 많아서요, 딱 5분만 무료로 점검해보시면 어떨까요?",
+  "이미 준비해두셨다니 잘하셨어요. 그런데 최근 상품 개편으로 같은 보험료에 보장이 더 좋아진 경우가 많아서요, 딱 5분만 무료로 점검해보시면 어떨까요?",
   "새로 가입하시라는 게 아니라, 지금 가진 보험에 공백은 없는지만 확인해드리려는 거예요. 확인만 해도 남는 거니까요.",
-  "부장님처럼 바쁘신 분들이 놓치기 쉬운 게 보장 중복이에요. 딱 3분, 점검만 해도 아끼실 수 있습니다."
+  "대리님처럼 바쁘신 분들이 놓치기 쉬운 게 보장 중복이에요. 딱 3분, 점검만 해도 아끼실 수 있습니다."
 ];
 function startGuestTrial(){
   hideLanding();
   var g=gq("gate"); if(g) g.classList.add("hide");
   if(typeof listHideAll==='function') listHideAll();
-  coldness=4;
+  coldness=3;
   startChat(GUEST_PERSONA);
   if(state) state.guest=true;
   var st=gq("tSt"); if(st) st.textContent="30초 체험 · "+GUEST_CAP+"턴";
