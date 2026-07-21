@@ -1,0 +1,80 @@
+// netlify/functions/send-challenge-reminders.mjs
+// 챌린지 '내일 다시 도전' 알림 발송 — 신청자(challenge_reminder)에게 1회 발송.
+// 관리자가 다음날 실행하거나, 스케줄러(매일 아침)로 호출.
+// 알림톡 템플릿(ALIMTALK_TPL_CHALLENGE)이 있으면 알림톡, 없으면 [광고] 문자로 발송.
+//
+// 요청(JSON POST): { accessToken }   ← 관리자 토큰
+// 필요한 Netlify 환경변수:
+//   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_EMAIL
+//   SOLAPI_API_KEY, SOLAPI_API_SECRET, SOLAPI_SENDER, SOLAPI_PFID
+//   (선택) ALIMTALK_TPL_CHALLENGE, OTP_BRAND
+
+import crypto from "node:crypto";
+
+function json(o, s) {
+  return new Response(JSON.stringify(o), { status: s || 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+}
+const onlyDigits = (v) => String(v || "").replace(/[^0-9]/g, "");
+async function sbGet(SUPA, SERVICE, path) {
+  const r = await fetch(`${SUPA}/rest/v1/${path}`, { headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` } });
+  if (!r.ok) return [];
+  return r.json().catch(() => []);
+}
+async function solapiSend(message) {
+  const KEY = process.env.SOLAPI_API_KEY, SECRET = process.env.SOLAPI_API_SECRET;
+  if (!KEY || !SECRET) return { ok: false };
+  const date = new Date().toISOString(), salt = crypto.randomBytes(32).toString("hex");
+  const signature = crypto.createHmac("sha256", SECRET).update(date + salt).digest("hex");
+  const r = await fetch("https://api.solapi.com/messages/v4/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `HMAC-SHA256 apiKey=${KEY}, date=${date}, salt=${salt}, signature=${signature}` },
+    body: JSON.stringify({ message }),
+  });
+  return { ok: r.ok };
+}
+
+export default async (req) => {
+  if (req.method !== "POST") return json({ error: "POST only" }, 405);
+  const SUPA = process.env.SUPABASE_URL, SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY, ADMIN = (process.env.ADMIN_EMAIL || "").toLowerCase();
+  if (!SUPA || !SERVICE) return json({ error: "server_env_missing" }, 500);
+
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  if (!body.accessToken) return json({ error: "missing_params" }, 400);
+  let user;
+  try {
+    const ures = await fetch(`${SUPA}/auth/v1/user`, { headers: { Authorization: `Bearer ${body.accessToken}`, apikey: SERVICE } });
+    user = await ures.json();
+    if (!ures.ok || !user || !user.id) return json({ error: "auth_failed" }, 401);
+  } catch (e) { return json({ error: "auth_error" }, 401); }
+  if (!ADMIN || String(user.email || "").toLowerCase() !== ADMIN) return json({ error: "forbidden_not_admin" }, 403);
+
+  const H = { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json" };
+  const FROM = onlyDigits(process.env.SOLAPI_SENDER), PF = process.env.SOLAPI_PFID;
+  const TPL = process.env.ALIMTALK_TPL_CHALLENGE, brand = process.env.OTP_BRAND || "쑥쑥AI";
+
+  const pending = await sbGet(SUPA, SERVICE, "challenge_reminder?notified_at=is.null&select=user_id,requested_at&limit=1000");
+  if (!pending.length) return json({ ok: true, sent: 0, note: "대기 중인 알림 신청이 없어요." });
+
+  // 대상별 인증 휴대폰 + 마케팅 동의 확인
+  const phones = await sbGet(SUPA, SERVICE, "phone_identity?select=user_id,phone,verified,marketing_consent");
+  const pmap = {}; phones.forEach(p => { pmap[p.user_id] = p; });
+
+  let sent = 0, skipped = 0;
+  const text = `[광고] ${brand} 철벽 고객 챌린지 상품권이 다시 열렸어요! 오늘 거절강도 5에서 90점+ 도전하고 신세계 5만원권 받아가세요 → https://ssukssukai.com  무료거부 080-***-****`;
+
+  for (const row of pending) {
+    const ph = pmap[row.user_id];
+    if (!ph || !ph.verified || !ph.phone || ph.marketing_consent === false) { skipped++; continue; }
+    const to = onlyDigits(ph.phone);
+    try {
+      if (TPL && PF && FROM) {
+        await solapiSend({ to, from: FROM, kakaoOptions: { pfId: PF, templateId: TPL, variables: {}, disableSms: false }, text });
+      } else if (FROM) {
+        await solapiSend({ to, from: FROM, text });
+      } else { skipped++; continue; }
+      await fetch(`${SUPA}/rest/v1/challenge_reminder?user_id=eq.${encodeURIComponent(row.user_id)}`, { method: "PATCH", headers: H, body: JSON.stringify({ notified_at: new Date().toISOString() }) });
+      sent++;
+    } catch (_) { skipped++; }
+  }
+  return json({ ok: true, sent, skipped });
+};
