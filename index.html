@@ -3004,11 +3004,16 @@ async function cancelSubscription(){
 }
 async function deleteMyAccount(){
   if(!confirm("정말 탈퇴하시겠어요?\n\n· 모든 훈련 기록·리포트·인증 정보가 영구 삭제돼요.\n· 복구할 수 없어요.\n· 구독 중이라면 먼저 해지 후 진행을 권장해요.")) return;
+  // 탈퇴 사유(선택) — 개선에 활용
+  var REASONS=["가격이 부담돼요","기대한 효과가 없어요","사용법이 어려워요","자주 사용하지 않아요","오류·불편이 있었어요","기타"];
+  var pick=prompt("탈퇴 사유를 알려주시면 서비스 개선에 큰 도움이 돼요. (선택)\n\n1. 가격이 부담돼요\n2. 기대한 효과가 없어요\n3. 사용법이 어려워요\n4. 자주 사용하지 않아요\n5. 오류·불편이 있었어요\n6. 기타\n\n번호를 누르거나 직접 적어 주세요. (건너뛰려면 취소)");
+  var reason=null;
+  if(pick!==null){ pick=String(pick).trim(); var n=parseInt(pick,10); if(n>=1&&n<=REASONS.length) reason=REASONS[n-1]; else if(pick) reason=pick.slice(0,300); }
   if(!confirm("한 번 더 확인할게요.\n지금 회원 탈퇴를 진행할까요?")) return;
   var btn=gq("acctWithdraw"); if(btn){ btn.disabled=true; btn.textContent="처리 중…"; }
   try{
     var sess=(await sb.auth.getSession()).data.session;
-    var r=await fetch(DELETE_ACCOUNT_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessToken:sess&&sess.access_token})});
+    var r=await fetch(DELETE_ACCOUNT_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessToken:sess&&sess.access_token, reason:reason})});
     var j=await r.json().catch(function(){return{};});
     if(r.ok && j.ok){
       alert("탈퇴가 완료됐어요. 그동안 이용해 주셔서 감사합니다.");
