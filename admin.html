@@ -173,6 +173,8 @@ table.ctab .ok{color:var(--good);font-weight:700}
 .inq-in_progress{color:#185fa5;border-color:#bcd6f2;background:#eef5fd}
 .inq-answered{color:#15803d;border-color:#bbe6c9;background:#eef8f1}
 table.ctab .muted{color:#b6bcc6}
+.cust-del{color:#c0392b;cursor:pointer;font-weight:700;font-size:11.5px;border:1px solid #f0c9c4;border-radius:6px;padding:2px 8px;white-space:nowrap}
+.cust-del:hover{background:#fbecea}
 /* 프로모 코드 */
 .promo-form{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:14px;padding:12px;background:#f6faf0;border:1px solid #e2ecd5;border-radius:12px}
 .pf{display:flex;flex-direction:column;gap:3px}
@@ -272,6 +274,7 @@ const PROMO_ENDPOINT="/.netlify/functions/admin-promo";
 const ADSPEND_ENDPOINT="/.netlify/functions/admin-adspend";
 const CHALLENGE_ENDPOINT="/.netlify/functions/admin-challenge";
 const INQUIRY_ENDPOINT="/.netlify/functions/admin-inquiry";
+const DELETE_USER_ENDPOINT="/.netlify/functions/admin-delete-user";
 
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
@@ -810,14 +813,25 @@ function custFiltered(){
 function renderCustomers(){
   var t=$("custTable"); if(!t) return;
   var rows=custFiltered();
-  var head='<thead><tr><th>이메일</th><th>이름</th><th>가입경로</th><th>가입일</th><th>휴대폰</th><th>마케팅</th><th>구독</th><th class="r">세션</th><th>최근활동</th></tr></thead>';
+  var head='<thead><tr><th>이메일</th><th>이름</th><th>가입경로</th><th>가입일</th><th>휴대폰</th><th>마케팅</th><th>구독</th><th class="r">세션</th><th>최근활동</th><th>관리</th></tr></thead>';
   var body=rows.length?rows.map(function(c){
+    var del=c.id?'<span class="cust-del" onclick="adminDeleteUser(\''+c.id+'\',\''+esc(c.email).replace(/\x27/g,"")+'\')">탈퇴</span>':'<span class="muted">-</span>';
     return '<tr><td>'+esc(c.email)+'</td><td>'+esc(c.name)+'</td><td>'+provLabel(c.provider)+'</td><td>'+fmtD(c.joined)+'</td>'+
       '<td>'+(c.phone?esc(c.phone):'<span class="muted">미인증</span>')+'</td>'+
       '<td>'+(c.marketing?'<span class="ok">동의</span>':'<span class="muted">-</span>')+'</td>'+
-      '<td>'+esc(c.sub)+'</td><td class="r">'+(c.sessions||0)+'</td><td>'+fmtD(c.lastActive)+'</td></tr>';
-  }).join(''):'<tr><td colspan="9" class="muted" style="padding:16px">해당 고객이 없습니다.</td></tr>';
+      '<td>'+esc(c.sub)+'</td><td class="r">'+(c.sessions||0)+'</td><td>'+fmtD(c.lastActive)+'</td><td>'+del+'</td></tr>';
+  }).join(''):'<tr><td colspan="10" class="muted" style="padding:16px">해당 고객이 없습니다.</td></tr>';
   t.innerHTML=head+'<tbody>'+body+'</tbody>';
+}
+async function adminDeleteUser(userId, email){
+  if(!confirm('이 회원을 탈퇴(삭제)시킬까요?\n\n· '+(email||userId)+'\n· 모든 기록·구독·인증 정보가 영구 삭제돼요.\n· 복구할 수 없어요.')) return;
+  try{
+    var sess=(await sb.auth.getSession()).data.session;
+    var r=await fetch(DELETE_USER_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:sess&&sess.access_token, userId:userId})});
+    var j=await r.json().catch(function(){return{};});
+    if(r.ok && j.ok){ alert('탈퇴 처리됐어요.'); loadStats(); }
+    else{ alert('탈퇴 실패: '+((j&&j.error)==='cannot_delete_self'?'관리자 본인 계정은 삭제할 수 없어요.':((j&&j.error)||'오류'))); }
+  }catch(e){ alert('탈퇴 처리 중 오류가 발생했어요.'); }
 }
 function csvCell(v){ v=String(v==null?'':v); return /[",\n]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v; }
 function custCSV(){
