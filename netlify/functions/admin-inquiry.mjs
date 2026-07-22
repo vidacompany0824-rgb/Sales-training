@@ -7,8 +7,10 @@
 //
 // 필요한 Netlify 환경변수:
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_EMAIL
-//   (메일 발송 시) RESEND_API_KEY, RESEND_FROM   예: "쑥쑥AI <no-reply@ssukssukai.com>"
+//   (메일 발송 · Gmail SMTP) GMAIL_USER(예: vidacorp.ceo@gmail.com), GMAIL_APP_PASSWORD(구글 앱 비밀번호 16자리)
 //   (선택) OTP_BRAND(기본 "쑥쑥AI"), APP_URL(기본 https://ssukssukai.com)
+
+import nodemailer from "nodemailer";
 
 function json(o, s) {
   return new Response(JSON.stringify(o), { status: s || 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
@@ -16,15 +18,18 @@ function json(o, s) {
 const ALLOWED = ["open", "in_progress", "answered"];
 const esc = (v) => String(v == null ? "" : v).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 
+// 본인 Gmail 계정으로 발송(앱 비밀번호 사용). 미설정이면 건너뜀.
 async function sendEmail(to, subject, html) {
-  const KEY = process.env.RESEND_API_KEY, FROM = process.env.RESEND_FROM;
-  if (!KEY || !FROM || !to) return { ok: false, skipped: true };
-  const r = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: FROM, to: [to], subject, html }),
-  });
-  return { ok: r.ok, detail: r.ok ? null : await r.text().catch(() => "") };
+  const user = process.env.GMAIL_USER, pass = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
+  if (!user || !pass || !to) return { ok: false, skipped: true };
+  const brand = process.env.OTP_BRAND || "쑥쑥AI";
+  try {
+    const transporter = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user, pass } });
+    await transporter.sendMail({ from: `${brand} <${user}>`, to, subject, html });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, detail: String(e) };
+  }
 }
 
 function answerEmailHtml({ brand, appUrl, category, subject, message, reply }) {
