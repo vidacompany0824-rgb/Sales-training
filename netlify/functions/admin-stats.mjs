@@ -52,7 +52,7 @@ export default async (req) => {
 
   // 데이터 수집
   const now = Date.now();
-  const [payments, subs, sessions, pageviews, exits, profiles, phones, inquiries, promos, adSpendRows, stageEvents, challengeSessions, challengeAwards] = await Promise.all([
+  const [payments, subs, sessions, pageviews, exits, profiles, phones, inquiries, promos, adSpendRows, stageEvents, challengeSessions, challengeAwards, deletions] = await Promise.all([
     sbGetAll(SUPA, SERVICE, "payments?select=user_id,amount,status,paid_at&order=paid_at.desc"),
     sbGetAll(SUPA, SERVICE, "subscriptions?select=user_id,status,current_period_end"),
     sbGetAll(SUPA, SERVICE, "training_sessions?select=user_id,created_at&order=created_at.desc"),
@@ -60,12 +60,13 @@ export default async (req) => {
     sbGetAll(SUPA, SERVICE, "analytics_events?type=eq.exit&select=page,duration_sec,created_at&order=created_at.desc"),
     sbGetAll(SUPA, SERVICE, "profiles?select=id,email,display_name,created_at&order=created_at.desc"),
     sbGetAll(SUPA, SERVICE, "phone_identity?select=user_id,phone,verified,marketing_consent"),
-    sbGet(SUPA, SERVICE, "inquiries?select=id,email,category,subject,message,status,created_at&order=created_at.desc&limit=200"),
+    sbGet(SUPA, SERVICE, "inquiries?select=id,email,category,subject,message,status,member_deleted,created_at&order=created_at.desc&limit=200"),
     sbGet(SUPA, SERVICE, "promo_codes?select=*&order=created_at.desc&limit=200"),
     sbGet(SUPA, SERVICE, "ad_spend?select=range_days,amount"),
     sbGetAll(SUPA, SERVICE, "analytics_events?type=eq.stage&select=visit_id,page,created_at&order=created_at.desc"),
     sbGetAll(SUPA, SERVICE, "training_sessions?cold=eq.5&best_score=gte.90&turns=gte.4&select=id,user_id,persona_name,cold,avg_score,best_score,turns,created_at&order=created_at.desc"),
     sbGet(SUPA, SERVICE, "challenge_awards?select=session_id,email,amount,created_at"),
+    sbGetAll(SUPA, SERVICE, "account_deletions?select=user_id,email,kind,reason,signup_at,days_active,had_paid,open_inquiry,deleted_at&order=deleted_at.desc"),
   ]);
 
   // 가입 경로(provider): GoTrue admin API 에서 조회
@@ -114,11 +115,12 @@ export default async (req) => {
   for (let i = DAYS - 1; i >= 0; i--) dayKeys.push(new Date(now - i * 86400000).toISOString().slice(0, 10));
   const zero = () => dayKeys.reduce((o, d) => (o[d] = 0, o), {});
   const dVisitors = {}; // day -> Set(visit_id)
-  const dPageviews = zero(), dSessions = zero(), dPayCount = zero(), dPayAmount = zero(), dNewUsers = zero();
+  const dPageviews = zero(), dSessions = zero(), dPayCount = zero(), dPayAmount = zero(), dNewUsers = zero(), dDeletions = zero();
   pageviews.forEach(v => { const d = (v.created_at || "").slice(0, 10); if (d in dPageviews) { dPageviews[d]++; (dVisitors[d] = dVisitors[d] || new Set()).add(v.visit_id); } });
   sessions.forEach(s => { const d = (s.created_at || "").slice(0, 10); if (d in dSessions) dSessions[d]++; });
   paid.forEach(p => { const d = (p.paid_at || "").slice(0, 10); if (d in dPayCount) { dPayCount[d]++; dPayAmount[d] += (+p.amount || 0); } });
   profiles.forEach(u => { const d = (u.created_at || "").slice(0, 10); if (d in dNewUsers) dNewUsers[d]++; });
+  (deletions || []).forEach(x => { const d = (x.deleted_at || "").slice(0, 10); if (d in dDeletions) dDeletions[d]++; });
   const series = {
     days: dayKeys,
     visitors: dayKeys.map(d => (dVisitors[d] ? dVisitors[d].size : 0)),
@@ -127,6 +129,7 @@ export default async (req) => {
     payCount: dayKeys.map(d => dPayCount[d]),
     payAmount: dayKeys.map(d => dPayAmount[d]),
     newUsers: dayKeys.map(d => dNewUsers[d]),
+    deletions: dayKeys.map(d => dDeletions[d]),
   };
   // 하위호환: 기존 매출 차트용
   const revenueByDay = dayKeys.map(d => ({ day: d, amount: dPayAmount[d] }));
@@ -197,6 +200,27 @@ export default async (req) => {
     };
   }).sort((a, b) => new Date(b.joined || 0) - new Date(a.joined || 0));
 
+  // ===== 탈퇴 통계 =====
+  const del = deletions || [];
+  const delTotal = del.length;
+  const delAdmin = del.filter(d => d.kind === "admin").length;
+  const delSelf = delTotal - delAdmin;
+  const del30 = del.filter(d => (now - new Date(d.deleted_at).getTime()) <= 30 * 86400000).length;
+  const delRange = del.filter(d => (d.deleted_at || "").slice(0, 10) >= winStart).length; // 선택 기간 내
+  const delPaid = del.filter(d => d.had_paid).length;
+  // 탈퇴율: 누적 가입(현재 회원수 + 탈퇴수) 대비 탈퇴 비율
+  const cumSignups = profiles.length + delTotal;
+  const churnRate = cumSignups ? +((delTotal / cumSignups) * 100).toFixed(1) : 0;
+  // 평균 유지일
+  const daysArr = del.map(d => (d.days_active == null ? null : +d.days_active)).filter(v => v != null && !isNaN(v));
+  const avgDaysActive = daysArr.length ? Math.round(daysArr.reduce((a, b) => a + b, 0) / daysArr.length) : 0;
+  // 사유 집계
+  const reasonMap = {};
+  del.forEach(d => { const r = (d.reason && d.reason.trim()) ? d.reason.trim() : "미기재"; reasonMap[r] = (reasonMap[r] || 0) + 1; });
+  const reasons = Object.keys(reasonMap).map(r => ({ reason: r, count: reasonMap[r] })).sort((a, b) => b.count - a.count);
+  const recentDeletions = del.slice(0, 30).map(d => ({ email: d.email || "", kind: d.kind || "self", reason: d.reason || "", days: d.days_active, paid: !!d.had_paid, openInquiry: !!d.open_inquiry, at: d.deleted_at }));
+  const deletion = { total: delTotal, self: delSelf, admin: delAdmin, last30: del30, rangeCount: delRange, paid: delPaid, churnRate, cumSignups, avgDaysActive, reasons, recent: recentDeletions };
+
   return json({
     ok: true,
     kpi: {
@@ -210,5 +234,6 @@ export default async (req) => {
     adSpend, rangeDays: DAYS, rangePayers,
     stageCounts, periodVisitors,
     challengers, challenge,
+    deletion,
   });
 };
