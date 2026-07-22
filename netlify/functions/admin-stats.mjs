@@ -52,7 +52,7 @@ export default async (req) => {
 
   // 데이터 수집
   const now = Date.now();
-  const [payments, subs, sessions, pageviews, exits, profiles, phones, inquiries, promos, adSpendRows, stageEvents] = await Promise.all([
+  const [payments, subs, sessions, pageviews, exits, profiles, phones, inquiries, promos, adSpendRows, stageEvents, challengeSessions, challengeAwards] = await Promise.all([
     sbGetAll(SUPA, SERVICE, "payments?select=user_id,amount,status,paid_at&order=paid_at.desc"),
     sbGetAll(SUPA, SERVICE, "subscriptions?select=user_id,status,current_period_end"),
     sbGetAll(SUPA, SERVICE, "training_sessions?select=user_id,created_at&order=created_at.desc"),
@@ -64,6 +64,8 @@ export default async (req) => {
     sbGet(SUPA, SERVICE, "promo_codes?select=*&order=created_at.desc&limit=200"),
     sbGet(SUPA, SERVICE, "ad_spend?select=range_days,amount"),
     sbGetAll(SUPA, SERVICE, "analytics_events?type=eq.stage&select=visit_id,page,created_at&order=created_at.desc"),
+    sbGetAll(SUPA, SERVICE, "training_sessions?cold=eq.5&best_score=gte.90&turns=gte.4&select=id,user_id,persona_name,cold,avg_score,best_score,turns,created_at&order=created_at.desc"),
+    sbGet(SUPA, SERVICE, "challenge_awards?select=session_id,email,amount,created_at"),
   ]);
 
   // 가입 경로(provider): GoTrue admin API 에서 조회
@@ -138,6 +140,23 @@ export default async (req) => {
   const adSpend = {};
   (adSpendRows || []).forEach(r => { adSpend[r.range_days] = +r.amount || 0; });
 
+  // ===== 철벽 고객 챌린지 (거절강도5·90점+·4턴+ 달성자) =====
+  const chEmailById = {}; (profiles || []).forEach(u => { chEmailById[u.id] = u.email; });
+  const chPhoneById = {}; (phones || []).forEach(p => { chPhoneById[p.user_id] = p.verified ? (p.phone || "") : ""; });
+  const paidBySession = {}; (challengeAwards || []).forEach(a => { paidBySession[a.session_id] = a; });
+  const challengers = (challengeSessions || []).map(s => ({
+    session_id: s.id, user_id: s.user_id,
+    email: chEmailById[s.user_id] || "",
+    phone: chPhoneById[s.user_id] || "",
+    persona: s.persona_name || "", best: s.best_score, avg: s.avg_score, turns: s.turns,
+    at: s.created_at, paid: !!paidBySession[s.id],
+  }));
+  const CH_PRIZE = Number(process.env.CHALLENGE_PRIZE || 50000);
+  const CH_BUDGET = Number(process.env.CHALLENGE_BUDGET || 1000000);
+  const chUsed = (challengeAwards || []).reduce((a, x) => a + (Number(x.amount) || 0), 0);
+  const chToday = (challengeAwards || []).filter(x => (x.created_at || "").slice(0, 10) === new Date().toISOString().slice(0, 10)).length;
+  const challenge = { prize: CH_PRIZE, budget: CH_BUDGET, used: chUsed, remaining: Math.max(0, CH_BUDGET - chUsed), paidCount: (challengeAwards || []).length, todayCount: chToday, achievers: challengers.length };
+
   // 온보딩 퍼널: 각 단계에 '도달한 순 방문 수'(기간 내, 중복 제거)
   const stageVisits = {};
   (stageEvents || []).forEach(e => { const d = (e.created_at || "").slice(0, 10); if (d >= winStart && e.page) { (stageVisits[e.page] = stageVisits[e.page] || new Set()).add(e.visit_id); } });
@@ -164,6 +183,7 @@ export default async (req) => {
     const ph = phoneById[u.id] || {};
     const last = lastSessionById[u.id];
     return {
+      id: u.id,
       email: u.email || "",
       name: u.display_name || "",
       provider: providerById[u.id] || "email",
@@ -189,5 +209,6 @@ export default async (req) => {
     promos: promos || [],
     adSpend, rangeDays: DAYS, rangePayers,
     stageCounts, periodVisitors,
+    challengers, challenge,
   });
 };
