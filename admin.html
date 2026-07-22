@@ -633,7 +633,7 @@ async function updateInquiry(id, status, el){
     var j=await r.json().catch(function(){return{};});
     if(r.ok && j.ok){
       el.className='inq-sel inq-'+status; el.setAttribute('data-cur',status); refreshInqCount();
-      if(status==='answered'){ alert(j.mailed?'✅ 답변완료 · 사용자에게 안내 메일을 보냈어요.':(j.mailSkipped?'답변완료로 변경했어요.\n(메일은 아직 미설정 — RESEND 환경변수를 넣으면 자동 발송돼요)':'답변완료로 변경했어요.\n(메일 발송에 실패했어요 — 발신 도메인/키 확인 필요)')); }
+      if(status==='answered'){ alert(j.mailed?'✅ 답변완료 · 사용자에게 안내 메일을 보냈어요.':(j.mailSkipped?'답변완료로 변경했어요.\n(메일은 아직 미설정 — GMAIL_USER·GMAIL_APP_PASSWORD 환경변수를 넣으면 자동 발송돼요)':'답변완료로 변경했어요.\n(메일 발송에 실패했어요 — Gmail 계정/앱 비밀번호 확인 필요)')); }
     } else { alert('상태 변경 실패: '+((j&&j.error)||'오류')); loadStats(); }
   }catch(e){ alert('상태 변경 중 오류가 발생했어요.'); loadStats(); }
   el.disabled=false;
