@@ -759,9 +759,9 @@ textarea:focus{border-color:var(--brand)}
     <div class="lp-hero">
       <div class="lp-badge">🌱 현직 설계사들이 쓰는 AI 세일즈 훈련</div>
       <div class="lp-logo">🌱</div>
-      <div class="lp-h1">연습은 소중한 고객이 아니라,<br><b>AI에게.</b></div>
-      <div class="lp-sub">실전에서 배우다 날린 계약은 다시 오지 않으니까요.<br>가입도, 카드도 필요 없어요. 지금 <b>30초 만에</b> AI 고객과 실전 대화부터 해보세요.</div>
-      <button class="lp-cta" id="lpStart" type="button">무료로 시작하기 →</button>
+      <div class="lp-h1">고객을 잃으며 배우지 마세요.<br><b>AI에게 먼저 연습하세요.</b></div>
+      <div class="lp-sub">까다로운 고객을 AI가 그대로 연기합니다.<br>무한히 깨지고 다듬어서, 진짜 상담은 <b>계약으로</b> 끝내세요.<br>가입·카드 없이 30초면 시작.</div>
+      <button class="lp-cta" id="lpStart" type="button">무료로 지금 연습 시작 →</button>
       <div class="lp-microtrust">회원가입 30초 · 카드 등록 없이 무료 1일 5회</div>
       <div class="lp-hero-proof">
         <span class="hp-stars">★★★★★</span>
@@ -774,17 +774,17 @@ textarea:focus{border-color:var(--brand)}
     <div class="lp-sec">
       <h2>이런 고민, 있으셨죠?</h2>
       <div class="lp-lead">혼자서는 늘기 어려운 것들</div>
-      <div class="lp-pain"><div class="pi">😰</div><div class="pt">고객이 거절하는 순간 머릿속이 하얘지고 말문이 막혀요.</div></div>
-      <div class="lp-pain"><div class="pi">🔁</div><div class="pt">실전은 매번 다른데, 마음 편히 연습할 상대가 없어요.</div></div>
-      <div class="lp-pain"><div class="pi">🤷</div><div class="pt">뭘 잘했고 뭘 고쳐야 하는지 알려주는 사람이 없어요.</div></div>
+      <div class="lp-pain"><div class="pi">😰</div><div class="pt">‘이미 보험 있어요’ 한마디에 머릿속이 하얘진 적, 있으시죠.</div></div>
+      <div class="lp-pain"><div class="pi">🔁</div><div class="pt">실전은 매번 다른데, 편하게 깨질 연습 상대가 없어요.</div></div>
+      <div class="lp-pain"><div class="pi">📉</div><div class="pt">뭘 잘못했는지 아무도 안 짚어줘서, 같은 실수를 반복해요.</div></div>
     </div>
 
     <div class="lp-sec">
       <h2>3단계면 끝</h2>
       <div class="lp-lead">앱을 켜고 30초 만에 실전 연습</div>
-      <div class="lp-step"><div class="sn">1</div><div class="sc"><h3>고객을 고릅니다</h3><p>페르소나와 거절 강도를 골라 나만의 훈련 상대를 만듭니다.</p></div></div>
-      <div class="lp-step"><div class="sn">2</div><div class="sc"><h3>AI 고객과 대화합니다</h3><p>진짜 고객처럼 반응하는 AI와 실전 롤플레이. 거절·반론도 그대로 나옵니다.</p></div></div>
-      <div class="lp-step"><div class="sn">3</div><div class="sc"><h3>실시간으로 채점받습니다</h3><p>6가지 세일즈 역량을 즉시 점수화하고, 무엇을 고칠지 코칭해 줍니다.</p></div></div>
+      <div class="lp-step"><div class="sn">1</div><div class="sc"><h3>상대를 고릅니다</h3><p>무관심형·가격 민감형… 실제로 만나는 그 고객을 페르소나·거절 강도로 골라요.</p></div></div>
+      <div class="lp-step"><div class="sn">2</div><div class="sc"><h3>실전처럼 부딪힙니다</h3><p>진짜 고객처럼 반응하는 AI와 롤플레이. 거절·반론이 그대로 날아옵니다.</p></div></div>
+      <div class="lp-step"><div class="sn">3</div><div class="sc"><h3>약점을 정확히 파악합니다</h3><p>6가지 역량 점수 + 다음엔 이렇게 말하라는 코칭까지 즉시 받아요.</p></div></div>
     </div>
 
     <div class="lp-sec">
@@ -834,7 +834,7 @@ textarea:focus{border-color:var(--brand)}
     </div>
 
     <div class="lp-final">
-      <button class="lp-cta" id="lpStart2" type="button">지금 무료로 시작하기 →</button>
+      <button class="lp-cta" id="lpStart2" type="button">무료로 지금 연습 시작 →</button>
     </div>
     <div class="lp-foot">
       (주)비다코퍼레이션 · 조직이 쑥쑥, 실적이 쑥쑥<br>
@@ -2304,8 +2304,8 @@ function adaptLandingForUser(){
     if(mt) mt.style.display="none";
   }else{
     // 비로그인: 가입 전 '30초 체험'을 먼저 시켜 가치를 보여줌
-    if(s1){ s1.textContent="지금 30초 체험하기 →"; s1.onclick=startGuestTrial; }
-    if(s2){ s2.textContent="지금 30초 무료 체험 →"; s2.onclick=startGuestTrial; }
+    if(s1){ s1.textContent="무료로 지금 연습 시작 →"; s1.onclick=startGuestTrial; }
+    if(s2){ s2.textContent="무료로 지금 연습 시작 →"; s2.onclick=startGuestTrial; }
     if(ch){ ch.textContent="🔥 가입하고 도전하기 →"; ch.onclick=challengeSignup; }  // 비로그인: 챌린지는 계정·상품권 필요 → 가입으로
     if(lg) lg.style.display="";
     if(mt){ mt.textContent="로그인·카드 등록 없이 바로 · 30초면 끝"; mt.style.display=""; }
