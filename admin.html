@@ -167,6 +167,11 @@ table.ctab th{text-align:left;color:var(--sub);font-weight:600;font-size:11px;pa
 table.ctab td{padding:8px 8px;border-bottom:1px solid #f1f3f6}
 table.ctab td.r,table.ctab th.r{text-align:right}
 table.ctab .ok{color:var(--good);font-weight:700}
+.inq-sel{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;background:#fff}
+.inq-sel:disabled{opacity:.6}
+.inq-open{color:#d97706;border-color:#f0d9a8;background:#fdf6e8}
+.inq-in_progress{color:#185fa5;border-color:#bcd6f2;background:#eef5fd}
+.inq-answered{color:#15803d;border-color:#bbe6c9;background:#eef8f1}
 table.ctab .muted{color:#b6bcc6}
 /* 프로모 코드 */
 .promo-form{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:14px;padding:12px;background:#f6faf0;border:1px solid #e2ecd5;border-radius:12px}
@@ -266,6 +271,7 @@ const ADMIN_ENDPOINT="/.netlify/functions/admin-stats";
 const PROMO_ENDPOINT="/.netlify/functions/admin-promo";
 const ADSPEND_ENDPOINT="/.netlify/functions/admin-adspend";
 const CHALLENGE_ENDPOINT="/.netlify/functions/admin-challenge";
+const INQUIRY_ENDPOINT="/.netlify/functions/admin-inquiry";
 
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
@@ -338,10 +344,14 @@ function render(j){
   var inq=(j.inquiries||[]);
   var inqOpen=inq.filter(function(q){return q.status!=='answered';}).length;
   function fmtDT(s){ if(!s) return '-'; try{ return new Date(s).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(e){ return String(s).slice(0,16); } }
+  function inqStatusSel(id,cur){
+    var opts=[['open','미처리'],['in_progress','처리중'],['answered','답변완료']];
+    return '<select class="inq-sel inq-'+(cur||'open')+'" onchange="updateInquiry('+id+',this.value,this)">'+
+      opts.map(function(o){return '<option value="'+o[0]+'"'+((cur||'open')===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>';
+  }
   var inqHtml=inq.length?inq.map(function(q){
     var body=(q.subject?('<b>'+esc(q.subject)+'</b> · '):'')+esc((q.message||'').slice(0,120))+((q.message||'').length>120?'…':'');
-    var st=q.status==='answered'?'<span class="ok">답변완료</span>':'<span style="color:#d97706;font-weight:700">미처리</span>';
-    return '<tr><td>'+fmtDT(q.created_at)+'</td><td>'+esc(q.email||'')+'</td><td>'+esc(q.category||'')+'</td><td style="white-space:normal;max-width:360px">'+body+'</td><td>'+st+'</td></tr>';
+    return '<tr><td>'+fmtDT(q.created_at)+'</td><td>'+esc(q.email||'')+'</td><td>'+esc(q.category||'')+'</td><td style="white-space:normal;max-width:360px">'+body+'</td><td>'+inqStatusSel(q.id,q.status)+'</td></tr>';
   }).join(""):'<tr><td colspan="5" class="muted" style="padding:16px">문의 없음</td></tr>';
 
   $("content").innerHTML=
@@ -382,7 +392,7 @@ function render(j){
       '<h3 class="fold-h" id="custToggle">고객 원장 ('+(j.customers||[]).length+'명) <span class="caret">▾</span><span class="fold-hint" id="custHint"></span></h3>'+
       '<div class="cust-tools" id="custTools"><input type="text" id="custSearch" placeholder="이메일·이름·번호 검색"><label class="cust-chk"><input type="checkbox" id="custMkt"> 마케팅 동의자만</label><button class="btn" id="custCsv" type="button">CSV 내보내기</button></div></div>'+
       '<div class="fold-body" id="custBody"><div class="cust-wrap scroll"><table class="ctab" id="custTable"></table></div></div></div>'+
-    '<div class="panel"><h3>문의 ('+(j.inquiries||[]).length+'건'+(inqOpen?' · 미처리 '+inqOpen+'건':'')+')</h3>'+
+    '<div class="panel"><h3 id="inqTitle" data-total="'+(j.inquiries||[]).length+'">문의 ('+(j.inquiries||[]).length+'건'+(inqOpen?' · 미처리 '+inqOpen+'건':'')+')</h3>'+
       '<div class="cust-wrap"><table class="ctab">'+
         '<thead><tr><th>날짜</th><th>이메일</th><th>분류</th><th>내용</th><th>상태</th></tr></thead><tbody>'+inqHtml+'</tbody></table></div></div>'+
     '<div class="panel"><h3>프로모션 코드 ('+(j.promos||[]).length+'개)</h3>'+
@@ -597,6 +607,25 @@ function bootAdEfficiency(){
   inp.onkeydown=function(e){ if(e.key==='Enter') saveAdSpend(); };
   var b=$("adSave"); if(b) b.onclick=saveAdSpend;
   renderAdEfficiency();
+}
+/* ===== 문의 처리 상태 변경 ===== */
+function refreshInqCount(){
+  var t=$("inqTitle"); if(!t) return;
+  var total=+(t.getAttribute('data-total')||0);
+  var sels=document.querySelectorAll('.inq-sel');
+  var open=0; Array.prototype.forEach.call(sels,function(s){ if(s.value!=='answered') open++; });
+  t.textContent='문의 ('+total+'건'+(open?' · 미처리 '+open+'건':'')+')';
+}
+async function updateInquiry(id, status, el){
+  el.disabled=true;
+  try{
+    var sess=(await sb.auth.getSession()).data.session;
+    var r=await fetch(INQUIRY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:sess&&sess.access_token, id:id, status:status})});
+    var j=await r.json().catch(function(){return{};});
+    if(r.ok && j.ok){ el.className='inq-sel inq-'+status; refreshInqCount(); }
+    else{ alert('상태 변경 실패: '+((j&&j.error)||'오류')); loadStats(); }
+  }catch(e){ alert('상태 변경 중 오류가 발생했어요.'); loadStats(); }
+  el.disabled=false;
 }
 /* ============================================================
    ===== 철벽 고객 챌린지 (달성자 확인 · 상품권 지급 처리) =====
