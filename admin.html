@@ -42,10 +42,17 @@ h1{font-size:22px;font-weight:800;letter-spacing:-.02em;display:flex;align-items
 /* kpi */
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
 .k{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 15px;box-shadow:0 1px 3px rgba(31,36,48,.05);border-top:3px solid var(--brand)}
-.k.b{border-top-color:#3B6D11}.k.g{border-top-color:#4e9a2f}.k.a{border-top-color:#c98a00}.k.p{border-top-color:#2f7d6b}
+.k.b{border-top-color:#3B6D11}.k.g{border-top-color:#4e9a2f}.k.a{border-top-color:#c98a00}.k.p{border-top-color:#2f7d6b}.k.r{border-top-color:#dc2626}
 .k .n{font-size:24px;font-weight:800;letter-spacing:-.02em}
 .k .l{font-size:12px;color:var(--sub);margin-top:4px}
-.k.b .n{color:var(--brand)}.k.g .n{color:var(--good)}.k.a .n{color:var(--amber)}.k.p .n{color:var(--pur)}
+.k.b .n{color:var(--brand)}.k.g .n{color:var(--good)}.k.a .n{color:var(--amber)}.k.p .n{color:var(--pur)}.k.r .n{color:#dc2626}
+.tag-del{display:inline-block;font-size:10.5px;font-weight:700;color:#b91c1c;background:#fee2e2;border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:middle}
+.del-sum{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.del-sum .d{flex:1;min-width:120px;background:#fef2f2;border:1px solid #fee2e2;border-radius:12px;padding:12px 14px}
+.del-sum .d .n{font-size:20px;font-weight:800;color:#b91c1c;letter-spacing:-.02em}
+.del-sum .d .l{font-size:11.5px;color:#7f1d1d;margin-top:3px}
+.del-sum .d.neutral{background:var(--card);border-color:var(--line)}
+.del-sum .d.neutral .n{color:#1f2430}.del-sum .d.neutral .l{color:var(--sub)}
 .k .spark{margin-top:9px;width:100%!important;height:36px!important;display:block}
 .k .nospark{margin-top:9px;height:36px;display:flex;align-items:flex-end;font-size:11px;color:#c3c9d2}
 .k.clickable{cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s}
@@ -293,7 +300,7 @@ const STAGE_LABELS={
   account:"내 계정", paywall:"구독 안내(페이월)", subscribe:"구독 완료"
 };
 function stageLabel(p){ if(STAGE_LABELS[p]) return STAGE_LABELS[p]; if(p==="/"||p==="/index.html"||p==="/index") return "(구버전·미분류)"; return esc(p); }
-const CARD_COLOR={b:"#3B6D11",g:"#4e9a2f",a:"#c98a00",p:"#2f7d6b","":"#64748b"};
+const CARD_COLOR={b:"#3B6D11",g:"#4e9a2f",a:"#c98a00",p:"#2f7d6b",r:"#dc2626","":"#64748b"};
 function hexA(hex,a){ var n=parseInt(hex.slice(1),16); return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+a+")"; }
 
 function won(n){ return (n||0).toLocaleString('ko-KR')+"원"; }
@@ -315,7 +322,7 @@ async function loadStats(){
 }
 
 function render(j){
-  var k=j.kpi||{}, S=j.series||{}, sdays=S.days||[];
+  var k=j.kpi||{}, S=j.series||{}, sdays=S.days||[], D=j.deletion||{};
   // 카드 정의: s=시계열 키(있으면 카드에 스파크라인), t=차트 타입
   var cards=[
     {label:"방문자(순)", val:k.visitors||0, cls:"b", s:"visitors", t:"line"},
@@ -326,7 +333,9 @@ function render(j){
     {label:"결제건수", val:k.payCount||0, cls:"g", s:"payCount", t:"bar"},
     {label:"결제금액", val:won(k.payAmount), cls:"a", s:"payAmount", t:"bar"},
     {label:"구독자수", val:k.subscribers||0, cls:"p", s:null},
-    {label:"신규 가입", val:k.totalUsers||0, cls:"", s:"newUsers", t:"bar"}
+    {label:"신규 가입", val:k.totalUsers||0, cls:"", s:"newUsers", t:"bar"},
+    {label:"탈퇴자(누적)", val:D.total||0, cls:"r", s:"deletions", t:"bar"},
+    {label:"탈퇴율", val:(D.churnRate||0)+"%", cls:"r", s:null}
   ];
   var kpiHtml=cards.map(function(c,i){
     var v=(typeof c.val==='number')?c.val.toLocaleString('ko-KR'):esc(c.val);
@@ -354,8 +363,29 @@ function render(j){
   }
   var inqHtml=inq.length?inq.map(function(q){
     var body=(q.subject?('<b>'+esc(q.subject)+'</b> · '):'')+esc((q.message||'').slice(0,120))+((q.message||'').length>120?'…':'');
-    return '<tr><td>'+fmtDT(q.created_at)+'</td><td>'+esc(q.email||'')+'</td><td>'+esc(q.category||'')+'</td><td style="white-space:normal;max-width:360px">'+body+'</td><td>'+inqStatusSel(q.id,q.status)+'</td></tr>';
+    var tag=q.member_deleted?' <span class="tag-del">탈퇴회원</span>':'';
+    return '<tr><td>'+fmtDT(q.created_at)+'</td><td>'+esc(q.email||'')+tag+'</td><td>'+esc(q.category||'')+'</td><td style="white-space:normal;max-width:360px">'+body+'</td><td>'+inqStatusSel(q.id,q.status)+'</td></tr>';
   }).join(""):'<tr><td colspan="5" class="muted" style="padding:16px">문의 없음</td></tr>';
+
+  // ===== 탈퇴 패널 =====
+  var delSum='<div class="del-sum">'+
+    '<div class="d"><div class="n">'+(D.total||0).toLocaleString('ko-KR')+'</div><div class="l">누적 탈퇴</div></div>'+
+    '<div class="d"><div class="n">'+(D.churnRate||0)+'%</div><div class="l">탈퇴율 (누적가입 '+(D.cumSignups||0).toLocaleString('ko-KR')+'명 대비)</div></div>'+
+    '<div class="d"><div class="n">'+(D.last30||0)+'</div><div class="l">최근 30일 탈퇴</div></div>'+
+    '<div class="d neutral"><div class="n">'+(D.self||0)+' / '+(D.admin||0)+'</div><div class="l">본인 / 관리자</div></div>'+
+    '<div class="d neutral"><div class="n">'+(D.avgDaysActive||0)+'일</div><div class="l">평균 유지 기간</div></div>'+
+    '<div class="d neutral"><div class="n">'+(D.paid||0)+'</div><div class="l">유료 이력 탈퇴</div></div>'+
+  '</div>';
+  var reasons=(D.reasons||[]);
+  var rTot=reasons.reduce(function(a,r){return a+r.count;},0)||1;
+  var reasonHtml=reasons.length?reasons.map(function(r){var p=Math.round(r.count/rTot*100);return '<tr><td>'+esc(r.reason)+'</td><td class="r"><span class="bar"><span style="width:'+p+'%;background:#dc2626"></span></span>'+r.count+'건 ('+p+'%)</td></tr>';}).join(""):'<tr><td colspan="2" class="muted">데이터 없음</td></tr>';
+  var recent=(D.recent||[]);
+  function fmtD(s){ if(!s) return '-'; try{ return new Date(s).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(e){ return String(s).slice(0,16); } }
+  var recentHtml=recent.length?recent.map(function(d){
+    var kind=d.kind==='admin'?'<span class="tag-del">관리자</span>':'<span style="font-size:11px;color:#6b7280">본인</span>';
+    var flags=(d.paid?' <span class="tag-del" style="background:#fef3c7;color:#92400e">유료</span>':'')+(d.openInquiry?' <span class="tag-del" style="background:#dbeafe;color:#1e40af">미답변문의</span>':'');
+    return '<tr><td>'+fmtD(d.at)+'</td><td>'+esc(d.email||'(미상)')+flags+'</td><td>'+kind+'</td><td>'+(d.days==null?'-':d.days+'일')+'</td><td style="white-space:normal;max-width:280px">'+esc(d.reason||'')+'</td></tr>';
+  }).join(""):'<tr><td colspan="5" class="muted" style="padding:16px">탈퇴 기록 없음</td></tr>';
 
   $("content").innerHTML=
     '<div class="grid">'+kpiHtml+'</div>'+
@@ -398,6 +428,14 @@ function render(j){
     '<div class="panel"><h3 id="inqTitle" data-total="'+(j.inquiries||[]).length+'">문의 ('+(j.inquiries||[]).length+'건'+(inqOpen?' · 미처리 '+inqOpen+'건':'')+')</h3>'+
       '<div class="cust-wrap"><table class="ctab">'+
         '<thead><tr><th>날짜</th><th>이메일</th><th>분류</th><th>내용</th><th>상태</th></tr></thead><tbody>'+inqHtml+'</tbody></table></div></div>'+
+    '<div class="panel"><h3>회원 탈퇴 <span style="font-weight:600;font-size:12px;color:#6b7280">· 탈퇴율 · 사유 · 최근 내역</span></h3>'+
+      delSum+
+      '<div class="cols">'+
+        '<div><h3 style="font-size:14px;margin:4px 0 8px">탈퇴 사유</h3><table class="ctab"><thead><tr><th>사유</th><th class="r">건수</th></tr></thead><tbody>'+reasonHtml+'</tbody></table></div>'+
+        '<div><h3 style="font-size:14px;margin:4px 0 8px">최근 탈퇴 (최대 30)</h3><div class="cust-wrap"><table class="ctab"><thead><tr><th>일시</th><th>이메일</th><th>유형</th><th>유지</th><th>사유</th></tr></thead><tbody>'+recentHtml+'</tbody></table></div></div>'+
+      '</div>'+
+      '<div style="font-size:11.5px;color:#6b7280;margin-top:8px;line-height:1.5">탈퇴율 = 누적 탈퇴 ÷ 누적 가입(현재 회원 + 탈퇴). ‘미답변문의’ 표시가 있는 탈퇴자는 위 문의 목록에 <b>탈퇴회원</b>으로 남아 있어 답변·메일 발송이 가능합니다.</div>'+
+    '</div>'+
     '<div class="panel"><h3>프로모션 코드 ('+(j.promos||[]).length+'개)</h3>'+
       '<div class="promo-form">'+
         '<div class="pf code"><label>코드</label><input id="pcCode" type="text" placeholder="WELCOME20"></div>'+
@@ -465,7 +503,8 @@ var METRICS=[
   {k:"sessions",  label:"훈련 세션",  color:"#4e9a2f", type:"bar",  fmt:"num", unit:"회"},
   {k:"newUsers",  label:"신규 가입",  color:"#2f7d6b", type:"bar",  fmt:"num", unit:"명"},
   {k:"payCount",  label:"결제건수",   color:"#c98a00", type:"bar",  fmt:"num", unit:"건"},
-  {k:"payAmount", label:"결제금액",   color:"#b45309", type:"bar",  fmt:"won", unit:""}
+  {k:"payAmount", label:"결제금액",   color:"#b45309", type:"bar",  fmt:"won", unit:""},
+  {k:"deletions", label:"탈퇴자",     color:"#dc2626", type:"bar",  fmt:"num", unit:"명"}
 ];
 /* 조회 기간 (일) — 서버에 days 로 전달 */
 var RANGES=[7,14,30,90,180];
@@ -833,9 +872,11 @@ function renderCustomers(){
 }
 async function adminDeleteUser(userId, email){
   if(!confirm('이 회원을 탈퇴(삭제)시킬까요?\n\n· '+(email||userId)+'\n· 모든 기록·구독·인증 정보가 영구 삭제돼요.\n· 복구할 수 없어요.')) return;
+  var reason=prompt('탈퇴 사유(선택) — 기록용으로 남겨요.', '관리자 강제 탈퇴');
+  if(reason===null) return;   // 취소 시 중단
   try{
     var sess=(await sb.auth.getSession()).data.session;
-    var r=await fetch(DELETE_USER_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:sess&&sess.access_token, userId:userId})});
+    var r=await fetch(DELETE_USER_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:sess&&sess.access_token, userId:userId, reason:reason})});
     var j=await r.json().catch(function(){return{};});
     if(r.ok && j.ok){ alert('탈퇴 처리됐어요.'); loadStats(); }
     else{ alert('탈퇴 실패: '+((j&&j.error)==='cannot_delete_self'?'관리자 본인 계정은 삭제할 수 없어요.':((j&&j.error)||'오류'))); }
