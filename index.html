@@ -404,6 +404,20 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .ig-ic{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px;background:#EAF3DE;color:#2f5a0e;font-size:14px;vertical-align:-5px;margin:0 2px;padding:0 4px;font-weight:700}
 .ig-btn{width:100%;border:none;background:#3B6D11;color:#fff;border-radius:11px;padding:13px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
 .ig-note{font-size:12px;color:#5b6472;margin-top:14px;background:#f8fafc;border:1px solid #eef1f5;border-radius:10px;padding:11px 12px;line-height:1.55}
+
+/* ===== [개선 이식] 줄맞춤·모바일 폴리시 ===== */
+body{word-break:keep-all;overflow-wrap:break-word;text-wrap:balance;-webkit-text-size-adjust:100%}
+.bub{word-break:break-word}   /* 채팅 말풍선은 긴 단어도 끊기게 유지 */
+/* ===== [개선 이식] 난이도 램프 잠금 카드 ===== */
+.coldcard.locked{opacity:.5;cursor:pointer}
+.coldcard.locked:hover{border-color:#e5e7eb;transform:none}
+.coldcard.locked .cc-d{color:#9aa2a8}
+/* ===== [개선 이식] 세션 성장 곡선 ===== */
+.growthbox{background:#f3f8ee;border:1px solid #cde3d2;border-radius:12px;padding:12px 13px;margin:8px 0 4px}
+.growthbox-h{font-size:13px;font-weight:800;color:#14401f;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.growthbox-h span{margin-left:auto;font-size:11px;color:#6b7280;background:#fff;padding:2px 8px;border-radius:99px;font-weight:700}
+.growthbox-m{font-size:12px;color:#14201a;margin-top:4px;line-height:1.5}
+.growthbox-m b{color:#1e7a46}
 </style>
 <style>
 :root{
@@ -1328,6 +1342,11 @@ function recordSession(sess){
   p.best=Math.max(p.best,sess.best); if(sess.won)p.wins++;
   db.personas[sess.personaId]=p;
   if(sess.axisAvg){ db.axes=db.axes||{}; AXES.forEach(function(a){ if(sess.axisAvg[a.k]!=null){ var x=db.axes[a.k]||{sum:0,count:0}; x.sum+=sess.axisAvg[a.k]; x.count++; db.axes[a.k]=x; } }); }
+  /* [개선 이식] 세션 히스토리(성장 곡선) + 최고 합격 난이도(난이도 램프) */
+  db.history=db.history||[];
+  db.history.push({avg:(sess.avg!=null?sess.avg:0),cold:(sess.cold||0),won:!!sess.won,ts:Date.now(),persona:sess.personaId});
+  if(db.history.length>60) db.history=db.history.slice(-60);
+  if(sess.won && (sess.cold||0)>(db.maxPassedCold||0)) db.maxPassedCold=sess.cold;
   saveStore(db);
 }
 
@@ -1381,6 +1400,7 @@ function renderStats(){
       <div class="stat"><div class="n" style="color:${avg>=70?'#16a34a':avg>=50?'#d97706':'#dc2626'}">${avg}</div><div class="l">평균 점수</div></div>
       <div class="stat"><div class="n">${rate}%</div><div class="l">합격률</div></div>
     </div>
+    ${growthSectionHTML()}
     ${axHtml}
     <details class="pbdetails"><summary>페르소나별 평균 점수 펼쳐보기 ▾</summary><div class="pbars">${bars}</div></details>`;
 }
@@ -1442,15 +1462,20 @@ function selectPersona(p){
 }
 function renderColdCards(){
   var el=document.getElementById('coldCards'); if(!el) return;
+  var maxC=allowedMaxCold();
   var html='';
   for(var c=1;c<=5;c++){
     var o=COLD[c], label=(o.t.split('·')[1]||o.t).trim();
     var bg=c<=2?'#e8f7ee':(c===3?'#fef4e6':'#fdeaea'), tx=c<=2?'#15803d':(c===3?'#b45309':'#b91c1c');
-    html+='<button class="coldcard" onclick="chooseCold('+c+')"><span class="cc-n" style="background:'+bg+';color:'+tx+'">'+c+'</span><span class="cc-t">'+esc(label)+'</span><span class="cc-d">'+esc(o.d)+'</span></button>';
+    if(c<=maxC){
+      html+='<button class="coldcard" onclick="chooseCold('+c+')"><span class="cc-n" style="background:'+bg+';color:'+tx+'">'+c+'</span><span class="cc-t">'+esc(label)+'</span><span class="cc-d">'+esc(o.d)+'</span></button>';
+    }else{
+      html+='<button class="coldcard locked" onclick="chooseCold('+c+')"><span class="cc-n" style="background:#eef1ec;color:#9aa2a8">🔒</span><span class="cc-t">'+esc(label)+'</span><span class="cc-d">거절강도 '+(c-1)+' 합격하면 열려요</span></button>';
+    }
   }
   el.innerHTML=html;
 }
-function chooseCold(c){ coldness=c; if(wizPersona) tryStart(wizPersona); }  // 미터링 후 startChat
+function chooseCold(c){ var maxC=allowedMaxCold(); if(c>maxC){ toast('🔒 거절강도 '+maxC+'까지 먼저 이겨보세요 — 쉬운 상대부터 클리어하면 다음 강도가 열려요!'); return; } coldness=c; if(wizPersona) tryStart(wizPersona); }  // 미터링 후 startChat
 
 /* ---------- 놀리기 모드 ---------- */
 let teasePref=true;
@@ -1506,6 +1531,30 @@ function resumeSession(){
 /* ---------- chat ---------- */
 function pickOpener(p){ var a=(p&&p.openers&&p.openers.length)?p.openers:[(p&&p.opener)||""]; return a[Math.floor(Math.random()*a.length)]; }
 function passLineFor(p,cold){return Math.max(50,Math.min(90,[0,60,68,75][p.diff]+(cold-3)*3));}
+/* ===== [개선 이식] 난이도 램프 + 성장 곡선 헬퍼 =====
+   데이터 근거: 대부분이 강도5로 직행 → 합격률 0% → 좌절·이탈. 쉬운 첫 승리가 재방문을 만든다.
+   규칙: 지금까지 '합격한 최고 난이도 + 1'까지만 허용(최소 2). 이겨야 다음 강도가 열림. */
+function allowedMaxCold(){ try{ var db=loadStore(); var mp=db.maxPassedCold||0; return Math.max(2,Math.min(5,mp+1)); }catch(e){ return 2; } }
+function sparkSVG(vals){
+  var W=300,H=58,pad=10;
+  var mn=Math.min.apply(null,vals.concat([40]))-5, mx=Math.max.apply(null,vals.concat([90]))+5;
+  var xs=function(i){ return vals.length>1?pad+i*(W-2*pad)/(vals.length-1):W/2; };
+  var ys=function(v){ return H-pad-(v-mn)/(mx-mn)*(H-2*pad); };
+  var pts=vals.map(function(v,i){return xs(i).toFixed(1)+','+ys(v).toFixed(1);}).join(' ');
+  var dots=vals.map(function(v,i){return '<circle cx="'+xs(i).toFixed(1)+'" cy="'+ys(v).toFixed(1)+'" r="'+(i===vals.length-1?4.5:3)+'" fill="'+(i===vals.length-1?'#FF7A1A':'#1e7a46')+'"/>';}).join('');
+  var labs=vals.map(function(v,i){return '<text x="'+xs(i).toFixed(1)+'" y="'+Math.max(11,ys(v)-8).toFixed(1)+'" font-size="10" fill="#14401f" text-anchor="middle" font-weight="800">'+v+'</text>';}).join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" style="display:block"><polyline points="'+pts+'" fill="none" stroke="#1e7a46" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+labs+'</svg>';
+}
+function growthSectionHTML(){
+  try{
+    var db=loadStore(); var h=(db.history||[]).slice(-8);
+    if(h.length<2) return '';
+    var vals=h.map(function(x){return Math.round(x.avg||0);});
+    var d=vals[vals.length-1]-vals[vals.length-2];
+    var msg=d>=0?('지난 세션보다 <b>+'+d+'점</b> — 꾸준히 성장 중이에요 💪'):('이번엔 조금 내렸지만, 한 판만 더 하면 다시 오릅니다 🔥');
+    return '<div class="growthbox"><div class="growthbox-h">📈 세션 성장 곡선 <span>최근 '+h.length+'세션</span></div>'+sparkSVG(vals)+'<div class="growthbox-m">'+msg+'</div></div>';
+  }catch(e){ return ''; }
+}
 /* ============================================================
    ===== 게스트 30초 체험 (로그인 없이 · 3턴 캡) =====
    랜딩 히어로 CTA → 고정 페르소나(김 부장)와 실전 대화 → 미니 결과 → 가입 유도.
@@ -1733,7 +1782,7 @@ function persistSession(){
   const gr=grade(avg);
   const axisAvg={};
   if(state.axisCount){ AXES.forEach(function(a){ axisAvg[a.k]=Math.round((state.axisSum[a.k]||0)/state.axisCount); }); }
-  recordSession({personaId:state.persona.id,scores:sc,best:state.best,won:passed,axisAvg:axisAvg});
+  recordSession({personaId:state.persona.id,scores:sc,best:state.best,won:passed,axisAvg:axisAvg,cold:state.cold,avg:avg});
   saveCloud({personaId:state.persona.id,cold:state.cold,passLine:state.passLine,turns:state.turns,avg:avg,best:state.best,trend:trend,passed:passed,grade:gr.g,axisAvg:axisAvg});
   saveSessionToDB({persona:state.persona.id,personaName:state.persona.name,cold:state.cold,turns:state.turns,avg:avg,best:state.best,trend:trend,passed:passed,grade:gr.g,axisAvg:axisAvg,messages:state.messages||[],turnEvals:state.turnEvals||[],improves:Array.from(new Set(state.improves||[])),scores:sc});
   clearSnapshot();
@@ -1779,6 +1828,7 @@ function finish(won){
     </div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:5px">답변별 점수 추이</div>
     <div class="spark">${bars}</div>
+    ${growthSectionHTML()}
     ${raxHtml}
     ${coachHtml}
     <div class="rlist">
