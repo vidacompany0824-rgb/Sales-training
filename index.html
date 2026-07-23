@@ -313,7 +313,14 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .dashToggle:hover{border-color:#d1d5db}
 /* ===== 나의 훈련 공간 ===== */
 .myspace{margin-bottom:18px}
-.ms-hero{background:linear-gradient(140deg,#2f5a0e,#3B6D11 58%,#5a9420);color:#fff;border-radius:18px;padding:20px 20px 18px;box-shadow:0 10px 26px rgba(47,90,14,.22)}
+.ms-hero{background:#33623a;color:#fff;border-radius:16px;padding:22px 22px 18px;box-shadow:0 2px 10px rgba(40,70,40,.10)}
+.ms-htop{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ms-lv{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.30);color:#fff;font-size:13px;font-weight:700;padding:6px 14px;border-radius:99px;white-space:nowrap}
+.ms-lv b{font-weight:800;letter-spacing:-.01em}
+.ms-lvbarwrap{margin-top:14px}
+.ms-lvbar{height:7px;border-radius:99px;background:rgba(255,255,255,.20);overflow:hidden}
+.ms-lvfill{height:100%;background:#fff;border-radius:99px;transition:width .55s cubic-bezier(.3,1,.4,1)}
+.ms-lvnote{font-size:11.5px;color:#e7f2d8;margin-top:6px}
 .ms-hero h2{font-size:18.5px;font-weight:800;letter-spacing:-.01em}
 .ms-hero .ms-sub{font-size:13px;color:#e7f2d8;margin-top:5px;line-height:1.5}
 .ms-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}
@@ -334,7 +341,17 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .resume .rz-home{display:block;margin:12px auto 0;border:none;background:none;color:var(--muted);font:inherit;font-size:12.5px;cursor:pointer}
 .ms-m .ml{font-size:11px;color:#dce9c8;margin-top:5px}
 .ms-m .msub{font-size:10.5px;color:#c8e0a8;margin-top:2px}
-.ms-card{background:#fff;border:1px solid #e7e9df;border-radius:16px;padding:16px 17px;margin-top:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.ms-card{background:#fff;border:1px solid #e7e9df;border-radius:16px;padding:18px 18px;margin-top:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.ms-card h3{font-size:14.5px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center}
+.premcard{background:#33623a;border-color:#2a5230;color:#fff}
+.premcard h3, .premcard h3 *{color:#fff !important}
+.premcard h3 span{color:#cfe3c6 !important;font-weight:600}
+.prem-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.prem{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.20);border-radius:12px;padding:14px 12px;text-align:center}
+.prem .pv{font-size:23px;font-weight:800;letter-spacing:-.02em}
+.prem .pv .pu{font-size:12px;font-weight:700;margin-left:2px;opacity:.85}
+.prem .pl{font-size:11.5px;color:#dcebd4;margin-top:4px}
+.prem-note{font-size:11.5px;color:#cfe3c6;margin-top:12px;text-align:center}
 .ms-card h3{font-size:14px;font-weight:800;color:#1f2a16;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .ms-editbtn{border:1px solid #C0DD97;background:#EAF3DE;color:#2f5a0e;border-radius:8px;padding:5px 10px;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer}
 .ms-goal{margin-top:12px}
@@ -418,6 +435,84 @@ body{word-break:keep-all;overflow-wrap:break-word;text-wrap:balance;-webkit-text
 .growthbox-h span{margin-left:auto;font-size:11px;color:#6b7280;background:#fff;padding:2px 8px;border-radius:99px;font-weight:700}
 .growthbox-m{font-size:12px;color:#14201a;margin-top:4px;line-height:1.5}
 .growthbox-m b{color:#1e7a46}
+/* ===== [개선 이식] 화법 조립(첫 턴 training wheels) ===== */
+.asm{background:#fbfcfa;border:1px solid #e6e9e2;border-radius:14px;padding:15px 15px 13px;margin-bottom:8px}
+.asm-h{font-size:12px;font-weight:700;color:#3a4b3a;margin-bottom:12px;letter-spacing:-.2px}
+.asm-h span{font-weight:500;color:#9aa0a6}
+.asm-frame{font-size:15px;line-height:2.15;color:#1f2a24;margin-bottom:14px;word-break:keep-all}
+.asm-slot{display:inline-flex;align-items:center;padding:4px 12px;border-radius:9px;font-size:14px;cursor:pointer;transition:.15s;vertical-align:middle;margin:0 1px}
+.asm-slot.empty{background:#fff;border:1.5px dashed #c7cfc4;color:#9aa0a6;font-weight:500}
+.asm-slot.empty:hover{border-color:#5a9a24;color:#5a9a24}
+.asm-slot.filled{background:#eaf4e2;border:1.5px solid #7fb45a;color:#2c5210;font-weight:600}
+.asm-slot.filled:hover{background:#e0efd3}
+.asm-bank{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.asm-chip{padding:9px 13px;border:1.5px solid #e2e6de;border-radius:11px;background:#fff;font-size:13.5px;font-weight:600;color:#2a3428;cursor:pointer;font-family:inherit;transition:.15s}
+.asm-chip:hover{border-color:#7fb45a;background:#f6faf1}
+.asm-chip.used{opacity:.38;border-style:dashed;pointer-events:none}
+.asm-go{width:100%;padding:13px;border:none;border-radius:12px;background:#2f7d32;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+.asm-go:hover:not(:disabled){background:#286a2b}
+.asm-go:disabled{background:#dfe4dc;color:#a7b0a4;cursor:not-allowed}
+/* ===== [프로토타입 이식] 온보딩 6단계 ===== */
+#onbHost{max-width:560px;margin:0 auto}
+.onb-top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.onb-back{width:32px;height:32px;border-radius:50%;border:none;background:#eef3e7;color:#2f5a0e;font-size:17px;cursor:pointer;flex:none}
+.onb-bar{flex:1;height:7px;border-radius:99px;background:#e8ede2;overflow:hidden}
+.onb-fill{height:100%;width:14%;background:linear-gradient(90deg,#3B6D11,#5a9a24);border-radius:99px;transition:width .45s cubic-bezier(.4,1.3,.5,1)}
+.onb-stepn{font-size:12px;font-weight:800;color:#6b7280;min-width:36px;text-align:right}
+.onb-kicker{font-size:12.5px;font-weight:800;color:#e0630a;letter-spacing:.3px;margin:2px 0 8px}
+.onb-q{font-size:22px;line-height:1.32;font-weight:800;color:#1f3d0a;margin:0 0 6px;word-break:keep-all;text-wrap:balance}
+.onb-sub{font-size:13px;color:#6b7280;margin:0 0 16px;line-height:1.5}
+.onb-opts{display:flex;flex-direction:column;gap:10px}
+.onb-opt{display:flex;align-items:center;gap:13px;padding:15px;border:1.7px solid #e5e7eb;border-radius:16px;background:#fff;cursor:pointer;transition:.16s;text-align:left;width:100%;font:inherit}
+.onb-opt:hover{border-color:#bcd6a4;transform:translateY(-1px)}
+.onb-opt.sel{border-color:#3B6D11;background:#f3f8ee;box-shadow:0 6px 18px rgba(59,109,17,.12)}
+.onb-opt.locked{opacity:.55}
+.onb-opt.locked:hover{transform:none;border-color:#e5e7eb}
+.onb-oi{width:42px;height:42px;border-radius:12px;background:#f3f8ee;display:flex;align-items:center;justify-content:center;font-size:21px;flex:none}
+.onb-opt.sel .onb-oi{background:#3B6D11}
+.onb-otx{flex:1}
+.onb-ot{font-size:15px;font-weight:800;color:#20281a;line-height:1.25}
+.onb-od{font-size:11.5px;color:#6b7280;margin-top:2px;line-height:1.4}
+.onb-chk{width:22px;height:22px;border-radius:50%;border:2px solid #e5e7eb;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+.onb-opt.sel .onb-chk{background:#3B6D11;border-color:#3B6D11}
+.onb-reflect{margin-top:14px;background:#fff4e8;border:1px solid #ffe0c2;border-radius:14px;padding:12px 14px;font-size:13px;color:#8a4a12;line-height:1.5;display:none}
+.onb-reflect.on{display:block}.onb-reflect b{color:#e0630a}
+.onb-foot{margin-top:18px}
+.onb-cta{width:100%;padding:16px;border:none;border-radius:16px;background:#3B6D11;color:#fff;font-size:16px;font-weight:800;cursor:pointer;font:inherit;box-shadow:0 10px 24px rgba(59,109,17,.28)}
+.onb-cta:disabled{background:#cbd8cc;box-shadow:none;cursor:not-allowed}
+.onb-alt{display:block;width:100%;text-align:center;background:none;border:none;color:#6b7280;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:12px;font:inherit}
+.onb-welcome{text-align:center;padding:14px 0}
+.onb-welcome .lg{width:74px;height:74px;border-radius:22px;background:linear-gradient(135deg,#3B6D11,#5a9a24);display:flex;align-items:center;justify-content:center;font-size:38px;margin:0 auto 18px;box-shadow:0 12px 30px rgba(59,109,17,.3)}
+.onb-welcome h2{font-size:23px;font-weight:800;color:#1f3d0a;margin:0 0 10px;line-height:1.32;word-break:keep-all;text-wrap:balance}
+.onb-welcome p{font-size:14px;color:#6b7280;margin:0 auto 6px;line-height:1.55;max-width:300px;word-break:keep-all;text-wrap:balance}
+.onb-sum{background:linear-gradient(160deg,#173d08,#3B6D11);border-radius:20px;padding:20px;color:#fff;margin:6px 0 8px;box-shadow:0 14px 32px rgba(23,45,8,.28)}
+.onb-sum .sl{font-size:11.5px;opacity:.85;font-weight:700;letter-spacing:.4px}
+.onb-sum .st2{font-size:20px;font-weight:800;margin:3px 0 12px;line-height:1.35}
+.onb-sum .row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid rgba(255,255,255,.16);font-size:13.5px}
+.onb-sum .rk{opacity:.75;min-width:74px;font-weight:600}.onb-sum .rv{font-weight:800;flex:1}
+/* ===== [프로토타입 이식] 고객 호감도 게이지 + 마일스톤 ===== */
+.hgauge{background:#f3f8ee;border:1px solid #e1ead8;border-radius:12px;padding:9px 12px;margin:0 0 8px;transition:.2s}
+.hgauge.gain{animation:hgflash .6s}
+@keyframes hgflash{0%{background:#fdeccf}100%{background:#f3f8ee}}
+.hg-row{display:flex;align-items:center;gap:9px}
+.hg-face{font-size:22px;transition:transform .2s}.hg-face.bump{transform:scale(1.35)}
+.hg-label{font-size:12px;font-weight:800;color:#1f3d0a}
+.hg-pct{margin-left:auto;font-size:12.5px;font-weight:800;color:#3B6D11}
+.hg-track{height:9px;border-radius:99px;background:#e3eadb;overflow:hidden;margin-top:7px}
+.hg-fill{height:100%;width:18%;border-radius:99px;background:linear-gradient(90deg,#F5A524,#37A15E);transition:width .6s cubic-bezier(.3,1.1,.4,1)}
+.milestone{align-self:center;text-align:center;background:#eef4e7;border:1px solid #cfe0bf;border-radius:12px;padding:10px 14px;font-size:12.5px;font-weight:700;color:#3a6b28;margin:6px auto;max-width:82%;animation:msPop .5s}
+.lockrow{display:flex;gap:6px;margin:0 0 8px}
+.lockrow:empty{display:none}
+.lockchip{flex:1;text-align:center;font-size:10.5px;font-weight:800;padding:5px 4px;border-radius:9px;background:#EEF1EC;color:#9aa2a8;border:1px solid #E3E7E1;cursor:pointer;transition:.14s}
+.lockchip:not(.on):hover{border-color:#C7CEC8;background:#E7EBE6}
+.lockchip.on{background:var(--green,#2E9455);color:#fff;border-color:var(--green,#2E9455);cursor:default}
+.lvbadge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#2E9455,#1E7A46);color:#fff;font-size:12.5px;font-weight:800;padding:5px 12px;border-radius:99px;margin-bottom:10px}
+.closing{background:#2f7d32;color:#fff;border-radius:14px;padding:16px 18px;margin-bottom:14px;text-align:center;animation:msPop .5s}
+.closing .cl-k{font-size:11.5px;font-weight:700;letter-spacing:.05em;opacity:.85}
+.closing .cl-amt{font-size:25px;font-weight:800;margin:5px 0 3px;letter-spacing:-.02em}
+.closing .cl-amt b{color:#ffdf7e}
+.closing .cl-sub{font-size:11.5px;opacity:.82}
+@keyframes msPop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
 </style>
 <style>
 :root{
@@ -432,8 +527,8 @@ html,body{margin:0;background:var(--bg);color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Segoe UI",Roboto,sans-serif;
   font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
 .wrap{max-width:880px;margin:0 auto;padding:20px 16px 40px}
-h1{font-size:20px;margin:0 0 2px;font-weight:700;letter-spacing:-.01em}
-.sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+h1{font-size:21px;margin:0 0 7px;font-weight:700;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 22px;max-width:640px}
 
 /* control bar */
 .ctrl{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:16px;display:none}
@@ -568,6 +663,16 @@ details.pbdetails[open]>summary{margin-bottom:10px}
 .coach .cfocus .ca{font-weight:700;color:var(--brand);font-size:13px;margin-bottom:3px}
 .coach ul{margin:6px 0 0;padding-left:18px;font-size:12.5px}.coach li{margin:3px 0;line-height:1.5}
 .coach .cnext{font-size:12px;color:var(--muted);margin-top:9px;border-top:1px dashed var(--line);padding-top:8px}
+/* [가독성 정돈] 여백·줄간격 확보로 각 내용이 또렷하게 */
+.coach{padding:16px 18px;margin-bottom:14px}
+.coach h4{font-size:14px;margin-bottom:11px;gap:8px}
+.coach .cst{font-size:13px;line-height:1.68;margin:9px 0}
+.coach ul{margin-top:8px}
+.coach li{line-height:1.68;margin:6px 0}
+.coach .cfocus{padding:12px 14px;margin-top:13px}
+.coach .cfocus .ca{margin-bottom:5px}
+.peekrow{gap:10px;margin-top:4px}
+.report>*+*{margin-top:14px}
 .typing{display:flex;align-items:center;gap:8px;width:fit-content;max-width:82%;margin:3px 0;padding:8px 13px;font-size:13px;color:#5b6472;border:1px solid #dfe9d4;border-radius:15px;border-bottom-left-radius:5px;background:linear-gradient(100deg,#f2f7ec 0%,#e6f2d8 40%,#f2f7ec 80%);background-size:220% 100%;animation:typingShine 1.7s linear infinite}
 @keyframes typingShine{0%{background-position:150% 0}100%{background-position:-150% 0}}
 .typing .tname{font-weight:700;color:#3B6D11}
@@ -972,8 +1077,8 @@ textarea:focus{border-color:var(--brand)}
 </div>
 
 <div class="wrap">
-  <h1>🌱 쑥쑥 AI <span style="font-size:14px;font-weight:600;color:var(--muted)">· 세일즈 거절 극복 훈련</span></h1>
-  <p class="sub">고객 유형과 거절 강도를 정하면 AI가 그 고객이 되어 거절합니다. 대화를 이어가며 설득하세요. 코칭은 '💬 코칭 보기'로 원할 때 펼쳐보고, 세션 종료 시 종합 리포트를 확인하세요. <span id="brandTag"></span></p>
+  <h1>쑥쑥 AI <span style="font-size:13.5px;font-weight:500;color:var(--muted)">세일즈 거절 극복 훈련</span></h1>
+  <p class="sub">AI 고객과 실전처럼 대화하며 거절을 극복하고, 세션이 끝나면 종합 리포트로 복기하세요. <span id="brandTag"></span></p>
 
   <section id="myspace" class="myspace" style="display:none"></section>
 
@@ -998,7 +1103,8 @@ textarea:focus{border-color:var(--brand)}
   <div id="resumeBar" class="resumebar"></div>
 
   <div id="wizard" style="display:none">
-    <div id="step1" class="wstep">
+    <div id="onbHost"></div>
+    <div id="step1" class="wstep" style="display:none">
       <div class="wstep-h"><button class="wback" onclick="showHome()">← 홈</button><span class="wnum">1</span> 어떤 고객을 상대해볼까요?</div>
       <div id="picker" class="grid"></div>
     </div>
@@ -1017,13 +1123,18 @@ textarea:focus{border-color:var(--brand)}
         <div class="who" id="tWho">고객</div>
         <div class="st" id="tSt">전화 상담 중</div>
       </div>
-      <div class="mood">
+      <div class="mood" style="display:none">
         <span id="moodTxt">냉담</span>
         <div class="moodbar"><div class="moodfill" id="moodFill"></div></div>
       </div>
       <button class="endbtn" onclick="finish(false)">리포트</button>
       <button class="endbtn" onclick="reset()">← 목록</button>
     </div>
+    <div class="hgauge" id="hgauge">
+      <div class="hg-row"><span class="hg-face" id="hgFace">😐</span><span class="hg-label">고객 호감도</span><span class="hg-pct" id="hgPct">18%</span></div>
+      <div class="hg-track"><div class="hg-fill" id="hgFill"></div></div>
+    </div>
+    <div class="lockrow" id="lockrow"></div>
     <div class="log" id="log"></div>
     <div class="report" id="report"></div>
     <div class="inbar" id="inbar">
@@ -1040,7 +1151,7 @@ textarea:focus{border-color:var(--brand)}
     </div>
   </div>
 
-  <p class="footnote"><span id="brandFoot"></span>AI가 고객 연기와 답변 평가를 동시에 수행 · 훈련 기록은 이 브라우저에 저장됩니다</p>
+  <p class="footnote"><span id="brandFoot"></span>AI가 고객 연기와 답변 평가를 동시에 수행 · 훈련 기록은 계정에 저장돼 기기가 바뀌어도 이어집니다</p>
   <div class="applinks"><a href="terms.html">이용약관</a><span>·</span><a href="privacy.html">개인정보처리방침</a><span>·</span><a href="#" onclick="openInquiry();return false;">문의</a></div>
   <div class="bizinfo">(주)비다코퍼레이션 · 대표이사 김신천 · 사업자등록번호 285-81-04061 · 통신판매업 신고번호 제2026-서울영등포-0567<br>서울특별시 영등포구 국제금융로6길 33, 919호 씨307(여의도동, 맨하탄빌딩)<br>대표전화 02-6953-8006 · 이메일 vidacorp.ceo@gmail.com · 개인정보보호책임자 김신천</div>
 </div>
@@ -1216,7 +1327,7 @@ const AXES=[
   {k:"closing",label:"클로징"}
 ];
 function clampS(v){ return Math.max(0,Math.min(100,Math.round(+v||0))); }
-function axColor(v){ return v>=75?'#16a34a':v>=50?'#d97706':'#dc2626'; }
+function axColor(v){ return v>=60?'#4f8a3c':'#cdd6c4'; }
 const AX_FIELD={empathy:"공감경청",needs:"니즈파악",evidence:"근거전문성",delivery:"화법표현",rebuttal:"반론대응",closing:"클로징"};
 
 /* ============================================================
@@ -1289,7 +1400,7 @@ function renderDemoCoaching(){
     '<div class="cst">'+esc(weak.label)+' 점수가 '+weak.v+'점으로 가장 낮습니다.</div>'+
     '<ul><li>'+esc(DEMO_TIPS[state.persona.id]||'질문으로 진짜 니즈를 끌어내고 근거로 뒷받침하세요.')+'</li>'+
     '<li>모범답안 스크립트의 화법을 참고해 다시 연습해 보세요.</li></ul></div>'+
-    '<div class="cnext">▶ 다음 훈련: 거절 강도를 한 단계 올려 같은 고객을 다시 설득해 보세요.</div>';
+    '<div class="cnext">다음 훈련: 거절 강도를 한 단계 올려 같은 고객을 다시 설득해 보세요.</div>';
 }
 
 let state=null, coldness=3;
@@ -1490,7 +1601,7 @@ function resumeSession(){
   (state.messages||[]).forEach(function(m,idx){
     if(idx===0){ addBubble("cust",p.emoji,m.text); return; }
     if(m.role==='fc'){ addBubble("fc","🧑‍💼",m.text); }
-    else { addBubble("cust",p.emoji,m.text); var row=document.createElement("div"); row.className="peekrow"; row.innerHTML='<button class="peek" onclick="togglePeek('+turnIdx+',this)">💬 코칭 보기</button>'; log.appendChild(row); turnIdx++; }
+    else { addBubble("cust",p.emoji,m.text); var row=document.createElement("div"); row.className="peekrow"; row.innerHTML='<button class="peek" onclick="togglePeek('+turnIdx+',this)">코칭 보기</button>'; log.appendChild(row); turnIdx++; }
   });
   log.scrollTop=log.scrollHeight;
   inp.disabled=false;$("#send").disabled=false;inp.focus();
@@ -1503,13 +1614,90 @@ function passLineFor(p,cold){return Math.max(50,Math.min(90,[0,60,68,75][p.diff]
    데이터 근거: 대부분이 강도5로 직행 → 합격률 0% → 좌절·이탈. 쉬운 첫 승리가 재방문을 만든다.
    규칙: 지금까지 '합격한 최고 난이도 + 1'까지만 허용(최소 2). 이겨야 다음 강도가 열림. */
 function allowedMaxCold(){ try{ var db=loadStore(); var mp=db.maxPassedCold||0; return Math.max(2,Math.min(5,mp+1)); }catch(e){ return 2; } }
+/* [프로토타입 이식] 레벨/티어 (누적 세션 + 최고 합격 강도 기준) */
+function userLevel(){
+  var s=0,mp=0; try{ var db=loadStore(); s=(db.global&&db.global.sessions)||0; mp=db.maxPassedCold||0; }catch(e){}
+  if(s>=150&&mp>=5) return {n:'보험신',ic:'🏆'};
+  if(s>=80&&mp>=5)  return {n:'보험왕',ic:'👑'};
+  if(s>=45&&mp>=4)  return {n:'Lv.5 세일즈 마스터',ic:'🎖'};
+  if(s>=25&&mp>=3)  return {n:'Lv.4 에이스',ic:'🎖'};
+  if(s>=12&&mp>=2)  return {n:'Lv.3 필드 FC',ic:'🎖'};
+  if(s>=5&&mp>=1)   return {n:'Lv.2 루키 FC',ic:'🎖'};
+  return {n:'Lv.1 새싹 FC',ic:'🌱'};
+}
+function levelBadgeHTML(){ var lv=userLevel(); return '<div class="lvbadge">'+lv.ic+' <b>'+esc(lv.n)+'</b></div>'; }
+// 다음 레벨까지 진행 상황(누적 훈련 + 거절강도 관문 기준)
+function nextLevelInfo(){
+  var s=0,mp=0; try{ var db=loadStore(); s=(db.global&&db.global.sessions)||0; mp=db.maxPassedCold||0; }catch(e){}
+  var tiers=[{need:5,cold:1,name:'Lv.2 루키 FC'},{need:12,cold:2,name:'Lv.3 필드 FC'},{need:25,cold:3,name:'Lv.4 에이스'},{need:45,cold:4,name:'Lv.5 세일즈 마스터'},{need:80,cold:5,name:'보험왕'},{need:150,cold:5,name:'보험신'}];
+  for(var i=0;i<tiers.length;i++){ var t=tiers[i];
+    if(s<t.need || mp<t.cold){ var prev=i===0?0:tiers[i-1].need; var pct=Math.max(4,Math.min(100,Math.round((s-prev)/(t.need-prev)*100)));
+      return {next:t.name, pct:pct, remain:Math.max(0,t.need-s), coldGate:(mp<t.cold?t.cold:0)}; } }
+  return null;
+}
+// [게임화] 계약 성사 시 점수·거절강도로 월납 보험료(만원) 산정 — 세션 데이터로 계산해 서버 기록에서 바로 누적 가능(새 컬럼 불필요)
+function sessionPremium(avg,cold,passed){ if(!passed) return 0; avg=+avg||0; cold=+cold||1; return Math.max(3, Math.round((avg/100)*(6+cold*5))); }
+function closingRewardHTML(avg,cold){ var p=sessionPremium(avg,cold,true); return '<div class="closing"><div class="cl-k">계약 성사</div><div class="cl-amt">월납 <b>'+p+'</b>만원 클로징!</div><div class="cl-sub">이번 계약이 이번 달 실적에 더해졌어요</div></div>'; }
+function heroLevelBadge(){ var lv=userLevel(); return '<span class="ms-lv">'+lv.ic+' <b>'+esc(lv.n)+'</b></span>'; }
+function heroLevelProgress(){
+  var info=nextLevelInfo();
+  if(!info) return '<div class="ms-lvbarwrap"><div class="ms-lvnote">최고 등급 달성 — 최정상입니다</div></div>';
+  var note = info.remain>0 ? ('다음 레벨 '+esc(info.next)+'까지 훈련 '+info.remain+'회'+(info.coldGate?(' · 거절강도 '+info.coldGate+' 합격'):'')) : ('다음 레벨 '+esc(info.next)+' · 거절강도 '+info.coldGate+' 합격하면 승급');
+  return '<div class="ms-lvbarwrap"><div class="ms-lvbar"><div class="ms-lvfill" style="width:'+info.pct+'%"></div></div><div class="ms-lvnote">'+note+'</div></div>';
+}
+// [프로토타입 이식] 입력 방식 잠금해제 레벨(1~6). 직접 입력=Lv.3, 음성 실전=Lv.5에서 해제
+function userLevelNum(){
+  var s=0,mp=0; try{ var db=loadStore(); s=(db.global&&db.global.sessions)||0; mp=db.maxPassedCold||0; }catch(e){}
+  if(s>=80&&mp>=5) return 6;   // 보험왕·보험신 → 전부 해제
+  if(s>=45&&mp>=4) return 5;
+  if(s>=25&&mp>=3) return 4;
+  if(s>=12&&mp>=2) return 3;
+  if(s>=5&&mp>=1)  return 2;
+  return 1;
+}
+function renderLockRow(){
+  var el=gq('lockrow'); if(!el) return;
+  if(!state || state.guest || (state.persona&&state.persona.guest)){ el.innerHTML=''; return; }
+  var n=userLevelNum(), directOn=n>=3, voiceOn=n>=5;
+  el.innerHTML=
+    '<span class="lockchip on">🧩 대화 조립</span>'+
+    '<span class="lockchip'+(directOn?' on':'')+'"'+(directOn?'':' onclick="showLock(\'direct\')"')+'>'+(directOn?'✏️ 직접 입력':'🔒 직접 입력 · Lv.3')+'</span>'+
+    '<span class="lockchip'+(voiceOn?' on':'')+'"'+(voiceOn?'':' onclick="showLock(\'voice\')"')+'>'+(voiceOn?'🎙️ 음성 실전':'🔒 음성 실전 · Lv.5')+'</span>';
+}
+function showLock(kind){
+  if(kind==='direct') toast('🔒 직접 입력은 Lv.3에서 열려요 — 지금은 추천 화법으로 실력을 쌓아요!');
+  else toast('🔒 음성 실전은 Lv.5에서 열려요 — 계속 훈련하면 게임처럼 하나씩 열립니다!');
+}
+// [프로토타입 이식·개선] 저레벨(Lv.3 전) 로그인 유저에게도 매 턴 '맥락 맞춘 추천 화법'을 제공.
+// 스크립트 프레임이 아니라 실제 AI가 고객의 마지막 대사에 맞춰 생성한 답변을 눌러 넣고 다듬어 보낸다.
+var DEFAULT_SUGGEST=[
+  "말씀 감사해요. 혹시 지금 이 부분에서 가장 신경 쓰이는 게 어떤 건지 먼저 여쭤봐도 될까요?",
+  "바로 권해드리려는 게 아니라, 지금 상황에 공백이 없는지만 딱 5분 함께 점검해드리고 싶어요.",
+  "이미 잘 챙기고 계실 텐데, 최근 바뀐 부분만 짚어드릴게요. 확인만 해도 남는 거니까요."
+];
+function assistMode(){ return !!(state && (state.guest || userLevelNum()<3)); }
+function hideAssistSuggest(){ var w=gq('assistSuggest'); if(w) w.remove(); }
+function renderAssistSuggest(){
+  if(!state || state.guest || state.closed) return;   // 게스트는 renderGuestSuggest가 담당
+  if(userLevelNum()>=3) return;                        // Lv.3+ 는 자유 입력
+  hideAssistSuggest(); hideAssembleAssist();
+  var bar=gq('inbar'); if(!bar) return;
+  var list=(state.suggest && state.suggest.length)?state.suggest.slice(0,3):DEFAULT_SUGGEST;
+  var wrap=document.createElement('div'); wrap.id='assistSuggest'; wrap.className='gsug';
+  wrap.innerHTML='<div class="gsug-h">이렇게 답해보세요 <span>· 눌러서 넣고 다듬어 보내세요</span></div>'+
+    list.map(function(s,i){ return '<button class="gsug-b" type="button" data-i="'+i+'">'+esc(s)+'</button>'; }).join('');
+  bar.insertBefore(wrap, bar.firstChild);
+  Array.prototype.forEach.call(wrap.querySelectorAll('.gsug-b'),function(b){
+    b.onclick=function(){ inp.value=list[+b.getAttribute('data-i')]; try{ inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,120)+'px'; }catch(e){} hideAssistSuggest(); inp.focus(); };
+  });
+}
 function sparkSVG(vals){
   var W=300,H=58,pad=10;
   var mn=Math.min.apply(null,vals.concat([40]))-5, mx=Math.max.apply(null,vals.concat([90]))+5;
   var xs=function(i){ return vals.length>1?pad+i*(W-2*pad)/(vals.length-1):W/2; };
   var ys=function(v){ return H-pad-(v-mn)/(mx-mn)*(H-2*pad); };
   var pts=vals.map(function(v,i){return xs(i).toFixed(1)+','+ys(v).toFixed(1);}).join(' ');
-  var dots=vals.map(function(v,i){return '<circle cx="'+xs(i).toFixed(1)+'" cy="'+ys(v).toFixed(1)+'" r="'+(i===vals.length-1?4.5:3)+'" fill="'+(i===vals.length-1?'#FF7A1A':'#1e7a46')+'"/>';}).join('');
+  var dots=vals.map(function(v,i){return '<circle cx="'+xs(i).toFixed(1)+'" cy="'+ys(v).toFixed(1)+'" r="'+(i===vals.length-1?4.5:3)+'" fill="'+(i===vals.length-1?'#2f7d32':'#8fb573')+'"/>';}).join('');
   var labs=vals.map(function(v,i){return '<text x="'+xs(i).toFixed(1)+'" y="'+Math.max(11,ys(v)-8).toFixed(1)+'" font-size="10" fill="#14401f" text-anchor="middle" font-weight="800">'+v+'</text>';}).join('');
   return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" style="display:block"><polyline points="'+pts+'" fill="none" stroke="#1e7a46" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+labs+'</svg>';
 }
@@ -1519,8 +1707,8 @@ function growthSectionHTML(){
     if(h.length<2) return '';
     var vals=h.map(function(x){return Math.round(x.avg||0);});
     var d=vals[vals.length-1]-vals[vals.length-2];
-    var msg=d>=0?('지난 세션보다 <b>+'+d+'점</b> — 꾸준히 성장 중이에요 💪'):('이번엔 조금 내렸지만, 한 판만 더 하면 다시 오릅니다 🔥');
-    return '<div class="growthbox"><div class="growthbox-h">📈 세션 성장 곡선 <span>최근 '+h.length+'세션</span></div>'+sparkSVG(vals)+'<div class="growthbox-m">'+msg+'</div></div>';
+    var msg=d>=0?('지난 세션보다 <b>+'+d+'점</b> — 꾸준히 성장 중이에요'):('이번엔 조금 내렸지만, 한 판만 더 하면 다시 오릅니다');
+    return '<div class="growthbox"><div class="growthbox-h">세션 성장 곡선 <span>최근 '+h.length+'세션</span></div>'+sparkSVG(vals)+'<div class="growthbox-m">'+msg+'</div></div>';
   }catch(e){ return ''; }
 }
 /* ============================================================
@@ -1566,6 +1754,89 @@ function renderGuestSuggest(){
   });
 }
 function hideGuestSuggest(){ var w=gq("guestSuggest"); if(w) w.remove(); }
+
+/* ===== [개선 이식] 첫 턴 화법 조립(대화 조립) — 신규 유저 training wheels =====
+   실제 AI 대화는 그대로 두고, 첫 턴에만 스크립트 프레임으로 좋은 화법을 조립해 전송한다.
+   (고객 오프닝 키워드로 5종 중 선택 · 백엔드/AI 프롬프트 변경 없음) */
+var ASM_FRAMES={
+  already:{pre:'그러셨군요, 이미 챙기셨다니 잘하셨어요. 다만', mid:',', post:'한 번만 같이 봐드릴까요?',
+    opts:[{b:0,t:'가입 후 상황이 바뀌셨다면'},{b:0,t:'더 좋은 상품이 많으니'},{b:1,t:'지금 보장이 그대로 맞는지'},{b:1,t:'새 상품이 얼마나 좋은지'}]},
+  busy:{pre:'네, 바쁘신 거 아는데', mid:',', post:'말씀드릴게요.',
+    opts:[{b:0,t:'딱 30초만 주시면'},{b:0,t:'좋은 상품이 나와서'},{b:1,t:'고객님께 이득 되는 것 하나만'},{b:1,t:'요즘 다들 하는 거라'}]},
+  price:{pre:'부담되시는 거 당연해요. 그럼', mid:',', post:'함께 잡아볼까요?',
+    opts:[{b:0,t:'지금 형편에 맞는 선부터'},{b:0,t:'조금 무리해서라도'},{b:1,t:'꼭 필요한 것만'},{b:1,t:'이왕이면 넉넉하게'}]},
+  noneed:{pre:'그럴 수 있어요. 혹시', mid:'', post:'여쭤봐도 될까요?',
+    opts:[{b:0,t:'어떤 점 때문에'},{b:0,t:'그래도 필요하니'},{b:1,t:'그렇게 느끼시는지'},{b:1,t:'하나 보여드려도 될지'}]},
+  generic:{pre:'그 마음 충분히 이해해요. 다만', mid:',', post:'여쭤봐도 될까요?',
+    opts:[{b:0,t:'지금 가장 걱정되는 게'},{b:0,t:'제 상품이 더 좋으니'},{b:1,t:'어떤 부분인지'},{b:1,t:'한번 보시겠는지'}]}
+};
+function pickAsmFrame(txt){
+  txt=String(txt||'');
+  if(/부담|비싸|돈|보험료|금액|여유|형편/.test(txt)) return ASM_FRAMES.price;
+  if(/바쁘|바빠|시간.{0,2}없|나중|다음에|이동|운전|외출|나가|통화|문자|전화|지금.{0,2}(좀|바|안)/.test(txt)) return ASM_FRAMES.busy;
+  if(/필요.{0,3}없|관심.{0,3}없|생각.{0,3}없|됐어|괜찮|별로/.test(txt)) return ASM_FRAMES.noneed;
+  if(/이미|있어|있는|들어|가입|챙겨|해놨/.test(txt)) return ASM_FRAMES.already;
+  return ASM_FRAMES.generic;
+}
+function hideAssembleAssist(){ var w=gq('asmAssist'); if(w) w.remove(); }
+// 대화 조립 프레임: AI가 이번 고객 대사에 맞춰 생성한 asm이 있으면 그걸, 없으면(첫 턴 등) 스크립트 프레임으로 폴백
+function currentAsmFrame(){
+  var f=state && state.asmFrame;
+  if(f && f.pre!=null && Array.isArray(f.b0) && Array.isArray(f.b1) && f.b0.length && f.b1.length){
+    return { pre:String(f.pre), mid:(f.mid!=null?String(f.mid):','), post:(f.post!=null?String(f.post):''),
+      opts:[].concat(
+        f.b0.slice(0,3).map(function(t){return {b:0,t:String(t)};}),
+        f.b1.slice(0,3).map(function(t){return {b:1,t:String(t)};}) ) };
+  }
+  var opener='';
+  for(var i=(state&&state.messages||[]).length-1;i>=0;i--){ if(state.messages[i].role==='cust'){ opener=state.messages[i].text; break; } }
+  return pickAsmFrame(opener);
+}
+// [개선] 첫 턴은 AI가 고객의 '첫 대사 상황'을 그대로 인정하는 조립 프레임을 만들어 준다(막연한 공감 시작 방지)
+async function loadOpeningFrame(){
+  if(!state || state.guest || userLevelNum()>=3) return;
+  var p=state.persona, opener='';
+  for(var i=(state.messages||[]).length-1;i>=0;i--){ if(state.messages[i].role==='cust'){ opener=state.messages[i].text; break; } }
+  if(!opener) return;
+  var prompt='당신은 보험 영업사원(FC) 교육 코치입니다. 아래는 상담 첫머리에 고객이 한 말입니다.\n고객('+p.name+'): "'+opener+'"\n\n초보 FC가 이 고객의 첫 마디에 자연스럽게 이어질 좋은 첫 화법을 \'빈칸 조각 맞추기\'로 완성하도록 asm을 만드세요.\n- 완성문 = pre + " " + (b0 중 택1) + mid + " " + (b1 중 택1) + " " + post.\n- 【중요】 pre는 고객이 방금 말한 구체적 상황을 그대로 인정하며 시작하세요. 예: 고객이 이동 중/바쁘다고 하면 "아 지금 이동 중이시군요," "많이 바쁘시죠," 처럼. 막연한 "그 마음 이해해요"로 시작하지 마세요.\n- b0·b1은 각각 서로 다른 조각 후보 2개씩. 어떤 조합이든 자연스러운 한 문장이 되게.\n- 실제 보험 상품 구조에 안 맞는 허위 수치·구조는 넣지 마세요.\n[출력] JSON 하나만: {"asm":{"pre":"...","mid":",","post":"...","b0":["조각1","조각2"],"b1":["조각1","조각2"]}}';
+  try{
+    var r=await fetch(API_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    var j=await r.json().catch(function(){return null;});
+    var raw=(j&&j.text)?j.text:(j&&j.content&&j.content[0]&&j.content[0].text)?j.content[0].text:'';
+    var d=extractJson(raw);
+    if(d && d.asm && d.asm.pre!=null && Array.isArray(d.asm.b0) && Array.isArray(d.asm.b1) && state && (state.turns||0)===0 && !state.closed){
+      state.asmFrame=d.asm; renderAssembleAssist();
+    }
+  }catch(e){}
+}
+function renderAssembleAssist(){
+  if(!state || state.guest || (state.persona&&state.persona.guest) || state.closed) return;
+  if(userLevelNum()>=3) return;   // 직접 입력 해제(Lv.3+) 후엔 자유 입력으로 진행
+  var bar=gq('inbar'); if(!bar) return;
+  hideAssembleAssist();
+  var fr=currentAsmFrame(); var sel=[null,null];
+  function slotHtml(b){ var s=sel[b]; return '<span class="asm-slot '+(s?'filled':'empty')+'" data-slot="'+b+'">'+(s?esc(s.t):'＋ 조각 넣기')+'</span>'; }
+  function frameHtml(){ return esc(fr.pre)+' '+slotHtml(0)+esc(fr.mid)+' '+slotHtml(1)+' '+esc(fr.post); }
+  var wrap=document.createElement('div'); wrap.id='asmAssist'; wrap.className='asm';
+  wrap.innerHTML='<div class="asm-h">화법 조립 <span>· 조각을 눌러 문장을 완성하세요</span></div>'+
+    '<div class="asm-frame" id="asmFrame">'+frameHtml()+'</div>'+
+    '<div class="asm-bank" id="asmChips">'+fr.opts.map(function(o,i){return '<button type="button" class="asm-chip" data-i="'+i+'">'+esc(o.t)+'</button>';}).join('')+'</div>'+
+    '<button type="button" class="asm-go" id="asmGo" disabled>이대로 말하기 →</button>';
+  bar.insertBefore(wrap, bar.firstChild);
+  function refresh(){
+    var f=gq('asmFrame'); if(f) f.innerHTML=frameHtml();
+    Array.prototype.forEach.call(wrap.querySelectorAll('.asm-chip'),function(b){ var i=+b.getAttribute('data-i'); var o=fr.opts[i]; b.classList.toggle('used', !!(sel[o.b]&&sel[o.b].i===i)); });
+    Array.prototype.forEach.call(wrap.querySelectorAll('.asm-slot'),function(sl){ sl.onclick=function(){ sel[+sl.getAttribute('data-slot')]=null; refresh(); }; });  // 채운 조각 다시 누르면 비움
+    var go=gq('asmGo'); if(go) go.disabled=!(sel[0]&&sel[1]);
+  }
+  Array.prototype.forEach.call(wrap.querySelectorAll('.asm-chip'),function(b){ b.onclick=function(){ var i=+b.getAttribute('data-i'); var o=fr.opts[i]; sel[o.b]={i:i,t:o.t}; refresh(); }; });
+  refresh();
+  var go=gq('asmGo'); if(go) go.onclick=function(){
+    if(!(sel[0]&&sel[1])) return;
+    var said=(fr.pre+' '+sel[0].t+fr.mid+' '+sel[1].t+' '+fr.post).replace(/\s+/g,' ').trim();
+    hideAssembleAssist(); inp.value=said; send();
+  };
+}
 function finishGuest(){
   if(!state) return;
   state.closed=true; stopSpeak(); stopRecog();
@@ -1609,6 +1880,9 @@ function startChat(p){
   updateVoiceBtn(); setMood("cold"); log.innerHTML="";
   var op=pickOpener(p); addBubble("cust",p.emoji,op); state.messages.push({role:"cust",text:op}); speak(op);
   inp.disabled=false;$("#send").disabled=false;inp.focus();
+  renderLockRow();          // [프로토타입 이식] 상단 입력방식 잠금 표시
+  renderAssembleAssist();   // [프로토타입] 대화 조립(즉시: 스크립트 프레임)
+  loadOpeningFrame();       // [개선] 곧이어 AI가 첫 대사 상황에 맞춘 프레임으로 교체
 }
 function reset(){
   persistSession();   // 진행 중이라도 그때까지의 모든 점수를 저장(평균에 반영). 점수 없음/이미 커밋된 세션은 자동 skip.
@@ -1619,11 +1893,21 @@ function reset(){
   showHome();
   state=null;
 }
-function setMood(m){const i=MOODS[m]||MOODS.cold;$("#moodTxt").textContent=i.t;$("#moodFill").style.width=i.w+"%";}
+function setMood(m){const i=MOODS[m]||MOODS.cold;$("#moodTxt").textContent=i.t;$("#moodFill").style.width=i.w+"%";
+  /* [프로토타입 이식] 고객 호감도 게이지 */
+  var w=i.w, face=w>=100?'😊':(w>=70?'🙂':(w>=42?'😐':'😠'));
+  var fEl=gq('hgFace'),pEl=gq('hgPct'),flEl=gq('hgFill'),gEl=gq('hgauge');
+  if(fEl){ fEl.textContent=face; fEl.classList.add('bump'); setTimeout(function(){fEl.classList.remove('bump');},220); }
+  if(pEl) pEl.textContent=w+'%';
+  if(flEl) flEl.style.width=w+'%';
+  if(gEl){ gEl.classList.remove('gain'); void gEl.offsetWidth; gEl.classList.add('gain'); }
+}
+function addMilestone(){ if(!log) return; var d=document.createElement('div'); d.className='milestone'; d.textContent='고객이 마음을 열기 시작했어요 — 지금이 기회예요'; log.appendChild(d); log.scrollTop=log.scrollHeight; }
 function addBubble(role,emoji,text){
   const r=document.createElement("div"); r.className="row "+role;
   r.innerHTML=`<span class="mini">${role==='fc'?'🧑‍💼':emoji}</span><div class="bub">${esc(text)}</div>`;
   log.appendChild(r); log.scrollTop=log.scrollHeight;
+  return r;
 }
 function buildEvalEl(ev){
   const s=Math.max(0,Math.min(100,ev.score||0));
@@ -1649,11 +1933,11 @@ function persuasionChip(prevW,newW){
 }
 function addTurnFooter(prevW,newW,i){
   const row=document.createElement("div"); row.className="peekrow";
-  row.innerHTML=`${persuasionChip(prevW,newW)}<button class="peek" onclick="togglePeek(${i},this)">💬 코칭 보기</button>`;
+  row.innerHTML=`${persuasionChip(prevW,newW)}<button class="peek" onclick="togglePeek(${i},this)">코칭 보기</button>`;
   log.appendChild(row); log.scrollTop=log.scrollHeight;
 }
 function togglePeek(i,btn){
-  if(btn._el){ btn._el.remove(); btn._el=null; btn.textContent='💬 코칭 보기'; return; }
+  if(btn._el){ btn._el.remove(); btn._el=null; btn.textContent='코칭 보기'; return; }
   const ev=state&&state.turnEvals?state.turnEvals[i]:null; if(!ev) return;
   const el=buildEvalEl(ev); log.insertBefore(el, btn.parentNode.nextSibling); btn._el=el; btn.textContent='코칭 접기'; log.scrollTop=log.scrollHeight;
 }
@@ -1665,12 +1949,15 @@ function typing(on){let t=$("#typing");
 async function send(){
   if(!state||state.closed)return;
   const text=inp.value.trim(); if(!text)return;
+  hideAssembleAssist(); hideAssistSuggest();   // 답변 전송 시 추천/조립 패널 제거
   inp.value="";inp.style.height="auto";
-  addBubble("fc","🧑‍💼",text); state.messages.push({role:"fc",text}); state.turns++;
+  var fcEl=addBubble("fc","🧑‍💼",text); state.messages.push({role:"fc",text}); state.turns++;
   inp.disabled=true;$("#send").disabled=true;typing(true);
   const p=state.persona, c=COLD[state.cold];
   const convo=state.messages.map(m=>`${m.role==='fc'?'영업사원':'고객'}: ${m.text}`).join("\n");
   const teaseRule=state.tease?`\n- 재미와 동기부여를 위해 살짝 장난스럽고 유쾌한 톤을 섞습니다. 답변이 약하면 부드럽게 놀리듯 도발해("에이~ 그 정도로는 안 넘어가죠 ㅎㅎ", "오, 이번엔 진짜 대충인데요?") 재도전 승부욕을 자극하고, 답변이 좋으면 능청스럽게 인정합니다("오, 이번 건 좀 통하네요"). 단 무례·인신공격은 금지하고, 페르소나 성격과 거절 강도는 끝까지 유지합니다.`:``;
+  const asmOn=(!state.guest && (typeof userLevelNum==='function') && userLevelNum()<3);  // 저레벨 로그인 유저 → 대화 조립 프레임 제공
+  const asmRule=asmOn?`\n[화법 조립] 초보 영업사원이 좋은 화법을 '빈칸 조각 맞추기'로 완성하도록 asm(빈칸 채우기 문형)을 제시하세요.\n- 완성문 = pre + ' ' + (b0 중 택1) + mid + ' ' + (b1 중 택1) + ' ' + post 로 조립됩니다. pre(도입 고정), mid(연결어, 보통 ","), post(제안·질문 고정)는 어떤 조각을 골라도 자연스러운 한 문장이 되도록 쓰고, b0·b1은 각각 서로 다른 조각 후보 2개씩.\n- 【무엇에 답하나·매우 중요】 asm은 '이미 지나간 고객 대사'가 아니라, 당신이 이 응답에서 새로 생성하는 customer(고객의 바로 다음 대사)에 영업사원이 곧바로 이어서 할 '다음' 화법입니다. 방금 만든 customer의 내용에 정면으로 이어져 대화를 반드시 '앞으로' 진전시켜야 합니다. 앞 턴과 똑같은 도입·인정을 반복하면 안 됩니다.\n- 【진전 예시】 고객이 마음이 열려 조건(예: "저녁 8시엔 가능")을 제시하면, 다시 "바쁘시죠"류 인정으로 되돌아가지 말고 그 조건을 확정·구체화하는 화법(예: 그 시간으로 약속 잡기)을 만드세요. 고객이 아직 거절/질문 중이면 그 지점을 해소하는 화법을 만드세요.\n- 【상품 정확성】 실제 보험 상품 구조에 맞지 않는 허위 사실·지어낸 확정 수치는 넣지 마세요. 특히 실손(실비)은 보험료를 조금 더 낸다고 보장 한도가 올라가는 구조가 아니며, 정액형과 혼동 금지. 확정 금액 대신 '약관·상품 비교로 확인' 같은 구조적으로 맞는 표현을 쓰세요.`:``;
   const prompt=
 `당신은 보험 영업사원(FC) 교육용 롤플레이 AI입니다. 두 역할을 동시에 수행합니다.
 
@@ -1688,6 +1975,7 @@ ${c.d}
 - 영업사원의 답변이 설득력 있으면 인간적으로 반응합니다: 부분 인정("그건 그렇네요"), 새로운 궁금증, 망설임, 조건부 관심 등으로 조금씩 마음이 열리는 게 대사에서 드러나야 합니다. mood를 cold→neutral→warming→convinced로 단계적으로 올리되, 좋은 답변에도 제자리 거절만 반복하면 안 됩니다.
 - 거절 강도가 낮을수록 빨리 누그러집니다. 강도1은 진심 어리고 합리적인 답변 1~2번이면 눈에 띄게 호의적으로 바뀌고, 억지스럽거나 근거 없는 답변에만 계속 거절합니다. 강도가 높으면 더 오래 버팁니다. 페르소나 특성과 강도는 유지하되, 무한정 벽 치듯 스톤월링하는 것은 금지입니다.
 - 동시에 영업사원의 마지막 답변을 코치로서 평가합니다. 거절 강도가 높을수록 점수 기준을 엄격히 적용하세요.
+- 【상품 정확성】 고객으로서 반응할 때든 코치로서 평가할 때든, 실제 보험 상품 구조에 어긋나는 화법은 절대 옳은 것으로 인정하지 마세요. 대표적 오류: 실손(실비)은 보험료를 조금 더 낸다고 보장 한도가 올라가는 구조가 아님 / 실손과 정액형(진단비·입원일당)을 혼동 / 근거 없는 확정 수치를 사실처럼 단정. 영업사원이 이런 구조적 오류나 지어낸 수치를 말하면, 고객은 "그건 실비가 그렇게 되는 게 아닐 텐데요?"처럼 되묻고, 코치는 improve/tip에서 무엇이 상품 구조상 틀렸는지 반드시 짚어 evidence 점수를 낮추세요. 당신(AI) 스스로도 확정 수치를 지어내지 말고 '약관·상품 비교로 확인'을 전제로 답하세요.
 - 설득이 거절 강도에 맞게 쌓이면 현실적인 고객처럼 마음을 열어 목표(가입 검토·다음 미팅 약속·지인 소개 승낙 등)에 긍정적으로 응하며, 이때 closed를 true, mood를 convinced로 설정합니다. 대략의 임계치 — 강도1~2: 좋은 답변 1~2회 / 강도3: 3~4회 / 강도4: 5회 안팎 / 강도5: 6회 이상. 단 근거 없이 약하거나 반복적인 답변에는 열리지 마세요.
 
 [역량 채점] 영업사원의 이번 답변을 아래 6개 역량으로 각각 0~100점 채점하세요. 상황(거절 극복/소개 요청)에 맞게 유연히 해석합니다.
@@ -1702,32 +1990,45 @@ score(총점)는 이 역량들을 종합한 설득력이며, good/improve/tip은
 [대화 기록]
 ${convo}
 
-${state.guest?'[추천 답변] 방금 만든 고객의 대사에 자연스럽게 이어질, 영업사원(FC)이 할 만한 다음 답변 후보 3개를 만드세요. 각 1~2문장 구어체, 서로 다른 접근(① 공감·인정 ② 질문으로 니즈 확인 ③ 근거·부담낮춘 제안), 고객이 방금 한 말에 구체적으로 반응해 대화가 이어지게. 아래 JSON의 suggest 배열에 넣으세요.\n':''}
+${state.guest?'[추천 답변] 당신이 이 응답에서 새로 생성하는 customer(고객의 바로 다음 대사)에 곧바로 이어질, FC가 실제로 할 만한 답변 후보 3개를 각 1~2문장 구어체로 만드세요. 이미 지나간 대사가 아니라 방금 만든 customer에 정면으로 이어져 대화를 앞으로 진전시켜야 합니다(고객이 조건을 열면 확정하는 방향으로). 앞 턴 인정을 반복하지 마세요. 실제 보험 상품 구조에 맞지 않는 허위 사실·지어낸 확정 수치는 넣지 마세요(실손은 보험료 조금 더 낸다고 한도가 오르는 구조가 아니며, 정액형과 혼동 금지). 확정 금액 대신 "정확한 건 약관으로 비교" 같은 검증 전제를 쓰세요. 아래 JSON의 suggest 배열에 넣으세요.\n':''}${asmRule?asmRule+'\n':''}
 [출력] 반드시 아래 JSON 하나만. 다른 말 금지.
-{"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장","improve":"개선점 한 문장","tip":"더 나은 화법 제안 한 문장","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false${state.guest?',"suggest":["영업사원 답변 후보1","후보2","후보3"]':''}}`;
+{"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장","improve":"개선점 한 문장","tip":"더 나은 화법 제안 한 문장","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false${state.guest?',"suggest":["영업사원 답변 후보1","후보2","후보3"]':''}${asmOn?',"asm":{"pre":"고정 앞부분","mid":",","post":"고정 뒷부분","b0":["조각후보1","조각후보2"],"b1":["조각후보1","조각후보2"]}':''}}`;
+  // 실제 AI만 사용 — 데모 모드/가짜 응답 없음. 실패 시 재시도, 그래도 안 되면 정직하게 안내하고 방금 답변을 되돌려 재시도 유도.
   let data=null;
-  if(!DEMO_MODE){
+  for(var attempt=0; attempt<3 && !data; attempt++){
+    if(attempt>0){ await new Promise(res=>setTimeout(res, 700*attempt)); }
     try{
       const r=await fetch(API_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
       const j=await r.json().catch(function(){return null;});
-      if(!r.ok || !j){ console.warn('[sales-coach] HTTP '+r.status, j); }
+      if(!r.ok || !j){ console.warn('[sales-coach] HTTP '+r.status+' (시도 '+(attempt+1)+')', j); }
       const raw=(j&&j.text)?j.text:(j&&j.content&&j.content[0]&&j.content[0].text)?j.content[0].text:"";
       data=extractJson(raw);
-      if(!data){ console.warn('[sales-coach] 응답에서 JSON을 못 읽음. 서버 응답:', j); }
-    }catch(e){ console.warn('[sales-coach] 호출 오류:', e); data=null; }
-    if(!data){ DEMO_MODE=true; toast('🧪 데모 모드 — 내장 엔진이 응답합니다. (실시간 AI는 백엔드 배포 시 동작)'); }
+      if(!data){ console.warn('[sales-coach] JSON 파싱 실패 (시도 '+(attempt+1)+')', j); }
+    }catch(e){ console.warn('[sales-coach] 호출 오류 (시도 '+(attempt+1)+')', e); data=null; }
   }
-  if(!data){ await new Promise(res=>setTimeout(res,450)); data=demoTurn(text); }
   typing(false);
-  if(!data){addBubble("cust",p.emoji,"(연결이 잠시 불안정했어요. 다시 한 번 말씀해 주시겠어요?)");inp.disabled=false;$("#send").disabled=false;inp.focus();return;}
+  if(!data){
+    // 데모로 대체하지 않는다. 방금 보낸 답변을 롤백하고 그대로 재시도할 수 있게 복구.
+    if(state.messages.length && state.messages[state.messages.length-1].role==='fc'){ state.messages.pop(); }
+    if(state.turns>0) state.turns--;
+    if(fcEl && fcEl.parentNode){ fcEl.parentNode.removeChild(fcEl); }
+    inp.value=text; try{ inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,120)+'px'; }catch(e){}
+    inp.disabled=false;$("#send").disabled=false;inp.focus();
+    toast('⚠️ AI 연결이 원활하지 않아요. 잠시 후 전송을 다시 눌러 주세요.');
+    if(state.guest) renderGuestSuggest(); else renderAssembleAssist();
+    return;
+  }
   const sc=Math.max(0,Math.min(100,data.score||0));
   state.scores.push(sc); if(sc>state.best)state.best=sc;
   if(data.improve)state.improves.push(data.improve);
   if(data.axes){ state.axisCount++; AXES.forEach(a=>{ state.axisSum[a.k]=(state.axisSum[a.k]||0)+clampS(data.axes[a.k]); }); }
   state.turnEvals.push(data);
   const prevW=state.moodW||18; const nm=data.mood||"cold"; setMood(nm); const newW=(MOODS[nm]||MOODS.cold).w; state.moodW=newW;
+  if(!state.guest && !state.milestoneShown && newW>=70 && prevW<70){ state.milestoneShown=true; setTimeout(addMilestone,300); }  // [프로토타입 이식] 마일스톤
   state.messages.push({role:"cust",text:data.customer||"…"}); addBubble("cust",p.emoji,data.customer||"…"); speak(data.customer||"");
   addTurnFooter(prevW,newW,state.turnEvals.length-1);
+  if(state.guest && Array.isArray(data.suggest) && data.suggest.length){ state.suggest=data.suggest.filter(function(s){return s && String(s).trim();}); }  // 게스트: 맥락 맞춘 추천 문장
+  if(!state.guest){ state.asmFrame=(data && data.asm && data.asm.pre!=null && Array.isArray(data.asm.b0) && Array.isArray(data.asm.b1))?data.asm:null; }  // 로그인 저레벨: 이번 고객 대사에 맞춘 대화 조립 프레임
   if(!state.guest) saveSnapshot();
   // 게스트 30초 체험: 3턴 캡(또는 조기 설득) 후 미니 결과로 종료
   if(state.guest){
@@ -1737,6 +2038,7 @@ ${state.guest?'[추천 답변] 방금 만든 고객의 대사에 자연스럽게
   }
   if(data.closed || (nm==='convinced' && (state.turns||0)>=2)){finish(true);return;}
   inp.disabled=false;$("#send").disabled=false;inp.focus();
+  renderAssembleAssist();   // [프로토타입] 대화 조립 — AI가 이번 고객 대사에 맞춰 만든 프레임으로
 }
 
 /* ---------- report ---------- */
@@ -1768,7 +2070,7 @@ function finish(won){
   const first=sc[0]||0, last=sc[sc.length-1]||0, trend=last-first;
   const gr=grade(avg);
   const badge=passed?`<span class="passbadge p">✔ 합격</span>`:`<span class="passbadge f">✕ 불합격</span>`;
-  const bars=sc.map(v=>{const col=v>=75?'#16a34a':v>=50?'#d97706':'#dc2626';return `<div class="b" style="height:${Math.max(8,v)}%;background:${col}" title="${v}점"></div>`;}).join("")||'<div style="color:#9ca3af;font-size:12px;align-self:center">응답 없음</div>';
+  const bars=sc.map(v=>{const col=v>=60?'#4f8a3c':'#cdd6c4';return `<div class="b" style="height:${Math.max(8,v)}%;background:${col}" title="${v}점"></div>`;}).join("")||'<div style="color:#9ca3af;font-size:12px;align-self:center">응답 없음</div>';
   const imp=[...new Set(state.improves)].slice(-3);
   const impHtml=imp.length?imp.map(t=>`<div class="li"><b class="i">보완</b> · ${esc(t)}</div>`).join(""):'<div class="li" style="color:var(--muted)">개선점 데이터가 부족합니다.</div>';
   let raxHtml='';
@@ -1780,6 +2082,8 @@ function finish(won){
   const coachHtml=sc.length?`<div class="coach" id="coachBox"><div class="coach-load">🤖 AI 코치가 종합 분석 중…</div></div>`:'';
   const r=$("#report");
   r.innerHTML=`
+    ${won?closingRewardHTML(avg,state.cold):''}
+    ${levelBadgeHTML()}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">${badge}
       <span class="passline">합격 기준: 평균 ${state.passLine}점 이상(2턴 이상) 또는 고객 설득 성공</span></div>
     <div class="rtop">
@@ -1800,7 +2104,7 @@ function finish(won){
     ${raxHtml}
     ${coachHtml}
     <div class="rlist">
-      <div class="li"><b>${won?'🎉 거절 극복 성공 — 고객이 마음을 열었습니다.':'세션 종료 — 아래 보완점을 참고해 다시 도전해 보세요.'}</b></div>
+      <div class="li"><b>${won?'거절 극복 성공 — 고객이 마음을 열었습니다.':'세션 종료 — 아래 보완점을 참고해 다시 도전해 보세요.'}</b></div>
       ${impHtml}
     </div>
     <div class="rbtns">
@@ -1838,21 +2142,20 @@ ${convo}
 {"headline":"한 줄 총평","strengths":["잘한 점 1","잘한 점 2"],"focus":{"area":"가장 개선이 필요한 역량 이름","why":"왜 약한지 한 문장","how":["다음에 이렇게 해보라는 구체적 화법·행동 1","구체적 화법·행동 2"]},"nextStep":"다음에 어떤 훈련(고객 유형/거절 강도)을 하면 좋을지 한 문장"}`;
 }
 function generateCoaching(ctx){
-  if(DEMO_MODE){ renderDemoCoaching(); return; }
   const prompt=buildCoachPrompt(ctx.persona, ctx.goal, ctx.convo, ctx.axisText);
   askAI(prompt).then(function(raw){
     const b=document.getElementById("coachBox"); if(!b) return;
     const d=extractJson(raw);
-    if(!d){ b.innerHTML='<h4>🤖 AI 종합 코칭</h4><div class="coach-load">코칭을 생성하지 못했어요. 리포트를 다시 열어보시면 재시도됩니다.</div>'; return; }
-    const st=(d.strengths||[]).map(function(s){return `<div class="cst">👍 ${esc(s)}</div>`;}).join("");
+    if(!d){ b.innerHTML='<h4>AI 종합 코칭</h4><div class="coach-load">코칭을 생성하지 못했어요. 리포트를 다시 열어보시면 재시도됩니다.</div>'; return; }
+    const st=(d.strengths||[]).map(function(s){return `<div class="cst">· ${esc(s)}</div>`;}).join("");
     const how=((d.focus&&d.focus.how)||[]).map(function(h){return `<li>${esc(h)}</li>`;}).join("");
-    b.innerHTML=`<h4>🤖 AI 종합 코칭</h4>
+    b.innerHTML=`<h4>AI 종합 코칭</h4>
       ${d.headline?`<div class="cst" style="font-weight:600">${esc(d.headline)}</div>`:''}
       ${st}
       ${d.focus?`<div class="cfocus"><div class="ca">가장 개선할 점 · ${esc(d.focus.area||'')}</div>${d.focus.why?`<div class="cst">${esc(d.focus.why)}</div>`:''}${how?`<ul>${how}</ul>`:''}</div>`:''}
-      ${d.nextStep?`<div class="cnext">▶ 다음 훈련: ${esc(d.nextStep)}</div>`:''}`;
+      ${d.nextStep?`<div class="cnext">다음 훈련: ${esc(d.nextStep)}</div>`:''}`;
     try{ if(sb && state && state.recId){ sb.from('training_sessions').update({coaching:d}).eq('id',state.recId).then(function(){},function(){}); } }catch(e){}  // 지난 리포트에서도 볼 수 있게 저장
-  }).catch(function(){ const b=document.getElementById("coachBox"); if(b) b.innerHTML='<h4>🤖 AI 종합 코칭</h4><div class="coach-load">코칭 생성 중 오류가 발생했어요.</div>'; });
+  }).catch(function(){ const b=document.getElementById("coachBox"); if(b) b.innerHTML='<h4>AI 종합 코칭</h4><div class="coach-load">코칭 생성 중 오류가 발생했어요.</div>'; });
 }
 function buildPrintArea(d){
   const bc=d.passed?'#15803d':'#b91c1c', bb=d.passed?'#e8f7ee':'#fdeaea', bt=d.passed?'✔ 합격':'✕ 불합격';
@@ -2069,10 +2372,19 @@ async function renderMySpace(){
   var rows=[];
   try{
     var q=await sb.from('training_sessions')
-      .select('avg_score,passed,created_at,empathy,needs,evidence,delivery,rebuttal,closing')
+      .select('avg_score,passed,cold,created_at,empathy,needs,evidence,delivery,rebuttal,closing')
       .eq('user_id',AUTH_USER.id).order('created_at',{ascending:true}).limit(500);
     rows=q.data||[];
   }catch(e){ rows=[]; }
+  // [서버 동기화] 레벨·성장곡선 로컬 캐시를 서버(계정) 기록으로 갱신 → 기기가 바뀌어도 동일
+  try{
+    var _db=loadStore(); _db.global=_db.global||{};
+    _db.global.sessions=rows.length;
+    var _mpc=0; rows.forEach(function(r){ if(r.passed && (+r.cold||0)>_mpc) _mpc=+r.cold; });
+    _db.maxPassedCold=_mpc;
+    _db.history=rows.map(function(r){ return {avg:Math.round(+r.avg_score||0), t:r.created_at}; });
+    saveStore(_db);
+  }catch(e){}
 
   var goals=msGetGoals(), total=rows.length;
   var scores=rows.map(function(r){return +r.avg_score||0;});
@@ -2117,6 +2429,15 @@ async function renderMySpace(){
       '<div class="ms-m"><div class="mv">'+weekCount+'<span class="mu">회</span></div><div class="ml">이번 주 훈련</div><div class="msub">활동 '+activeDays+'일</div></div>'+
     '</div>';
 
+  // [게임화] 계약 실적(월납 보험료) 누적 — 합격 세션의 점수·강도로 산정, 이번 달/올해 합산
+  var _now=new Date(), _thisY=_now.getFullYear(), _thisM=_now.getMonth();
+  var premMonth=0, premYear=0, premAll=0;
+  rows.forEach(function(r){ if(!r.passed) return; var pr=sessionPremium(+r.avg_score||0,+r.cold||1,true); premAll+=pr; var d=new Date(r.created_at); if(d.getFullYear()===_thisY){ premYear+=pr; if(d.getMonth()===_thisM) premMonth+=pr; } });
+  var premCard='<div class="ms-card premcard"><h3>계약 실적 <span style="font-size:11.5px">월납 보험료</span></h3>'+
+    '<div class="prem-row"><div class="prem"><div class="pv">'+premMonth.toLocaleString()+'<span class="pu">만원</span></div><div class="pl">이번 달 신규 월납</div></div>'+
+    '<div class="prem"><div class="pv">'+premYear.toLocaleString()+'<span class="pu">만원</span></div><div class="pl">올해 누적 월납</div></div></div>'+
+    '<div class="prem-note">AI 고객에게 클로징 받을 때마다 쌓여요</div></div>';
+
   // 목표 카드
   function pct(cur,tgt){ return tgt>0?Math.max(0,Math.min(100,Math.round(cur/tgt*100))):0; }
   var gW=pct(weekCount,goals.weekly), gA=pct(avgAll,goals.avg), gK=pct(weakVal,goals.weak), goalsBody;
@@ -2132,12 +2453,12 @@ async function renderMySpace(){
       '<div class="ms-goal'+(gA>=100?' done':'')+'"><div class="gl"><span>목표 평균 <b>'+goals.avg+'점</b></span><span>'+(total?avgAll:0)+' / '+goals.avg+(gA>=100?' ✓':'')+'</span></div><div class="ms-track"><span class="gf" style="width:'+gA+'%"></span></div></div>'+
       '<div class="ms-goal'+(gK>=100?' done':'')+'"><div class="gl"><span>약점 개선 <b>'+esc(weakLabel)+'</b></span><span>'+weakVal+' / '+goals.weak+(gK>=100?' ✓':'')+'</span></div><div class="ms-track"><span class="gf" style="width:'+gK+'%"></span></div></div>';
   }
-  var goalCard='<div class="ms-card"><h3>🎯 나의 목표'+(MS_EDIT?'':'<button class="ms-editbtn" id="msEditBtn" type="button">목표 수정</button>')+'</h3>'+goalsBody+'</div>';
+  var goalCard='<div class="ms-card"><h3>나의 목표'+(MS_EDIT?'':'<button class="ms-editbtn" id="msEditBtn" type="button">목표 수정</button>')+'</h3>'+goalsBody+'</div>';
 
   // 역량 프로필
   var profCard='';
   if(haveAx.length){
-    profCard='<div class="ms-card"><h3>💪 역량 프로필 <span style="font-size:11.5px;font-weight:600;color:#6b7280">누적 평균</span></h3><div class="ms-prof">'+
+    profCard='<div class="ms-card"><h3>역량 프로필 <span style="font-size:11.5px;font-weight:600;color:#6b7280">누적 평균</span></h3><div class="ms-prof">'+
       axAvg.map(function(x){
         if(x.v==null){ return '<div class="ms-ax"><span class="l">'+esc(x.label)+'</span><span class="t"></span><span class="v">–</span></div>'; }
         var low=(x.v===minAx);
@@ -2148,14 +2469,22 @@ async function renderMySpace(){
   var subline;
   if(!total){ subline='첫 훈련을 시작해 나만의 성장 기록을 쌓아보세요.'; }
   else if(weekCount>=goals.weekly){ subline='이번 주 목표를 달성했어요. 정말 잘하고 있어요! 🎉'; }
-  else if(growth!=null && growth>0){ subline='최근 실력이 오르고 있어요. 이 기세를 이어가세요! 🚀'; }
+  else if(growth!=null && growth>0){ subline='최근 실력이 오르고 있어요. 이 기세를 이어가세요.'; }
   else { subline='꾸준함이 실력을 만듭니다. 오늘도 한 세션 어때요?'; }
   var emptyHint=total?'':'<div class="ms-empty">아직 훈련 기록이 없어요. 아래에서 고객을 골라 첫 훈련을 시작하면 지표가 채워집니다.</div>';
 
+  // [개선 이식] 세션 성장 곡선 (서버 세션 점수 기반 · 2회 이상부터)
+  var growthCard='';
+  if(total>=2){
+    var gv=scores.slice(-8).map(function(v){return Math.round(v);});
+    var gd=gv[gv.length-1]-gv[gv.length-2];
+    var gmsg=gd>=0?('지난 세션보다 <b>+'+gd+'점</b> — 꾸준히 성장 중이에요'):('이번엔 조금 내렸지만, 한 판만 더 하면 다시 오릅니다');
+    growthCard='<div class="ms-card"><h3>세션 성장 곡선 <span style="font-size:11.5px;font-weight:600;color:#6b7280">최근 '+gv.length+'세션</span></h3>'+sparkSVG(gv)+'<div style="font-size:12px;color:#14201a;margin-top:4px;line-height:1.5">'+gmsg+'</div></div>';
+  }
   if(_g!==MS_GEN) return;   // 그 사이 더 최근 렌더가 시작됐으면 이 결과는 버림
   el.innerHTML=
-    '<div class="ms-hero"><h2>🌱 '+esc(name)+'님의 훈련 공간</h2><div class="ms-sub">'+subline+'</div>'+metrics+'</div>'+
-    goalCard+profCard+emptyHint;
+    '<div class="ms-hero"><div class="ms-htop"><h2>'+esc(name)+'님의 훈련 공간</h2>'+heroLevelBadge()+'</div><div class="ms-sub">'+subline+'</div>'+heroLevelProgress()+metrics+'</div>'+
+    premCard+growthCard+goalCard+profCard+emptyHint;
 
   var eb=gq('msEditBtn'); if(eb) eb.onclick=msToggleEdit;
   var sv=gq('msSaveBtn'); if(sv) sv.onclick=msSave;
@@ -2232,7 +2561,93 @@ async function requestChallengeReminder(){
 })();
 function openRanking(){ listHideAll(); var rv=gq('rankView'); if(rv)rv.style.display='block'; renderRanking(); if(typeof trackStage==='function') trackStage('ranking'); }
 function closeRanking(){ showHome(); }
-function gotoPersona(){ listHideAll(); var w=gq('wizard'); if(w)w.style.display='block'; wizReset(); renderPicker(); if(typeof trackStage==='function') trackStage('persona_select'); }
+// 온보딩은 처음 1회만. 이미 완료(로컬 플래그) 했거나 훈련 기록(서버·계정)이 있으면 건너뛴다 → 기기가 바뀌어도 재노출 안 함
+function onbDone(){ try{ if(localStorage.getItem('onb_done')==='1') return true; }catch(e){} try{ var db=loadStore(); if(db&&db.global&&(db.global.sessions||0)>0) return true; }catch(e){} return false; }
+function gotoPersona(){ listHideAll(); var w=gq('wizard'); if(w)w.style.display='block'; var s1=gq('step1'),s2=gq('step2'); if(s1)s1.style.display='none'; if(s2)s2.style.display='none';
+  if(onbDone()){ onbManual(); return; }   // 재방문자: 온보딩 생략, 바로 고객 선택
+  renderOnboard(); if(typeof trackStage==='function') trackStage('onboarding'); }
+
+/* ===== [프로토타입 이식] 온보딩 6단계 → 페르소나·거절강도 매핑 ===== */
+var ONB_DATA={
+ 1:{key:'goal', kicker:'목표', title:'먼저, 무엇을 위해<br>훈련하고 싶으세요?', sub:'목표에 맞춰 방향을 정할게요.', ref:function(l){return '좋아요 — <b>'+l+'</b>에 맞춰 방향을 잡을게요.';}, opts:[
+   {v:'perf',em:'📈',t:'실적을 올리고 싶어요',d:'계약 타율을 끌어올리는 실전 위주'},
+   {v:'mental',em:'🧱',t:'거절에 안 무너지고 싶어요',d:'거절 처리·멘탈 강화 집중'},
+   {v:'basic',em:'🌱',t:'기본기부터 다지고 싶어요',d:'신입·전향자를 위한 단계별'},
+   {v:'target',em:'🎯',t:'특정 상황을 공략하고 싶어요',d:'약한 구간만 골라 반복'}]},
+ 2:{key:'channel', kicker:'영업 방식', title:'주로 어떻게<br>고객을 만나세요?', sub:'채널에 따라 AI 고객의 말투가 달라져요.', ref:function(l){return '<b>'+l+'</b> 기준으로 AI 고객의 말투를 맞출게요.';}, opts:[
+   {v:'tm',em:'📞',t:'TM (전화 영업)',d:'짧고 빠른 거절'},
+   {v:'f2f',em:'🤝',t:'대면 영업',d:'밀도 높은 대화'},
+   {v:'video',em:'💻',t:'화상 상담',d:'비대면 상담'},
+   {v:'intro',em:'👥',t:'지인·소개 영업',d:'관계가 있는 시작'}]},
+ 3:{key:'level', kicker:'경력', title:'영업 경력은<br>어느 정도세요?', sub:'첫 상대 난이도를 맞춰드릴게요.', ref:function(l){return '<b>'+l+'</b>에 맞춰 난이도를 조정했어요.';}, opts:[
+   {v:'new',em:'🐣',t:'신입 (6개월 미만)',d:'기초부터 차근차근'},
+   {v:'mid',em:'🚶',t:'1~3년차',d:'실전 감각 끌어올리기'},
+   {v:'pro',em:'🏃',t:'3년차 이상',d:'까다로운 고객'},
+   {v:'switch',em:'🔄',t:'타업종서 전향',d:'영업은 처음'}]},
+ 4:{key:'product', kicker:'주력 상품', title:'어떤 상품을<br>주로 다루세요?', sub:'상품마다 거절 내용이 달라요.', ref:function(l){return '<b>'+l+'</b> 고객의 거절로 준비할게요.';}, opts:[
+   {v:'life',em:'🩺',t:'종신·건강보험',d:'“이미 있어요” 유형'},
+   {v:'save',em:'💰',t:'저축·연금',d:'“수익률” 저항'},
+   {v:'gi',em:'🚗',t:'자동차·손해보험',d:'“가격만 봐요” 유형'},
+   {v:'corp',em:'🏢',t:'법인·CEO 플랜',d:'“믿을 수 있나” 고난도'}]},
+ 5:{key:'stage', kicker:'가장 어려운 순간', title:'어느 순간에<br>제일 막히세요?', sub:'그 상황부터 집중해서 시작해요.', ref:function(l){return '좋아요 — 오늘은 <b>'+l+'</b>부터 시작해요.';}, opts:[
+   {v:'open',em:'🚪',t:'오프닝·도입',d:'첫 마디에서 문전박대'},
+   {v:'needs',em:'🔍',t:'니즈 환기',d:'필요를 못 느끼는 고객'},
+   {v:'obj',em:'🛡️',t:'거절 처리',d:'“이미/다 됐어요” 반론'},
+   {v:'price',em:'🏷️',t:'가격·보험료 저항',d:'“비싸다/부담”'},
+   {v:'close',em:'✍️',t:'클로징·계약 요청',d:'결정을 미루는 고객'}]},
+ 6:{key:'diff', kicker:'첫 상대', title:'첫 상대는<br>어떻게 할까요?', sub:'강한 고객은 레벨이 오르면 열려요. 먼저 작은 승리부터!', ref:function(l){return '<b>'+l+'</b>(으)로 첫 판을 준비할게요!';}, opts:[
+   {v:1,em:'😊',t:'살살 (자신감부터)',d:'가볍게 성공 경험'},
+   {v:2,em:'😐',t:'보통',d:'현실적인 밀당'},
+   {v:3,em:'😠',t:'세게 (실전처럼)',d:'까다로운 고객'}]}
+};
+var ONB_ENC={1:'한 번에 하나씩, 가볍게',2:'좋아요, 벌써 반이나 왔어요 🙌',3:'좋아요, 잘하고 있어요',4:'거의 다 왔어요 — 점점 맞춰지고 있어요 ✨',5:'거의 끝났어요',6:'마지막 하나!'};
+var onbAns={}, onbStep=0;
+function onbPersona(a){ var sv=(a.stage&&a.stage.v)||'obj'; var m={open:'busy',needs:'apathy',obj:'complete',price:'price',close:'hold'}; var id=m[sv]||'apathy'; for(var i=0;i<PERSONAS.length;i++){ if(PERSONAS[i].id===id) return PERSONAS[i]; } return PERSONAS[0]; }
+function onbCold(a){ var d=(a.diff&&a.diff.v)?parseInt(a.diff.v,10):2; var mx=(typeof allowedMaxCold==='function')?allowedMaxCold():5; return Math.min(Math.max(1,d),mx); }
+function renderOnboard(){ onbStep=0; onbAns={}; drawOnb(); }
+function drawOnb(){
+  var host=gq('onbHost'); if(!host) return;
+  var pct=Math.max(14,Math.round(onbStep/7*100));
+  var stepTxt=(onbStep>=1&&onbStep<=6)?(onbStep+' / 6'):(onbStep===7?'완료':'');
+  var topbar='<div class="onb-top">'+((onbStep>0&&onbStep<7)?'<button class="onb-back" onclick="onbBack()">‹</button>':'<span style="width:32px;flex:none"></span>')+'<div class="onb-bar"><div class="onb-fill" style="width:'+pct+'%"></div></div><span class="onb-stepn">'+stepTxt+'</span></div>';
+  var body='';
+  if(onbStep===0){
+    body='<div class="onb-welcome"><div class="lg">🌱</div><h2>3분이면,<br>당신에게 딱 맞는<br>훈련이 세팅돼요</h2><p>몇 가지만 알려주시면 실제 당신의 영업 상황 그대로 AI 고객을 만들어 드릴게요.</p><p style="color:#e0630a;font-weight:700">당신의 성공 확률을 높여보세요 👇</p></div><div class="onb-foot"><button class="onb-cta" onclick="onbNext()">시작하기 →</button><button class="onb-alt" onclick="onbManual()">고객을 직접 고를래요</button></div>';
+  } else if(onbStep>=1&&onbStep<=6){
+    var q=ONB_DATA[onbStep], cur=onbAns[q.key];
+    var mx=(typeof allowedMaxCold==='function')?allowedMaxCold():5;
+    var opts=q.opts.map(function(o){
+      var locked=(onbStep===6&&(+o.v)>mx), sel=(cur&&String(cur.v)===String(o.v))?' sel':'';
+      var em=locked?'🔒':o.em, od=locked?('거절강도 '+((+o.v)-1)+' 합격하면 열려요'):o.d;
+      return '<button class="onb-opt'+(locked?' locked':'')+sel+'" data-v="'+o.v+'"><div class="onb-oi">'+em+'</div><div class="onb-otx"><div class="onb-ot">'+esc(o.t)+'</div><div class="onb-od">'+esc(od)+'</div></div><div class="onb-chk">'+(locked?'🔒':'✓')+'</div></button>';
+    }).join('');
+    var reflect=cur?('💡 '+q.ref(esc(cur.t).replace(/ \(.*\)/,''))):'';
+    var ctaTxt=onbStep===6?'내 맞춤 훈련 보기 →':(cur?'다음 →':'위에서 하나를 골라주세요');
+    body='<div class="onb-kicker">STEP '+onbStep+' · '+q.kicker+'</div><h3 class="onb-q">'+q.title+'</h3><p class="onb-sub">'+q.sub+'</p><div class="onb-opts">'+opts+'</div><div class="onb-reflect'+(cur?' on':'')+'" id="onbReflect">'+reflect+'</div><div class="onb-foot"><button class="onb-cta" id="onbCta" onclick="onbNext()"'+(cur?'':' disabled')+'>'+ctaTxt+'</button><div style="text-align:center;font-size:11.5px;color:#6b7280;margin-top:10px">'+(ONB_ENC[onbStep]||'')+'</div></div>';
+  } else if(onbStep===7){
+    var p=onbPersona(onbAns), cd=onbCold(onbAns);
+    var chLabel=({tm:'전화(TM)',f2f:'대면',video:'화상',intro:'지인·소개'})[(onbAns.channel||{}).v]||'대면';
+    var stg=({open:'오프닝 뚫기',needs:'니즈 환기',obj:'거절 처리',price:'보험료 저항 넘기',close:'클로징'})[(onbAns.stage||{}).v]||'거절 극복';
+    body='<div class="onb-kicker" style="color:#3B6D11">✓ 세팅 완료</div><h3 class="onb-q">딱 맞춰졌어요 👌</h3><p class="onb-sub">당신이 말해준 상황 그대로 AI 고객을 세팅했어요.</p><div class="onb-sum"><div class="sl">TODAY\'S TRAINING</div><div class="st2">'+esc(stg)+' 집중 훈련</div><div class="row"><span class="rk">AI 고객</span><span class="rv">'+p.emoji+' '+esc(p.name)+'</span></div><div class="row"><span class="rk">채널</span><span class="rv">'+chLabel+'</span></div><div class="row"><span class="rk">거절 강도</span><span class="rv">'+esc(COLD[cd].t)+'</span></div></div><div class="onb-foot"><button class="onb-cta" onclick="onbStart()">🔥 이 고객으로 훈련 시작 →</button><button class="onb-alt" onclick="onbBack()">‹ 다시 고르기</button></div>';
+  }
+  host.innerHTML=topbar+body;
+  if(onbStep>=1&&onbStep<=6){
+    var qq=ONB_DATA[onbStep];
+    Array.prototype.forEach.call(host.querySelectorAll('.onb-opt'),function(b){
+      b.onclick=function(){
+        if(b.classList.contains('locked')){ onbLocked(); return; }
+        var v=b.getAttribute('data-v'), opt=null;
+        for(var i=0;i<qq.opts.length;i++){ if(String(qq.opts[i].v)===v) opt=qq.opts[i]; }
+        if(!opt) return; onbAns[qq.key]={v:opt.v,t:opt.t}; drawOnb();
+      };
+    });
+  }
+}
+function onbLocked(){ if(typeof toast==='function') toast('🔒 거절강도 '+((typeof allowedMaxCold==='function')?allowedMaxCold():2)+'까지 먼저 이겨보세요 — 쉬운 상대부터 클리어하면 열려요!'); }
+function onbNext(){ if(onbStep>=1&&onbStep<=6&&!onbAns[ONB_DATA[onbStep].key]) return; onbStep++; drawOnb(); }
+function onbBack(){ if(onbStep>0){ onbStep--; drawOnb(); } }
+function onbManual(){ try{localStorage.setItem('onb_done','1');}catch(e){} var h=gq('onbHost'); if(h)h.innerHTML=''; var s1=gq('step1'); if(s1)s1.style.display=''; wizReset(); renderPicker(); }
+function onbStart(){ try{localStorage.setItem('onb_done','1');}catch(e){} coldness=onbCold(onbAns); var p=onbPersona(onbAns); wizPersona=p; tryStart(p); }
 function startFresh(){ clearSnapshot(); gotoPersona(); }
 function startFlow(){
   var snap=loadSnapshot();
@@ -2909,11 +3324,11 @@ function coachingHtml(c){
   if(!c || typeof c!=='object') return '';
   var st=(c.strengths||[]).map(function(s){return '<div class="cst">👍 '+esc(s)+'</div>';}).join('');
   var how=((c.focus&&c.focus.how)||[]).map(function(h){return '<li>'+esc(h)+'</li>';}).join('');
-  return '<h4>🤖 AI 종합 코칭</h4>'+
+  return '<h4>AI 종합 코칭</h4>'+
     (c.headline?'<div class="cst" style="font-weight:600">'+esc(c.headline)+'</div>':'')+
     st+
     (c.focus?('<div class="cfocus"><div class="ca">가장 개선할 점 · '+esc(c.focus.area||'')+'</div>'+(c.focus.why?'<div class="cst">'+esc(c.focus.why)+'</div>':'')+(how?'<ul>'+how+'</ul>':'')+'</div>'):'')+
-    (c.nextStep?'<div class="cnext">▶ 다음 훈련: '+esc(c.nextStep)+'</div>':'');
+    (c.nextStep?'<div class="cnext">다음 훈련: '+esc(c.nextStep)+'</div>':'');
 }
 // 저장된 대화로 코칭을 재생성해 DB에 채워 넣고 객체를 반환(없으면 null)
 async function fetchPastCoaching(s){
