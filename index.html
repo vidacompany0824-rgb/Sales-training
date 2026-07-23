@@ -314,6 +314,13 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 /* ===== 나의 훈련 공간 ===== */
 .myspace{margin-bottom:18px}
 .ms-hero{background:#33623a;color:#fff;border-radius:16px;padding:22px 22px 18px;box-shadow:0 2px 10px rgba(40,70,40,.10)}
+.ms-htop{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ms-lv{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.30);color:#fff;font-size:13px;font-weight:700;padding:6px 14px;border-radius:99px;white-space:nowrap}
+.ms-lv b{font-weight:800;letter-spacing:-.01em}
+.ms-lvbarwrap{margin-top:14px}
+.ms-lvbar{height:7px;border-radius:99px;background:rgba(255,255,255,.20);overflow:hidden}
+.ms-lvfill{height:100%;background:#fff;border-radius:99px;transition:width .55s cubic-bezier(.3,1,.4,1)}
+.ms-lvnote{font-size:11.5px;color:#e7f2d8;margin-top:6px}
 .ms-hero h2{font-size:18.5px;font-weight:800;letter-spacing:-.01em}
 .ms-hero .ms-sub{font-size:13px;color:#e7f2d8;margin-top:5px;line-height:1.5}
 .ms-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}
@@ -1605,6 +1612,22 @@ function userLevel(){
   return {n:'Lv.1 새싹 FC',ic:'🌱'};
 }
 function levelBadgeHTML(){ var lv=userLevel(); return '<div class="lvbadge">'+lv.ic+' <b>'+esc(lv.n)+'</b></div>'; }
+// 다음 레벨까지 진행 상황(누적 훈련 + 거절강도 관문 기준)
+function nextLevelInfo(){
+  var s=0,mp=0; try{ var db=loadStore(); s=(db.global&&db.global.sessions)||0; mp=db.maxPassedCold||0; }catch(e){}
+  var tiers=[{need:5,cold:1,name:'Lv.2 루키 FC'},{need:12,cold:2,name:'Lv.3 필드 FC'},{need:25,cold:3,name:'Lv.4 에이스'},{need:45,cold:4,name:'Lv.5 세일즈 마스터'},{need:80,cold:5,name:'보험왕'},{need:150,cold:5,name:'보험신'}];
+  for(var i=0;i<tiers.length;i++){ var t=tiers[i];
+    if(s<t.need || mp<t.cold){ var prev=i===0?0:tiers[i-1].need; var pct=Math.max(4,Math.min(100,Math.round((s-prev)/(t.need-prev)*100)));
+      return {next:t.name, pct:pct, remain:Math.max(0,t.need-s), coldGate:(mp<t.cold?t.cold:0)}; } }
+  return null;
+}
+function heroLevelBadge(){ var lv=userLevel(); return '<span class="ms-lv">'+lv.ic+' <b>'+esc(lv.n)+'</b></span>'; }
+function heroLevelProgress(){
+  var info=nextLevelInfo();
+  if(!info) return '<div class="ms-lvbarwrap"><div class="ms-lvnote">최고 등급 달성 — 최정상입니다</div></div>';
+  var note = info.remain>0 ? ('다음 레벨 '+esc(info.next)+'까지 훈련 '+info.remain+'회'+(info.coldGate?(' · 거절강도 '+info.coldGate+' 합격'):'')) : ('다음 레벨 '+esc(info.next)+' · 거절강도 '+info.coldGate+' 합격하면 승급');
+  return '<div class="ms-lvbarwrap"><div class="ms-lvbar"><div class="ms-lvfill" style="width:'+info.pct+'%"></div></div><div class="ms-lvnote">'+note+'</div></div>';
+}
 // [프로토타입 이식] 입력 방식 잠금해제 레벨(1~6). 직접 입력=Lv.3, 음성 실전=Lv.5에서 해제
 function userLevelNum(){
   var s=0,mp=0; try{ var db=loadStore(); s=(db.global&&db.global.sessions)||0; mp=db.maxPassedCold||0; }catch(e){}
@@ -2433,7 +2456,7 @@ async function renderMySpace(){
   }
   if(_g!==MS_GEN) return;   // 그 사이 더 최근 렌더가 시작됐으면 이 결과는 버림
   el.innerHTML=
-    '<div class="ms-hero"><h2>'+esc(name)+'님의 훈련 공간</h2><div class="ms-sub">'+subline+'</div>'+metrics+'</div>'+
+    '<div class="ms-hero"><div class="ms-htop"><h2>'+esc(name)+'님의 훈련 공간</h2>'+heroLevelBadge()+'</div><div class="ms-sub">'+subline+'</div>'+heroLevelProgress()+metrics+'</div>'+
     growthCard+goalCard+profCard+emptyHint;
 
   var eb=gq('msEditBtn'); if(eb) eb.onclick=msToggleEdit;
