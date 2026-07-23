@@ -1636,7 +1636,7 @@ function nextLevelInfo(){
   return null;
 }
 // [게임화] 계약 성사 시 점수·거절강도로 월납 보험료(만원) 산정 — 세션 데이터로 계산해 서버 기록에서 바로 누적 가능(새 컬럼 불필요)
-function sessionPremium(avg,cold,passed){ if(!passed) return 0; avg=+avg||0; cold=+cold||1; return Math.max(3, Math.round((avg/100)*(6+cold*5))); }
+function sessionPremium(avg,cold,passed){ if(!passed) return 0; avg=+avg||0; cold=+cold||1; return Math.max(1, Math.round((avg/100)*(2+cold*2))); }
 function closingRewardHTML(avg,cold){ var p=sessionPremium(avg,cold,true); return '<div class="closing"><div class="cl-k">계약 성사</div><div class="cl-amt">월납 <b>'+p+'</b>만원 클로징!</div><div class="cl-sub">이번 계약이 이번 달 실적에 더해졌어요</div></div>'; }
 function heroLevelBadge(){ var lv=userLevel(); return '<span class="ms-lv">'+lv.ic+' <b>'+esc(lv.n)+'</b></span>'; }
 function heroLevelProgress(){
