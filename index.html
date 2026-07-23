@@ -1657,7 +1657,7 @@ function userLevelNum(){
 }
 function renderLockRow(){
   var el=gq('lockrow'); if(!el) return;
-  if(!state || state.guest || (state.persona&&state.persona.guest)){ el.innerHTML=''; return; }
+  if(!state){ el.innerHTML=''; return; }
   var n=userLevelNum(), directOn=n>=3, voiceOn=n>=5;
   el.innerHTML=
     '<span class="lockchip on">🧩 대화 조립</span>'+
@@ -1727,16 +1727,23 @@ var GUEST_SUGGEST=[
   "새로 가입하시라는 게 아니라, 지금 가진 보험에 공백은 없는지만 확인해드리려는 거예요. 확인만 해도 남는 거니까요.",
   "대리님처럼 바쁘신 분들이 놓치기 쉬운 게 보장 중복이에요. 딱 3분, 점검만 해도 아끼실 수 있습니다."
 ];
+// 광고 랜딩 '무료 연습 시작' → 온보딩 진행(프로토타입 흐름). 온보딩 완료 시 onbStart가 비로그인이면 게스트 세션 시작.
 function startGuestTrial(){
   hideLanding();
   var g=gq("gate"); if(g) g.classList.add("hide");
   if(typeof listHideAll==='function') listHideAll();
-  coldness=3;
-  startChat(GUEST_PERSONA);
+  var w=gq('wizard'); if(w) w.style.display='block';
+  var s1=gq('step1'),s2=gq('step2'); if(s1)s1.style.display='none'; if(s2)s2.style.display='none';
+  renderOnboard();
+  if(typeof trackStage==='function') trackStage('guest_onboarding');
+}
+// 비로그인(게스트) 세션: 온보딩으로 정한 페르소나로 화법 조립 훈련, GUEST_CAP턴 후 가입 유도
+function startGuestSession(p){
+  if(typeof listHideAll==='function') listHideAll();
+  startChat(p);
   if(state) state.guest=true;
-  var st=gq("tSt"); if(st) st.textContent="30초 체험 · "+GUEST_CAP+"턴";
-  var eb=document.querySelectorAll('#stage .endbtn'); Array.prototype.forEach.call(eb,function(b){ b.style.display='none'; });  // 체험 중엔 리포트/목록 버튼 숨김
-  renderGuestSuggest();
+  var st=gq("tSt"); if(st) st.textContent="무료 체험 · "+GUEST_CAP+"턴";
+  var eb=document.querySelectorAll('#stage .endbtn'); Array.prototype.forEach.call(eb,function(b){ b.style.display='none'; });
   if(typeof trackStage==='function') trackStage('guest_trial_start');
 }
 function renderGuestSuggest(){
@@ -1794,7 +1801,7 @@ function currentAsmFrame(){
 }
 // [개선] 첫 턴은 AI가 고객의 '첫 대사 상황'을 그대로 인정하는 조립 프레임을 만들어 준다(막연한 공감 시작 방지)
 async function loadOpeningFrame(){
-  if(!state || state.guest || userLevelNum()>=3) return;
+  if(!state || userLevelNum()>=3) return;
   var p=state.persona, opener='';
   for(var i=(state.messages||[]).length-1;i>=0;i--){ if(state.messages[i].role==='cust'){ opener=state.messages[i].text; break; } }
   if(!opener) return;
@@ -1810,7 +1817,7 @@ async function loadOpeningFrame(){
   }catch(e){}
 }
 function renderAssembleAssist(){
-  if(!state || state.guest || (state.persona&&state.persona.guest) || state.closed) return;
+  if(!state || state.closed) return;
   if(userLevelNum()>=3) return;   // 직접 입력 해제(Lv.3+) 후엔 자유 입력으로 진행
   var bar=gq('inbar'); if(!bar) return;
   hideAssembleAssist();
@@ -1956,7 +1963,7 @@ async function send(){
   const p=state.persona, c=COLD[state.cold];
   const convo=state.messages.map(m=>`${m.role==='fc'?'영업사원':'고객'}: ${m.text}`).join("\n");
   const teaseRule=state.tease?`\n- 재미와 동기부여를 위해 살짝 장난스럽고 유쾌한 톤을 섞습니다. 답변이 약하면 부드럽게 놀리듯 도발해("에이~ 그 정도로는 안 넘어가죠 ㅎㅎ", "오, 이번엔 진짜 대충인데요?") 재도전 승부욕을 자극하고, 답변이 좋으면 능청스럽게 인정합니다("오, 이번 건 좀 통하네요"). 단 무례·인신공격은 금지하고, 페르소나 성격과 거절 강도는 끝까지 유지합니다.`:``;
-  const asmOn=(!state.guest && (typeof userLevelNum==='function') && userLevelNum()<3);  // 저레벨 로그인 유저 → 대화 조립 프레임 제공
+  const asmOn=((typeof userLevelNum==='function') && userLevelNum()<3);  // 저레벨(게스트 포함) → 대화 조립 프레임 제공
   const asmRule=asmOn?`\n[화법 조립] 초보 영업사원이 좋은 화법을 '빈칸 조각 맞추기'로 완성하도록 asm(빈칸 채우기 문형)을 제시하세요.\n- 완성문 = pre + ' ' + (b0 중 택1) + mid + ' ' + (b1 중 택1) + ' ' + post 로 조립됩니다. pre(도입 고정), mid(연결어, 보통 ","), post(제안·질문 고정)는 어떤 조각을 골라도 자연스러운 한 문장이 되도록 쓰고, b0·b1은 각각 서로 다른 조각 후보 2개씩.\n- 【무엇에 답하나·매우 중요】 asm은 '이미 지나간 고객 대사'가 아니라, 당신이 이 응답에서 새로 생성하는 customer(고객의 바로 다음 대사)에 영업사원이 곧바로 이어서 할 '다음' 화법입니다. 방금 만든 customer의 내용에 정면으로 이어져 대화를 반드시 '앞으로' 진전시켜야 합니다. 앞 턴과 똑같은 도입·인정을 반복하면 안 됩니다.\n- 【진전 예시】 고객이 마음이 열려 조건(예: "저녁 8시엔 가능")을 제시하면, 다시 "바쁘시죠"류 인정으로 되돌아가지 말고 그 조건을 확정·구체화하는 화법(예: 그 시간으로 약속 잡기)을 만드세요. 고객이 아직 거절/질문 중이면 그 지점을 해소하는 화법을 만드세요.\n- 【상품 정확성】 실제 보험 상품 구조에 맞지 않는 허위 사실·지어낸 확정 수치는 넣지 마세요. 특히 실손(실비)은 보험료를 조금 더 낸다고 보장 한도가 올라가는 구조가 아니며, 정액형과 혼동 금지. 확정 금액 대신 '약관·상품 비교로 확인' 같은 구조적으로 맞는 표현을 쓰세요.`:``;
   const prompt=
 `당신은 보험 영업사원(FC) 교육용 롤플레이 AI입니다. 두 역할을 동시에 수행합니다.
@@ -1990,9 +1997,9 @@ score(총점)는 이 역량들을 종합한 설득력이며, good/improve/tip은
 [대화 기록]
 ${convo}
 
-${state.guest?'[추천 답변] 당신이 이 응답에서 새로 생성하는 customer(고객의 바로 다음 대사)에 곧바로 이어질, FC가 실제로 할 만한 답변 후보 3개를 각 1~2문장 구어체로 만드세요. 이미 지나간 대사가 아니라 방금 만든 customer에 정면으로 이어져 대화를 앞으로 진전시켜야 합니다(고객이 조건을 열면 확정하는 방향으로). 앞 턴 인정을 반복하지 마세요. 실제 보험 상품 구조에 맞지 않는 허위 사실·지어낸 확정 수치는 넣지 마세요(실손은 보험료 조금 더 낸다고 한도가 오르는 구조가 아니며, 정액형과 혼동 금지). 확정 금액 대신 "정확한 건 약관으로 비교" 같은 검증 전제를 쓰세요. 아래 JSON의 suggest 배열에 넣으세요.\n':''}${asmRule?asmRule+'\n':''}
+${asmRule?asmRule+'\n':''}
 [출력] 반드시 아래 JSON 하나만. 다른 말 금지.
-{"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장","improve":"개선점 한 문장","tip":"더 나은 화법 제안 한 문장","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false${state.guest?',"suggest":["영업사원 답변 후보1","후보2","후보3"]':''}${asmOn?',"asm":{"pre":"고정 앞부분","mid":",","post":"고정 뒷부분","b0":["조각후보1","조각후보2"],"b1":["조각후보1","조각후보2"]}':''}}`;
+{"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장","improve":"개선점 한 문장","tip":"더 나은 화법 제안 한 문장","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false${asmOn?',"asm":{"pre":"고정 앞부분","mid":",","post":"고정 뒷부분","b0":["조각후보1","조각후보2"],"b1":["조각후보1","조각후보2"]}':''}}`;
   // 실제 AI만 사용 — 데모 모드/가짜 응답 없음. 실패 시 재시도, 그래도 안 되면 정직하게 안내하고 방금 답변을 되돌려 재시도 유도.
   let data=null;
   for(var attempt=0; attempt<3 && !data; attempt++){
@@ -2015,7 +2022,7 @@ ${state.guest?'[추천 답변] 당신이 이 응답에서 새로 생성하는 cu
     inp.value=text; try{ inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,120)+'px'; }catch(e){}
     inp.disabled=false;$("#send").disabled=false;inp.focus();
     toast('⚠️ AI 연결이 원활하지 않아요. 잠시 후 전송을 다시 눌러 주세요.');
-    if(state.guest) renderGuestSuggest(); else renderAssembleAssist();
+    renderAssembleAssist();
     return;
   }
   const sc=Math.max(0,Math.min(100,data.score||0));
@@ -2027,14 +2034,12 @@ ${state.guest?'[추천 답변] 당신이 이 응답에서 새로 생성하는 cu
   if(!state.guest && !state.milestoneShown && newW>=70 && prevW<70){ state.milestoneShown=true; setTimeout(addMilestone,300); }  // [프로토타입 이식] 마일스톤
   state.messages.push({role:"cust",text:data.customer||"…"}); addBubble("cust",p.emoji,data.customer||"…"); speak(data.customer||"");
   addTurnFooter(prevW,newW,state.turnEvals.length-1);
-  if(state.guest && Array.isArray(data.suggest) && data.suggest.length){ state.suggest=data.suggest.filter(function(s){return s && String(s).trim();}); }  // 게스트: 맥락 맞춘 추천 문장
-  if(!state.guest){ state.asmFrame=(data && data.asm && data.asm.pre!=null && Array.isArray(data.asm.b0) && Array.isArray(data.asm.b1))?data.asm:null; }  // 로그인 저레벨: 이번 고객 대사에 맞춘 대화 조립 프레임
+  state.asmFrame=(data && data.asm && data.asm.pre!=null && Array.isArray(data.asm.b0) && Array.isArray(data.asm.b1))?data.asm:null;  // 이번 고객 대사에 맞춘 대화 조립 프레임(게스트·로그인 공통)
   if(!state.guest) saveSnapshot();
-  // 게스트 30초 체험: 3턴 캡(또는 조기 설득) 후 미니 결과로 종료
+  // 게스트 무료 체험: 캡(또는 조기 설득) 도달 시 미니 결과 → 가입 유도. 아니면 대화 조립으로 계속.
   if(state.guest){
-    if(Array.isArray(data.suggest) && data.suggest.length){ state.suggest=data.suggest.filter(function(s){return s && String(s).trim();}); }  // 맥락 맞춘 추천 답변 갱신
     if((state.turns||0)>=GUEST_CAP || data.closed || nm==='convinced'){ finishGuest(); return; }
-    inp.disabled=false;$("#send").disabled=false;inp.focus(); renderGuestSuggest(); return;
+    inp.disabled=false;$("#send").disabled=false;inp.focus(); renderAssembleAssist(); return;
   }
   if(data.closed || (nm==='convinced' && (state.turns||0)>=2)){finish(true);return;}
   inp.disabled=false;$("#send").disabled=false;inp.focus();
@@ -2982,8 +2987,8 @@ function skipAuthDemo(){ hideLanding(); gq("gate").classList.add("hide"); bootAp
 function meterYM(){ var d=new Date(Date.now()+9*3600*1000); return d.toISOString().slice(0,10); } // KST 'YYYY-MM-DD' (1일 단위 한도)
 
 async function tryStart(p){
-  // 로그인/백엔드 없으면 그냥 진행(데모)
-  if(!sb || !AUTH_USER){ startChat(p); return; }
+  // 비로그인: 게스트 무료 체험(화법 조립·캡·가입 유도)
+  if(!sb || !AUTH_USER){ startGuestSession(p); return; }
   try{
     var r=await sb.rpc('check_and_bump_usage',{ p_ym:meterYM(), add_session:1, add_turns:0 });
     if(r.error){ console.warn('meter error', r.error); startChat(p); return; } // 오류 시 막지 않음
