@@ -1829,6 +1829,7 @@ function addBubble(role,emoji,text){
   const r=document.createElement("div"); r.className="row "+role;
   r.innerHTML=`<span class="mini">${role==='fc'?'🧑‍💼':emoji}</span><div class="bub">${esc(text)}</div>`;
   log.appendChild(r); log.scrollTop=log.scrollHeight;
+  return r;
 }
 function buildEvalEl(ev){
   const s=Math.max(0,Math.min(100,ev.score||0));
@@ -1872,7 +1873,7 @@ async function send(){
   const text=inp.value.trim(); if(!text)return;
   hideAssembleAssist(); hideAssistSuggest();   // 답변 전송 시 추천/조립 패널 제거
   inp.value="";inp.style.height="auto";
-  addBubble("fc","🧑‍💼",text); state.messages.push({role:"fc",text}); state.turns++;
+  var fcEl=addBubble("fc","🧑‍💼",text); state.messages.push({role:"fc",text}); state.turns++;
   inp.disabled=true;$("#send").disabled=true;typing(true);
   const p=state.persona, c=COLD[state.cold];
   const convo=state.messages.map(m=>`${m.role==='fc'?'영업사원':'고객'}: ${m.text}`).join("\n");
@@ -1913,21 +1914,31 @@ ${convo}
 ${state.guest?'[추천 답변] 지금 고객의 【마지막 대사】에 자연스럽게 이어질, 영업사원(FC)이 실제로 할 만한 다음 답변 후보 3개를 만드세요. 각 1~2문장 구어체. 【가장 중요】 반드시 고객이 방금 한 말·요구에 정면으로 부합해야 합니다 — 고객이 숫자·근거·구체적 정보를 요구하면 실제로 그럴듯한 구체적 근거(예: "같은 보험료로 진단비가 2배")를 넣은 답변을 반드시 포함하고, 질문을 하면 그 질문에 답하세요. 막연한 "그 마음 이해해요"류 공감만 반복하거나 고객 질문을 무시하는 답변은 금지입니다. 아래 JSON의 suggest 배열에 넣으세요.\n':''}${asmRule?asmRule+'\n':''}
 [출력] 반드시 아래 JSON 하나만. 다른 말 금지.
 {"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장","improve":"개선점 한 문장","tip":"더 나은 화법 제안 한 문장","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false${state.guest?',"suggest":["영업사원 답변 후보1","후보2","후보3"]':''}${asmOn?',"asm":{"pre":"고정 앞부분","mid":",","post":"고정 뒷부분","b0":["조각후보1","조각후보2"],"b1":["조각후보1","조각후보2"]}':''}}`;
+  // 실제 AI만 사용 — 데모 모드/가짜 응답 없음. 실패 시 재시도, 그래도 안 되면 정직하게 안내하고 방금 답변을 되돌려 재시도 유도.
   let data=null;
-  if(!DEMO_MODE){
+  for(var attempt=0; attempt<3 && !data; attempt++){
+    if(attempt>0){ await new Promise(res=>setTimeout(res, 700*attempt)); }
     try{
       const r=await fetch(API_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
       const j=await r.json().catch(function(){return null;});
-      if(!r.ok || !j){ console.warn('[sales-coach] HTTP '+r.status, j); }
+      if(!r.ok || !j){ console.warn('[sales-coach] HTTP '+r.status+' (시도 '+(attempt+1)+')', j); }
       const raw=(j&&j.text)?j.text:(j&&j.content&&j.content[0]&&j.content[0].text)?j.content[0].text:"";
       data=extractJson(raw);
-      if(!data){ console.warn('[sales-coach] 응답에서 JSON을 못 읽음. 서버 응답:', j); }
-    }catch(e){ console.warn('[sales-coach] 호출 오류:', e); data=null; }
-    if(!data){ DEMO_MODE=true; toast('🧪 데모 모드 — 내장 엔진이 응답합니다. (실시간 AI는 백엔드 배포 시 동작)'); }
+      if(!data){ console.warn('[sales-coach] JSON 파싱 실패 (시도 '+(attempt+1)+')', j); }
+    }catch(e){ console.warn('[sales-coach] 호출 오류 (시도 '+(attempt+1)+')', e); data=null; }
   }
-  if(!data){ await new Promise(res=>setTimeout(res,450)); data=demoTurn(text); }
   typing(false);
-  if(!data){addBubble("cust",p.emoji,"(연결이 잠시 불안정했어요. 다시 한 번 말씀해 주시겠어요?)");inp.disabled=false;$("#send").disabled=false;inp.focus();return;}
+  if(!data){
+    // 데모로 대체하지 않는다. 방금 보낸 답변을 롤백하고 그대로 재시도할 수 있게 복구.
+    if(state.messages.length && state.messages[state.messages.length-1].role==='fc'){ state.messages.pop(); }
+    if(state.turns>0) state.turns--;
+    if(fcEl && fcEl.parentNode){ fcEl.parentNode.removeChild(fcEl); }
+    inp.value=text; try{ inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,120)+'px'; }catch(e){}
+    inp.disabled=false;$("#send").disabled=false;inp.focus();
+    toast('⚠️ AI 연결이 원활하지 않아요. 잠시 후 전송을 다시 눌러 주세요.');
+    if(state.guest) renderGuestSuggest(); else renderAssembleAssist();
+    return;
+  }
   const sc=Math.max(0,Math.min(100,data.score||0));
   state.scores.push(sc); if(sc>state.best)state.best=sc;
   if(data.improve)state.improves.push(data.improve);
@@ -2051,7 +2062,6 @@ ${convo}
 {"headline":"한 줄 총평","strengths":["잘한 점 1","잘한 점 2"],"focus":{"area":"가장 개선이 필요한 역량 이름","why":"왜 약한지 한 문장","how":["다음에 이렇게 해보라는 구체적 화법·행동 1","구체적 화법·행동 2"]},"nextStep":"다음에 어떤 훈련(고객 유형/거절 강도)을 하면 좋을지 한 문장"}`;
 }
 function generateCoaching(ctx){
-  if(DEMO_MODE){ renderDemoCoaching(); return; }
   const prompt=buildCoachPrompt(ctx.persona, ctx.goal, ctx.convo, ctx.axisText);
   askAI(prompt).then(function(raw){
     const b=document.getElementById("coachBox"); if(!b) return;
