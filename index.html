@@ -343,6 +343,15 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .ms-m .msub{font-size:10.5px;color:#c8e0a8;margin-top:2px}
 .ms-card{background:#fff;border:1px solid #e7e9df;border-radius:16px;padding:18px 18px;margin-top:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
 .ms-card h3{font-size:14.5px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center}
+.premcard{background:#33623a;border-color:#2a5230;color:#fff}
+.premcard h3{color:#fff}
+.premcard h3 span{color:#cfe3c6 !important}
+.prem-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.prem{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.20);border-radius:12px;padding:14px 12px;text-align:center}
+.prem .pv{font-size:23px;font-weight:800;letter-spacing:-.02em}
+.prem .pv .pu{font-size:12px;font-weight:700;margin-left:2px;opacity:.85}
+.prem .pl{font-size:11.5px;color:#dcebd4;margin-top:4px}
+.prem-note{font-size:11.5px;color:#cfe3c6;margin-top:12px;text-align:center}
 .ms-card h3{font-size:14px;font-weight:800;color:#1f2a16;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .ms-editbtn{border:1px solid #C0DD97;background:#EAF3DE;color:#2f5a0e;border-radius:8px;padding:5px 10px;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer}
 .ms-goal{margin-top:12px}
@@ -498,6 +507,11 @@ body{word-break:keep-all;overflow-wrap:break-word;text-wrap:balance;-webkit-text
 .lockchip:not(.on):hover{border-color:#C7CEC8;background:#E7EBE6}
 .lockchip.on{background:var(--green,#2E9455);color:#fff;border-color:var(--green,#2E9455);cursor:default}
 .lvbadge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#2E9455,#1E7A46);color:#fff;font-size:12.5px;font-weight:800;padding:5px 12px;border-radius:99px;margin-bottom:10px}
+.closing{background:#2f7d32;color:#fff;border-radius:14px;padding:16px 18px;margin-bottom:14px;text-align:center;animation:msPop .5s}
+.closing .cl-k{font-size:11.5px;font-weight:700;letter-spacing:.05em;opacity:.85}
+.closing .cl-amt{font-size:25px;font-weight:800;margin:5px 0 3px;letter-spacing:-.02em}
+.closing .cl-amt b{color:#ffdf7e}
+.closing .cl-sub{font-size:11.5px;opacity:.82}
 @keyframes msPop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
 </style>
 <style>
@@ -1621,6 +1635,9 @@ function nextLevelInfo(){
       return {next:t.name, pct:pct, remain:Math.max(0,t.need-s), coldGate:(mp<t.cold?t.cold:0)}; } }
   return null;
 }
+// [게임화] 계약 성사 시 점수·거절강도로 월납 보험료(만원) 산정 — 세션 데이터로 계산해 서버 기록에서 바로 누적 가능(새 컬럼 불필요)
+function sessionPremium(avg,cold,passed){ if(!passed) return 0; avg=+avg||0; cold=+cold||1; return Math.max(3, Math.round((avg/100)*(6+cold*5))); }
+function closingRewardHTML(avg,cold){ var p=sessionPremium(avg,cold,true); return '<div class="closing"><div class="cl-k">계약 성사</div><div class="cl-amt">월납 <b>'+p+'</b>만원 클로징!</div><div class="cl-sub">이번 계약이 이번 달 실적에 더해졌어요</div></div>'; }
 function heroLevelBadge(){ var lv=userLevel(); return '<span class="ms-lv">'+lv.ic+' <b>'+esc(lv.n)+'</b></span>'; }
 function heroLevelProgress(){
   var info=nextLevelInfo();
@@ -2065,6 +2082,7 @@ function finish(won){
   const coachHtml=sc.length?`<div class="coach" id="coachBox"><div class="coach-load">🤖 AI 코치가 종합 분석 중…</div></div>`:'';
   const r=$("#report");
   r.innerHTML=`
+    ${won?closingRewardHTML(avg,state.cold):''}
     ${levelBadgeHTML()}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">${badge}
       <span class="passline">합격 기준: 평균 ${state.passLine}점 이상(2턴 이상) 또는 고객 설득 성공</span></div>
@@ -2411,6 +2429,15 @@ async function renderMySpace(){
       '<div class="ms-m"><div class="mv">'+weekCount+'<span class="mu">회</span></div><div class="ml">이번 주 훈련</div><div class="msub">활동 '+activeDays+'일</div></div>'+
     '</div>';
 
+  // [게임화] 계약 실적(월납 보험료) 누적 — 합격 세션의 점수·강도로 산정, 이번 달/올해 합산
+  var _now=new Date(), _thisY=_now.getFullYear(), _thisM=_now.getMonth();
+  var premMonth=0, premYear=0, premAll=0;
+  rows.forEach(function(r){ if(!r.passed) return; var pr=sessionPremium(+r.avg_score||0,+r.cold||1,true); premAll+=pr; var d=new Date(r.created_at); if(d.getFullYear()===_thisY){ premYear+=pr; if(d.getMonth()===_thisM) premMonth+=pr; } });
+  var premCard='<div class="ms-card premcard"><h3>계약 실적 <span style="font-size:11.5px;font-weight:600;color:#6b7280">성사한 월납 보험료</span></h3>'+
+    '<div class="prem-row"><div class="prem"><div class="pv">'+premMonth.toLocaleString()+'<span class="pu">만원</span></div><div class="pl">이번 달 신규 월납</div></div>'+
+    '<div class="prem"><div class="pv">'+premYear.toLocaleString()+'<span class="pu">만원</span></div><div class="pl">올해 누적 월납</div></div></div>'+
+    '<div class="prem-note">'+(premAll>0?('지금까지 성사한 월납 보험료 합계 '+premAll.toLocaleString()+'만원 — 계약할 때마다 쌓여요'):'첫 계약을 성사시키면 이곳에 월납 보험료가 쌓여요')+'</div></div>';
+
   // 목표 카드
   function pct(cur,tgt){ return tgt>0?Math.max(0,Math.min(100,Math.round(cur/tgt*100))):0; }
   var gW=pct(weekCount,goals.weekly), gA=pct(avgAll,goals.avg), gK=pct(weakVal,goals.weak), goalsBody;
@@ -2457,7 +2484,7 @@ async function renderMySpace(){
   if(_g!==MS_GEN) return;   // 그 사이 더 최근 렌더가 시작됐으면 이 결과는 버림
   el.innerHTML=
     '<div class="ms-hero"><div class="ms-htop"><h2>'+esc(name)+'님의 훈련 공간</h2>'+heroLevelBadge()+'</div><div class="ms-sub">'+subline+'</div>'+heroLevelProgress()+metrics+'</div>'+
-    growthCard+goalCard+profCard+emptyHint;
+    premCard+growthCard+goalCard+profCard+emptyHint;
 
   var eb=gq('msEditBtn'); if(eb) eb.onclick=msToggleEdit;
   var sv=gq('msSaveBtn'); if(sv) sv.onclick=msSave;
