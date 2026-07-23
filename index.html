@@ -1608,8 +1608,31 @@ function renderLockRow(){
     '<span class="lockchip'+(voiceOn?' on':'')+'"'+(voiceOn?'':' onclick="showLock(\'voice\')"')+'>'+(voiceOn?'🎙️ 음성 실전':'🔒 음성 실전 · Lv.5')+'</span>';
 }
 function showLock(kind){
-  if(kind==='direct') toast('🔒 직접 입력은 Lv.3에서 열려요 — 지금은 대화 조립으로 실력을 쌓아요!');
+  if(kind==='direct') toast('🔒 직접 입력은 Lv.3에서 열려요 — 지금은 추천 화법으로 실력을 쌓아요!');
   else toast('🔒 음성 실전은 Lv.5에서 열려요 — 계속 훈련하면 게임처럼 하나씩 열립니다!');
+}
+// [프로토타입 이식·개선] 저레벨(Lv.3 전) 로그인 유저에게도 매 턴 '맥락 맞춘 추천 화법'을 제공.
+// 스크립트 프레임이 아니라 실제 AI가 고객의 마지막 대사에 맞춰 생성한 답변을 눌러 넣고 다듬어 보낸다.
+var DEFAULT_SUGGEST=[
+  "말씀 감사해요. 혹시 지금 이 부분에서 가장 신경 쓰이는 게 어떤 건지 먼저 여쭤봐도 될까요?",
+  "바로 권해드리려는 게 아니라, 지금 상황에 공백이 없는지만 딱 5분 함께 점검해드리고 싶어요.",
+  "이미 잘 챙기고 계실 텐데, 최근 바뀐 부분만 짚어드릴게요. 확인만 해도 남는 거니까요."
+];
+function assistMode(){ return !!(state && (state.guest || userLevelNum()<3)); }
+function hideAssistSuggest(){ var w=gq('assistSuggest'); if(w) w.remove(); }
+function renderAssistSuggest(){
+  if(!state || state.guest || state.closed) return;   // 게스트는 renderGuestSuggest가 담당
+  if(userLevelNum()>=3) return;                        // Lv.3+ 는 자유 입력
+  hideAssistSuggest(); hideAssembleAssist();
+  var bar=gq('inbar'); if(!bar) return;
+  var list=(state.suggest && state.suggest.length)?state.suggest.slice(0,3):DEFAULT_SUGGEST;
+  var wrap=document.createElement('div'); wrap.id='assistSuggest'; wrap.className='gsug';
+  wrap.innerHTML='<div class="gsug-h">🧩 이렇게 답해보세요 <span>· 눌러서 넣고 다듬어 보내세요 (Lv.3부터 직접 입력 열림)</span></div>'+
+    list.map(function(s,i){ return '<button class="gsug-b" type="button" data-i="'+i+'">'+esc(s)+'</button>'; }).join('');
+  bar.insertBefore(wrap, bar.firstChild);
+  Array.prototype.forEach.call(wrap.querySelectorAll('.gsug-b'),function(b){
+    b.onclick=function(){ inp.value=list[+b.getAttribute('data-i')]; try{ inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,120)+'px'; }catch(e){} hideAssistSuggest(); inp.focus(); };
+  });
 }
 function sparkSVG(vals){
   var W=300,H=58,pad=10;
@@ -1770,7 +1793,7 @@ function startChat(p){
   var op=pickOpener(p); addBubble("cust",p.emoji,op); state.messages.push({role:"cust",text:op}); speak(op);
   inp.disabled=false;$("#send").disabled=false;inp.focus();
   renderLockRow();          // [프로토타입 이식] 상단 입력방식 잠금 표시
-  renderAssembleAssist();   // [개선 이식] 첫 턴 화법 조립
+  renderAssistSuggest();    // [개선] 첫 턴 추천 화법(맥락 기반)
 }
 function reset(){
   persistSession();   // 진행 중이라도 그때까지의 모든 점수를 저장(평균에 반영). 점수 없음/이미 커밋된 세션은 자동 skip.
@@ -1836,7 +1859,7 @@ function typing(on){let t=$("#typing");
 async function send(){
   if(!state||state.closed)return;
   const text=inp.value.trim(); if(!text)return;
-  hideAssembleAssist();   // [개선 이식] 답변 전송 시 조립 패널 제거
+  hideAssembleAssist(); hideAssistSuggest();   // 답변 전송 시 추천/조립 패널 제거
   inp.value="";inp.style.height="auto";
   addBubble("fc","🧑‍💼",text); state.messages.push({role:"fc",text}); state.turns++;
   inp.disabled=true;$("#send").disabled=true;typing(true);
@@ -1874,9 +1897,9 @@ score(총점)는 이 역량들을 종합한 설득력이며, good/improve/tip은
 [대화 기록]
 ${convo}
 
-${state.guest?'[추천 답변] 방금 만든 고객의 대사에 자연스럽게 이어질, 영업사원(FC)이 할 만한 다음 답변 후보 3개를 만드세요. 각 1~2문장 구어체, 서로 다른 접근(① 공감·인정 ② 질문으로 니즈 확인 ③ 근거·부담낮춘 제안), 고객이 방금 한 말에 구체적으로 반응해 대화가 이어지게. 아래 JSON의 suggest 배열에 넣으세요.\n':''}
+${assistMode()?'[추천 답변] 지금 고객의 【마지막 대사】에 자연스럽게 이어질, 영업사원(FC)이 실제로 할 만한 다음 답변 후보 3개를 만드세요. 각 1~2문장 구어체. 【가장 중요】 반드시 고객이 방금 한 말·요구에 정면으로 부합해야 합니다 — 고객이 숫자·근거·구체적 정보를 요구하면 실제로 그럴듯한 구체적 근거(예: "같은 보험료로 진단비가 2배", "월 3천원 차이로 입원비 10만원→20만원")를 넣은 답변을 반드시 포함하고, 질문을 하면 그 질문에 답하고, 반박하면 그 반박을 해소하세요. 막연한 "그 마음 이해해요/충분히 공감해요"류 공감만 반복하거나, 고객이 방금 던진 질문을 무시하는 답변은 절대 금지입니다. 서로 다른 접근(① 공감+핵심 질문 ② 구체적 근거·숫자 제시 ③ 부담 낮춘 다음 행동 제안)으로 구성하되 셋 다 지금 맥락에 맞아야 합니다. 아래 JSON의 suggest 배열에 넣으세요.\n':''}
 [출력] 반드시 아래 JSON 하나만. 다른 말 금지.
-{"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장","improve":"개선점 한 문장","tip":"더 나은 화법 제안 한 문장","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false${state.guest?',"suggest":["영업사원 답변 후보1","후보2","후보3"]':''}}`;
+{"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장","improve":"개선점 한 문장","tip":"더 나은 화법 제안 한 문장","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false${assistMode()?',"suggest":["영업사원 답변 후보1","후보2","후보3"]':''}}`;
   let data=null;
   if(!DEMO_MODE){
     try{
@@ -1901,6 +1924,7 @@ ${state.guest?'[추천 답변] 방금 만든 고객의 대사에 자연스럽게
   if(!state.guest && !state.milestoneShown && newW>=70 && prevW<70){ state.milestoneShown=true; setTimeout(addMilestone,300); }  // [프로토타입 이식] 마일스톤
   state.messages.push({role:"cust",text:data.customer||"…"}); addBubble("cust",p.emoji,data.customer||"…"); speak(data.customer||"");
   addTurnFooter(prevW,newW,state.turnEvals.length-1);
+  if(assistMode() && Array.isArray(data.suggest) && data.suggest.length){ state.suggest=data.suggest.filter(function(s){return s && String(s).trim();}); }  // 맥락 맞춘 추천 화법 갱신(게스트+저레벨 공통)
   if(!state.guest) saveSnapshot();
   // 게스트 30초 체험: 3턴 캡(또는 조기 설득) 후 미니 결과로 종료
   if(state.guest){
@@ -1910,7 +1934,7 @@ ${state.guest?'[추천 답변] 방금 만든 고객의 대사에 자연스럽게
   }
   if(data.closed || (nm==='convinced' && (state.turns||0)>=2)){finish(true);return;}
   inp.disabled=false;$("#send").disabled=false;inp.focus();
-  renderAssembleAssist();   // [프로토타입 이식] 매 턴 화법 조립(Lv.3 전까지)
+  renderAssistSuggest();   // [개선] 매 턴 AI가 맥락 맞춰 만든 추천 화법(Lv.3 전까지)
 }
 
 /* ---------- report ---------- */
