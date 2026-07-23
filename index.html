@@ -761,18 +761,6 @@ textarea:focus{border-color:var(--brand)}
 <div id="landing">
   <button id="lpClose" type="button" aria-label="닫기">✕</button>
   <div class="lp">
-    <div class="lp-sec lp-chal-top">
-      <div class="lp-chal">
-        <div class="chal-badge">🔥 진행 중 이벤트</div>
-        <div class="chal-t">철벽 고객 챌린지</div>
-        <div class="chal-prize"><span class="pz-l">🎁 신세계 상품권</span><span class="pz-amt">5만원권</span></div>
-        <div class="chal-d">가장 까다로운 <b>거절 강도 5</b> 고객을<br>한 세션에서 <b>90점 이상</b>으로 설득하면 성공!</div>
-        <div class="chal-sub">실력만 있으면 누구나 도전 가능</div>
-        <div class="chal-pay">📱 지급 방법 · <b>인증 휴대폰으로 모바일 상품권(신세계) 발송</b></div>
-        <button class="chal-cta" id="lpChalBtn" type="button">🔥 지금 도전하기 →</button>
-      </div>
-    </div>
-
     <div class="lp-hero">
       <div class="lp-badge">🌱 현직 설계사들이 쓰는 AI 세일즈 훈련</div>
       <div class="lp-logo">🌱</div>
@@ -971,21 +959,6 @@ textarea:focus{border-color:var(--brand)}
   </div>
 </div>
 
-<!-- 챌린지: 오늘 마감 → 내일 알림받기 -->
-<div id="chalClosed">
-  <div class="gr-card">
-    <div class="gr-ic" id="ccIc">⏰</div>
-    <h2 id="ccTitle">오늘 상품권은 마감됐어요</h2>
-    <p id="ccMsg" style="font-size:14px;color:#5b6472;line-height:1.6;margin:6px 0 4px">오늘 준비된 상품권이 모두 나갔어요.<br><b>내일 다시 도전</b>하면 신세계 상품권 5만원권에 도전할 수 있어요!</p>
-    <div class="cc-consent" id="ccConsent">
-      <label><input type="checkbox" id="ccAgree"> <span>[선택] 내일 다시 열리면 알림 받기 · 마케팅 정보 수신(문자·알림톡)에 동의합니다.</span></label>
-    </div>
-    <button class="gr-btn" id="ccRemind" type="button">🔔 내일 알림 받기</button>
-    <button class="pw-close" id="ccPractice" type="button">그냥 연습만 할게요</button>
-    <div class="cc-note" id="ccNote"></div>
-  </div>
-</div>
-
 <!-- 게스트 30초 체험 · 미니 결과 -->
 <div id="guestResult">
   <div class="gr-card">
@@ -1004,11 +977,6 @@ textarea:focus{border-color:var(--brand)}
 
   <section id="myspace" class="myspace" style="display:none"></section>
 
-  <div id="challengeBanner" class="home-chal" style="display:none" onclick="startChallenge()">
-    <span class="hc-ic">🔥</span>
-    <div class="hc-t"><div class="hc-h">철벽 고객 챌린지</div><div class="hc-s">거절 강도 5에서 90점+ 달성 시 <span class="hc-prize">신세계 5만원권</span></div></div>
-    <button class="hc-go" type="button" onclick="event.stopPropagation();startChallenge()">도전하기</button>
-  </div>
 
   <div id="homeActions" class="home-actions" style="display:none">
     <button class="ha-btn ha-rank" type="button" onclick="openRanking()">🏆 랭킹 보기</button>
@@ -2201,7 +2169,7 @@ function bootApp(){
 }
 /* ---------- 화면 전환(홈 · 랭킹 · 훈련 시작 플로우) ---------- */
 function listHideAll(){ ['myspace','challengeBanner','homeActions','rankView','resumeChoice','wizard','resumeBar','dash'].forEach(function(id){ var e=document.getElementById(id); if(e)e.style.display='none'; }); if(dashEl) dashEl.classList.remove('on'); }
-function showHome(){ listHideAll(); var ms=gq('myspace'); if(ms)ms.style.display=''; renderMySpace(); var cb=gq('challengeBanner'); if(cb)cb.style.display='flex'; var ha=gq('homeActions'); if(ha)ha.style.display='grid'; if(typeof trackStage==='function') trackStage('home'); }
+function showHome(){ listHideAll(); var ms=gq('myspace'); if(ms)ms.style.display=''; renderMySpace(); var ha=gq('homeActions'); if(ha)ha.style.display='grid'; if(typeof trackStage==='function') trackStage('home'); }
 // 챌린지: 오늘 참여 가능하면 훈련으로, 오늘 마감이면 '내일 알림받기' 모달
 async function startChallenge(){
   if(typeof trackStage==='function') trackStage('challenge_click');
@@ -2349,18 +2317,16 @@ function landingToAuth(mode){
 //  - 로그인: CTA를 '앱으로 돌아가기'로 바꿔 소개만 보고 앱으로 복귀
 function adaptLandingForUser(){
   var loggedIn=!!AUTH_USER;
-  var s1=gq("lpStart"), s2=gq("lpStart2"), lg=gq("lpLogin"), mt=document.querySelector('.lp-microtrust'), ch=gq("lpChalBtn");
+  var s1=gq("lpStart"), s2=gq("lpStart2"), lg=gq("lpLogin"), mt=document.querySelector('.lp-microtrust');
   if(loggedIn){
     if(s1){ s1.textContent="← 앱으로 돌아가기"; s1.onclick=hideLanding; }
     if(s2){ s2.textContent="← 앱으로 돌아가기"; s2.onclick=hideLanding; }
-    if(ch){ ch.textContent="🔥 지금 도전하기 →"; ch.onclick=function(){ hideLanding(); startChallenge(); }; }  // 로그인 사용자: 바로 챌린지
     if(lg) lg.style.display="none";
     if(mt) mt.style.display="none";
   }else{
     // 비로그인: 가입 전 '30초 체험'을 먼저 시켜 가치를 보여줌
     if(s1){ s1.textContent="무료로 지금 연습 시작 →"; s1.onclick=startGuestTrial; }
     if(s2){ s2.textContent="무료로 지금 연습 시작 →"; s2.onclick=startGuestTrial; }
-    if(ch){ ch.textContent="🔥 가입하고 도전하기 →"; ch.onclick=challengeSignup; }  // 비로그인: 챌린지는 계정·상품권 필요 → 가입으로
     if(lg) lg.style.display="";
     if(mt){ mt.textContent="로그인·카드 등록 없이 바로 · 30초면 끝"; mt.style.display=""; }
   }
@@ -2774,13 +2740,6 @@ async function saveSessionToDB(d){
       messages:d.messages||null, turn_evals:d.turnEvals||null, improves:d.improves||null, scores:d.scores||null, axis_avg:a||null
     }).select('id').maybeSingle();
     if(ins && ins.data && ins.data.id && state){ state.recId=ins.data.id; }  // 뒤이어 생성될 AI 코칭을 이 행에 붙이기 위해 id 보관
-    // 챌린지 달성(거절강도5·최고90+·4턴+)이면 관리자에게 알림 문자(서버가 세션당 1회만)
-    try{
-      if(ins && ins.data && ins.data.id && (+d.cold)===5 && (+d.best)>=90 && (+d.turns)>=4){
-        var sess=(await sb.auth.getSession()).data.session;
-        if(sess) fetch(NOTIFY_CHALLENGE_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:sess.access_token, sessionId:ins.data.id})}).catch(function(){});
-      }
-    }catch(_){}
   }catch(e){ console.warn('session save', e); }
 }
 
