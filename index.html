@@ -467,6 +467,19 @@ body{word-break:keep-all;overflow-wrap:break-word;text-wrap:balance;-webkit-text
 .onb-sum .st2{font-size:20px;font-weight:800;margin:3px 0 12px;line-height:1.35}
 .onb-sum .row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid rgba(255,255,255,.16);font-size:13.5px}
 .onb-sum .rk{opacity:.75;min-width:74px;font-weight:600}.onb-sum .rv{font-weight:800;flex:1}
+/* ===== [프로토타입 이식] 고객 호감도 게이지 + 마일스톤 ===== */
+.hgauge{background:#f3f8ee;border:1px solid #e1ead8;border-radius:12px;padding:9px 12px;margin:0 0 8px;transition:.2s}
+.hgauge.gain{animation:hgflash .6s}
+@keyframes hgflash{0%{background:#fdeccf}100%{background:#f3f8ee}}
+.hg-row{display:flex;align-items:center;gap:9px}
+.hg-face{font-size:22px;transition:transform .2s}.hg-face.bump{transform:scale(1.35)}
+.hg-label{font-size:12px;font-weight:800;color:#1f3d0a}
+.hg-pct{margin-left:auto;font-size:12.5px;font-weight:800;color:#3B6D11}
+.hg-track{height:9px;border-radius:99px;background:#e3eadb;overflow:hidden;margin-top:7px}
+.hg-fill{height:100%;width:18%;border-radius:99px;background:linear-gradient(90deg,#F5A524,#37A15E);transition:width .6s cubic-bezier(.3,1.1,.4,1)}
+.milestone{align-self:center;text-align:center;background:linear-gradient(135deg,#fff4e8,#fde9cf);border:1px solid #f6c88a;border-radius:14px;padding:10px 14px;font-size:13px;font-weight:800;color:#b4560a;margin:4px auto;max-width:82%;animation:msPop .5s}
+.lvbadge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#2E9455,#1E7A46);color:#fff;font-size:12.5px;font-weight:800;padding:5px 12px;border-radius:99px;margin-bottom:10px}
+@keyframes msPop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
 </style>
 <style>
 :root{
@@ -1067,12 +1080,16 @@ textarea:focus{border-color:var(--brand)}
         <div class="who" id="tWho">고객</div>
         <div class="st" id="tSt">전화 상담 중</div>
       </div>
-      <div class="mood">
+      <div class="mood" style="display:none">
         <span id="moodTxt">냉담</span>
         <div class="moodbar"><div class="moodfill" id="moodFill"></div></div>
       </div>
       <button class="endbtn" onclick="finish(false)">리포트</button>
       <button class="endbtn" onclick="reset()">← 목록</button>
+    </div>
+    <div class="hgauge" id="hgauge">
+      <div class="hg-row"><span class="hg-face" id="hgFace">😐</span><span class="hg-label">고객 호감도</span><span class="hg-pct" id="hgPct">18%</span></div>
+      <div class="hg-track"><div class="hg-fill" id="hgFill"></div></div>
     </div>
     <div class="log" id="log"></div>
     <div class="report" id="report"></div>
@@ -1553,6 +1570,18 @@ function passLineFor(p,cold){return Math.max(50,Math.min(90,[0,60,68,75][p.diff]
    데이터 근거: 대부분이 강도5로 직행 → 합격률 0% → 좌절·이탈. 쉬운 첫 승리가 재방문을 만든다.
    규칙: 지금까지 '합격한 최고 난이도 + 1'까지만 허용(최소 2). 이겨야 다음 강도가 열림. */
 function allowedMaxCold(){ try{ var db=loadStore(); var mp=db.maxPassedCold||0; return Math.max(2,Math.min(5,mp+1)); }catch(e){ return 2; } }
+/* [프로토타입 이식] 레벨/티어 (누적 세션 + 최고 합격 강도 기준) */
+function userLevel(){
+  var s=0,mp=0; try{ var db=loadStore(); s=(db.global&&db.global.sessions)||0; mp=db.maxPassedCold||0; }catch(e){}
+  if(s>=150&&mp>=5) return {n:'보험신',ic:'🏆'};
+  if(s>=80&&mp>=5)  return {n:'보험왕',ic:'👑'};
+  if(s>=45&&mp>=4)  return {n:'Lv.5 세일즈 마스터',ic:'🎖'};
+  if(s>=25&&mp>=3)  return {n:'Lv.4 에이스',ic:'🎖'};
+  if(s>=12&&mp>=2)  return {n:'Lv.3 필드 FC',ic:'🎖'};
+  if(s>=5&&mp>=1)   return {n:'Lv.2 루키 FC',ic:'🎖'};
+  return {n:'Lv.1 새싹 FC',ic:'🌱'};
+}
+function levelBadgeHTML(){ var lv=userLevel(); return '<div class="lvbadge">'+lv.ic+' <b>'+esc(lv.n)+'</b></div>'; }
 function sparkSVG(vals){
   var W=300,H=58,pad=10;
   var mn=Math.min.apply(null,vals.concat([40]))-5, mx=Math.max.apply(null,vals.concat([90]))+5;
@@ -1720,7 +1749,16 @@ function reset(){
   showHome();
   state=null;
 }
-function setMood(m){const i=MOODS[m]||MOODS.cold;$("#moodTxt").textContent=i.t;$("#moodFill").style.width=i.w+"%";}
+function setMood(m){const i=MOODS[m]||MOODS.cold;$("#moodTxt").textContent=i.t;$("#moodFill").style.width=i.w+"%";
+  /* [프로토타입 이식] 고객 호감도 게이지 */
+  var w=i.w, face=w>=100?'😊':(w>=70?'🙂':(w>=42?'😐':'😠'));
+  var fEl=gq('hgFace'),pEl=gq('hgPct'),flEl=gq('hgFill'),gEl=gq('hgauge');
+  if(fEl){ fEl.textContent=face; fEl.classList.add('bump'); setTimeout(function(){fEl.classList.remove('bump');},220); }
+  if(pEl) pEl.textContent=w+'%';
+  if(flEl) flEl.style.width=w+'%';
+  if(gEl){ gEl.classList.remove('gain'); void gEl.offsetWidth; gEl.classList.add('gain'); }
+}
+function addMilestone(){ if(!log) return; var d=document.createElement('div'); d.className='milestone'; d.textContent='🎉 고객이 마음을 열기 시작했어요! 지금이 기회예요'; log.appendChild(d); log.scrollTop=log.scrollHeight; }
 function addBubble(role,emoji,text){
   const r=document.createElement("div"); r.className="row "+role;
   r.innerHTML=`<span class="mini">${role==='fc'?'🧑‍💼':emoji}</span><div class="bub">${esc(text)}</div>`;
@@ -1828,6 +1866,7 @@ ${state.guest?'[추천 답변] 방금 만든 고객의 대사에 자연스럽게
   if(data.axes){ state.axisCount++; AXES.forEach(a=>{ state.axisSum[a.k]=(state.axisSum[a.k]||0)+clampS(data.axes[a.k]); }); }
   state.turnEvals.push(data);
   const prevW=state.moodW||18; const nm=data.mood||"cold"; setMood(nm); const newW=(MOODS[nm]||MOODS.cold).w; state.moodW=newW;
+  if(!state.guest && !state.milestoneShown && newW>=70 && prevW<70){ state.milestoneShown=true; setTimeout(addMilestone,300); }  // [프로토타입 이식] 마일스톤
   state.messages.push({role:"cust",text:data.customer||"…"}); addBubble("cust",p.emoji,data.customer||"…"); speak(data.customer||"");
   addTurnFooter(prevW,newW,state.turnEvals.length-1);
   if(!state.guest) saveSnapshot();
@@ -1882,6 +1921,7 @@ function finish(won){
   const coachHtml=sc.length?`<div class="coach" id="coachBox"><div class="coach-load">🤖 AI 코치가 종합 분석 중…</div></div>`:'';
   const r=$("#report");
   r.innerHTML=`
+    ${levelBadgeHTML()}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">${badge}
       <span class="passline">합격 기준: 평균 ${state.passLine}점 이상(2턴 이상) 또는 고객 설득 성공</span></div>
     <div class="rtop">
