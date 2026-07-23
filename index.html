@@ -635,6 +635,16 @@ details.pbdetails[open]>summary{margin-bottom:10px}
 .coach .cfocus .ca{font-weight:700;color:var(--brand);font-size:13px;margin-bottom:3px}
 .coach ul{margin:6px 0 0;padding-left:18px;font-size:12.5px}.coach li{margin:3px 0;line-height:1.5}
 .coach .cnext{font-size:12px;color:var(--muted);margin-top:9px;border-top:1px dashed var(--line);padding-top:8px}
+/* [가독성 정돈] 여백·줄간격 확보로 각 내용이 또렷하게 */
+.coach{padding:16px 18px;margin-bottom:14px}
+.coach h4{font-size:14px;margin-bottom:11px;gap:8px}
+.coach .cst{font-size:13px;line-height:1.68;margin:9px 0}
+.coach ul{margin-top:8px}
+.coach li{line-height:1.68;margin:6px 0}
+.coach .cfocus{padding:12px 14px;margin-top:13px}
+.coach .cfocus .ca{margin-bottom:5px}
+.peekrow{gap:10px;margin-top:4px}
+.report>*+*{margin-top:14px}
 .typing{display:flex;align-items:center;gap:8px;width:fit-content;max-width:82%;margin:3px 0;padding:8px 13px;font-size:13px;color:#5b6472;border:1px solid #dfe9d4;border-radius:15px;border-bottom-left-radius:5px;background:linear-gradient(100deg,#f2f7ec 0%,#e6f2d8 40%,#f2f7ec 80%);background-size:220% 100%;animation:typingShine 1.7s linear infinite}
 @keyframes typingShine{0%{background-position:150% 0}100%{background-position:-150% 0}}
 .typing .tname{font-weight:700;color:#3B6D11}
@@ -1113,7 +1123,7 @@ textarea:focus{border-color:var(--brand)}
     </div>
   </div>
 
-  <p class="footnote"><span id="brandFoot"></span>AI가 고객 연기와 답변 평가를 동시에 수행 · 훈련 기록은 이 브라우저에 저장됩니다</p>
+  <p class="footnote"><span id="brandFoot"></span>AI가 고객 연기와 답변 평가를 동시에 수행 · 훈련 기록은 계정에 저장돼 기기가 바뀌어도 이어집니다</p>
   <div class="applinks"><a href="terms.html">이용약관</a><span>·</span><a href="privacy.html">개인정보처리방침</a><span>·</span><a href="#" onclick="openInquiry();return false;">문의</a></div>
   <div class="bizinfo">(주)비다코퍼레이션 · 대표이사 김신천 · 사업자등록번호 285-81-04061 · 통신판매업 신고번호 제2026-서울영등포-0567<br>서울특별시 영등포구 국제금융로6길 33, 919호 씨307(여의도동, 맨하탄빌딩)<br>대표전화 02-6953-8006 · 이메일 vidacorp.ceo@gmail.com · 개인정보보호책임자 김신천</div>
 </div>
@@ -1879,7 +1889,7 @@ async function send(){
   const convo=state.messages.map(m=>`${m.role==='fc'?'영업사원':'고객'}: ${m.text}`).join("\n");
   const teaseRule=state.tease?`\n- 재미와 동기부여를 위해 살짝 장난스럽고 유쾌한 톤을 섞습니다. 답변이 약하면 부드럽게 놀리듯 도발해("에이~ 그 정도로는 안 넘어가죠 ㅎㅎ", "오, 이번엔 진짜 대충인데요?") 재도전 승부욕을 자극하고, 답변이 좋으면 능청스럽게 인정합니다("오, 이번 건 좀 통하네요"). 단 무례·인신공격은 금지하고, 페르소나 성격과 거절 강도는 끝까지 유지합니다.`:``;
   const asmOn=(!state.guest && (typeof userLevelNum==='function') && userLevelNum()<3);  // 저레벨 로그인 유저 → 대화 조립 프레임 제공
-  const asmRule=asmOn?`\n[화법 조립] 초보 영업사원이 좋은 화법을 '빈칸 조각 맞추기'로 완성하도록, 지금 고객의 【마지막 대사】에 딱 맞는 빈칸 채우기 문형을 asm으로 제시하세요.\n- 완성문 = pre + ' ' + (b0 중 택1) + mid + ' ' + (b1 중 택1) + ' ' + post 로 조립됩니다. pre(공감·도입 고정), mid(연결어, 보통 ","), post(제안·질문 고정)는 어떤 조각을 골라도 자연스러운 한 문장이 되도록 쓰고, b0·b1은 각각 서로 다른 조각 후보 2개씩.\n- 【핵심】 b0·b1을 어떻게 조합해도 고객이 방금 요구·질문한 것에 정면으로 답해야 합니다. 고객이 숫자·근거를 요구하면 조각(b0/b1) 안에 반드시 구체적 숫자·사실(예: "진단비가 2배", "월 3천원 차이로 입원비 10만원→20만원")을 담으세요. 막연한 "그 마음 이해해요"류 공감만 반복하거나 고객 질문을 무시하는 조각은 절대 금지.`:``;
+  const asmRule=asmOn?`\n[화법 조립] 초보 영업사원이 좋은 화법을 '빈칸 조각 맞추기'로 완성하도록, 지금 고객의 【마지막 대사】에 딱 맞는 빈칸 채우기 문형을 asm으로 제시하세요.\n- 완성문 = pre + ' ' + (b0 중 택1) + mid + ' ' + (b1 중 택1) + ' ' + post 로 조립됩니다. pre(공감·도입 고정), mid(연결어, 보통 ","), post(제안·질문 고정)는 어떤 조각을 골라도 자연스러운 한 문장이 되도록 쓰고, b0·b1은 각각 서로 다른 조각 후보 2개씩.\n- 【맥락】 b0·b1을 어떻게 조합해도 고객이 방금 요구·질문한 것에 정면으로 답해야 합니다. 막연한 "그 마음 이해해요"류 공감만 반복하거나 고객 질문을 무시하는 조각은 금지.\n- 【상품 정확성·매우 중요】 실제 보험 상품 구조에 맞지 않는 허위 사실이나 지어낸 확정 수치는 절대 넣지 마세요. 특히 실손(실비)은 보험료를 조금 더 낸다고 보장 한도가 올라가는 구조가 아니며, 정액형(진단비·입원일당 등)과 실손을 혼동하지 마세요. 확정 금액·한도를 지어내는 대신 '보장 범위·한도·특약 구성을 함께 점검', '지금 약관 기준으로 공백이 있는지 확인', '정확한 수치는 가입하신 약관으로 비교해봐야 정확하다' 같이 구조적으로 맞고 검증 전제를 단 표현을 쓰세요.`:``;
   const prompt=
 `당신은 보험 영업사원(FC) 교육용 롤플레이 AI입니다. 두 역할을 동시에 수행합니다.
 
@@ -1897,6 +1907,7 @@ ${c.d}
 - 영업사원의 답변이 설득력 있으면 인간적으로 반응합니다: 부분 인정("그건 그렇네요"), 새로운 궁금증, 망설임, 조건부 관심 등으로 조금씩 마음이 열리는 게 대사에서 드러나야 합니다. mood를 cold→neutral→warming→convinced로 단계적으로 올리되, 좋은 답변에도 제자리 거절만 반복하면 안 됩니다.
 - 거절 강도가 낮을수록 빨리 누그러집니다. 강도1은 진심 어리고 합리적인 답변 1~2번이면 눈에 띄게 호의적으로 바뀌고, 억지스럽거나 근거 없는 답변에만 계속 거절합니다. 강도가 높으면 더 오래 버팁니다. 페르소나 특성과 강도는 유지하되, 무한정 벽 치듯 스톤월링하는 것은 금지입니다.
 - 동시에 영업사원의 마지막 답변을 코치로서 평가합니다. 거절 강도가 높을수록 점수 기준을 엄격히 적용하세요.
+- 【상품 정확성】 고객으로서 반응할 때든 코치로서 평가할 때든, 실제 보험 상품 구조에 어긋나는 화법은 절대 옳은 것으로 인정하지 마세요. 대표적 오류: 실손(실비)은 보험료를 조금 더 낸다고 보장 한도가 올라가는 구조가 아님 / 실손과 정액형(진단비·입원일당)을 혼동 / 근거 없는 확정 수치를 사실처럼 단정. 영업사원이 이런 구조적 오류나 지어낸 수치를 말하면, 고객은 "그건 실비가 그렇게 되는 게 아닐 텐데요?"처럼 되묻고, 코치는 improve/tip에서 무엇이 상품 구조상 틀렸는지 반드시 짚어 evidence 점수를 낮추세요. 당신(AI) 스스로도 확정 수치를 지어내지 말고 '약관·상품 비교로 확인'을 전제로 답하세요.
 - 설득이 거절 강도에 맞게 쌓이면 현실적인 고객처럼 마음을 열어 목표(가입 검토·다음 미팅 약속·지인 소개 승낙 등)에 긍정적으로 응하며, 이때 closed를 true, mood를 convinced로 설정합니다. 대략의 임계치 — 강도1~2: 좋은 답변 1~2회 / 강도3: 3~4회 / 강도4: 5회 안팎 / 강도5: 6회 이상. 단 근거 없이 약하거나 반복적인 답변에는 열리지 마세요.
 
 [역량 채점] 영업사원의 이번 답변을 아래 6개 역량으로 각각 0~100점 채점하세요. 상황(거절 극복/소개 요청)에 맞게 유연히 해석합니다.
@@ -1911,7 +1922,7 @@ score(총점)는 이 역량들을 종합한 설득력이며, good/improve/tip은
 [대화 기록]
 ${convo}
 
-${state.guest?'[추천 답변] 지금 고객의 【마지막 대사】에 자연스럽게 이어질, 영업사원(FC)이 실제로 할 만한 다음 답변 후보 3개를 만드세요. 각 1~2문장 구어체. 【가장 중요】 반드시 고객이 방금 한 말·요구에 정면으로 부합해야 합니다 — 고객이 숫자·근거·구체적 정보를 요구하면 실제로 그럴듯한 구체적 근거(예: "같은 보험료로 진단비가 2배")를 넣은 답변을 반드시 포함하고, 질문을 하면 그 질문에 답하세요. 막연한 "그 마음 이해해요"류 공감만 반복하거나 고객 질문을 무시하는 답변은 금지입니다. 아래 JSON의 suggest 배열에 넣으세요.\n':''}${asmRule?asmRule+'\n':''}
+${state.guest?'[추천 답변] 지금 고객의 【마지막 대사】에 정면으로 답하는, FC가 실제로 할 만한 답변 후보 3개를 각 1~2문장 구어체로 만드세요. 질문엔 답하고 반박은 해소하되, 실제 보험 상품 구조에 맞지 않는 허위 사실·지어낸 확정 수치는 넣지 마세요(실손은 보험료 조금 더 낸다고 한도가 오르는 구조가 아니며, 정액형과 혼동 금지). 확정 금액을 지어내는 대신 구조적으로 맞는 표현과 "정확한 건 약관으로 비교해봐야 한다" 같은 검증 전제를 쓰세요. 막연한 공감만 반복 금지. 아래 JSON의 suggest 배열에 넣으세요.\n':''}${asmRule?asmRule+'\n':''}
 [출력] 반드시 아래 JSON 하나만. 다른 말 금지.
 {"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장","improve":"개선점 한 문장","tip":"더 나은 화법 제안 한 문장","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false${state.guest?',"suggest":["영업사원 답변 후보1","후보2","후보3"]':''}${asmOn?',"asm":{"pre":"고정 앞부분","mid":",","post":"고정 뒷부분","b0":["조각후보1","조각후보2"],"b1":["조각후보1","조각후보2"]}':''}}`;
   // 실제 AI만 사용 — 데모 모드/가짜 응답 없음. 실패 시 재시도, 그래도 안 되면 정직하게 안내하고 방금 답변을 되돌려 재시도 유도.
@@ -2292,10 +2303,19 @@ async function renderMySpace(){
   var rows=[];
   try{
     var q=await sb.from('training_sessions')
-      .select('avg_score,passed,created_at,empathy,needs,evidence,delivery,rebuttal,closing')
+      .select('avg_score,passed,cold,created_at,empathy,needs,evidence,delivery,rebuttal,closing')
       .eq('user_id',AUTH_USER.id).order('created_at',{ascending:true}).limit(500);
     rows=q.data||[];
   }catch(e){ rows=[]; }
+  // [서버 동기화] 레벨·성장곡선 로컬 캐시를 서버(계정) 기록으로 갱신 → 기기가 바뀌어도 동일
+  try{
+    var _db=loadStore(); _db.global=_db.global||{};
+    _db.global.sessions=rows.length;
+    var _mpc=0; rows.forEach(function(r){ if(r.passed && (+r.cold||0)>_mpc) _mpc=+r.cold; });
+    _db.maxPassedCold=_mpc;
+    _db.history=rows.map(function(r){ return {avg:Math.round(+r.avg_score||0), t:r.created_at}; });
+    saveStore(_db);
+  }catch(e){}
 
   var goals=msGetGoals(), total=rows.length;
   var scores=rows.map(function(r){return +r.avg_score||0;});
