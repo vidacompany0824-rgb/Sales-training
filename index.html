@@ -1657,7 +1657,7 @@ function sparkSVG(vals){
   var xs=function(i){ return vals.length>1?pad+i*(W-2*pad)/(vals.length-1):W/2; };
   var ys=function(v){ return H-pad-(v-mn)/(mx-mn)*(H-2*pad); };
   var pts=vals.map(function(v,i){return xs(i).toFixed(1)+','+ys(v).toFixed(1);}).join(' ');
-  var dots=vals.map(function(v,i){return '<circle cx="'+xs(i).toFixed(1)+'" cy="'+ys(v).toFixed(1)+'" r="'+(i===vals.length-1?4.5:3)+'" fill="'+(i===vals.length-1?'#FF7A1A':'#1e7a46')+'"/>';}).join('');
+  var dots=vals.map(function(v,i){return '<circle cx="'+xs(i).toFixed(1)+'" cy="'+ys(v).toFixed(1)+'" r="'+(i===vals.length-1?4.5:3)+'" fill="'+(i===vals.length-1?'#2f7d32':'#8fb573')+'"/>';}).join('');
   var labs=vals.map(function(v,i){return '<text x="'+xs(i).toFixed(1)+'" y="'+Math.max(11,ys(v)-8).toFixed(1)+'" font-size="10" fill="#14401f" text-anchor="middle" font-weight="800">'+v+'</text>';}).join('');
   return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" style="display:block"><polyline points="'+pts+'" fill="none" stroke="#1e7a46" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+dots+labs+'</svg>';
 }
@@ -2419,7 +2419,7 @@ async function renderMySpace(){
   var subline;
   if(!total){ subline='첫 훈련을 시작해 나만의 성장 기록을 쌓아보세요.'; }
   else if(weekCount>=goals.weekly){ subline='이번 주 목표를 달성했어요. 정말 잘하고 있어요! 🎉'; }
-  else if(growth!=null && growth>0){ subline='최근 실력이 오르고 있어요. 이 기세를 이어가세요! 🚀'; }
+  else if(growth!=null && growth>0){ subline='최근 실력이 오르고 있어요. 이 기세를 이어가세요.'; }
   else { subline='꾸준함이 실력을 만듭니다. 오늘도 한 세션 어때요?'; }
   var emptyHint=total?'':'<div class="ms-empty">아직 훈련 기록이 없어요. 아래에서 고객을 골라 첫 훈련을 시작하면 지표가 채워집니다.</div>';
 
