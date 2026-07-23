@@ -478,6 +478,11 @@ body{word-break:keep-all;overflow-wrap:break-word;text-wrap:balance;-webkit-text
 .hg-track{height:9px;border-radius:99px;background:#e3eadb;overflow:hidden;margin-top:7px}
 .hg-fill{height:100%;width:18%;border-radius:99px;background:linear-gradient(90deg,#F5A524,#37A15E);transition:width .6s cubic-bezier(.3,1.1,.4,1)}
 .milestone{align-self:center;text-align:center;background:linear-gradient(135deg,#fff4e8,#fde9cf);border:1px solid #f6c88a;border-radius:14px;padding:10px 14px;font-size:13px;font-weight:800;color:#b4560a;margin:4px auto;max-width:82%;animation:msPop .5s}
+.lockrow{display:flex;gap:6px;margin:0 0 8px}
+.lockrow:empty{display:none}
+.lockchip{flex:1;text-align:center;font-size:10.5px;font-weight:800;padding:5px 4px;border-radius:9px;background:#EEF1EC;color:#9aa2a8;border:1px solid #E3E7E1;cursor:pointer;transition:.14s}
+.lockchip:not(.on):hover{border-color:#C7CEC8;background:#E7EBE6}
+.lockchip.on{background:var(--green,#2E9455);color:#fff;border-color:var(--green,#2E9455);cursor:default}
 .lvbadge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#2E9455,#1E7A46);color:#fff;font-size:12.5px;font-weight:800;padding:5px 12px;border-radius:99px;margin-bottom:10px}
 @keyframes msPop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
 </style>
@@ -1091,6 +1096,7 @@ textarea:focus{border-color:var(--brand)}
       <div class="hg-row"><span class="hg-face" id="hgFace">😐</span><span class="hg-label">고객 호감도</span><span class="hg-pct" id="hgPct">18%</span></div>
       <div class="hg-track"><div class="hg-fill" id="hgFill"></div></div>
     </div>
+    <div class="lockrow" id="lockrow"></div>
     <div class="log" id="log"></div>
     <div class="report" id="report"></div>
     <div class="inbar" id="inbar">
@@ -1582,6 +1588,29 @@ function userLevel(){
   return {n:'Lv.1 새싹 FC',ic:'🌱'};
 }
 function levelBadgeHTML(){ var lv=userLevel(); return '<div class="lvbadge">'+lv.ic+' <b>'+esc(lv.n)+'</b></div>'; }
+// [프로토타입 이식] 입력 방식 잠금해제 레벨(1~6). 직접 입력=Lv.3, 음성 실전=Lv.5에서 해제
+function userLevelNum(){
+  var s=0,mp=0; try{ var db=loadStore(); s=(db.global&&db.global.sessions)||0; mp=db.maxPassedCold||0; }catch(e){}
+  if(s>=80&&mp>=5) return 6;   // 보험왕·보험신 → 전부 해제
+  if(s>=45&&mp>=4) return 5;
+  if(s>=25&&mp>=3) return 4;
+  if(s>=12&&mp>=2) return 3;
+  if(s>=5&&mp>=1)  return 2;
+  return 1;
+}
+function renderLockRow(){
+  var el=gq('lockrow'); if(!el) return;
+  if(!state || state.guest || (state.persona&&state.persona.guest)){ el.innerHTML=''; return; }
+  var n=userLevelNum(), directOn=n>=3, voiceOn=n>=5;
+  el.innerHTML=
+    '<span class="lockchip on">🧩 대화 조립</span>'+
+    '<span class="lockchip'+(directOn?' on':'')+'"'+(directOn?'':' onclick="showLock(\'direct\')"')+'>'+(directOn?'✏️ 직접 입력':'🔒 직접 입력 · Lv.3')+'</span>'+
+    '<span class="lockchip'+(voiceOn?' on':'')+'"'+(voiceOn?'':' onclick="showLock(\'voice\')"')+'>'+(voiceOn?'🎙️ 음성 실전':'🔒 음성 실전 · Lv.5')+'</span>';
+}
+function showLock(kind){
+  if(kind==='direct') toast('🔒 직접 입력은 Lv.3에서 열려요 — 지금은 대화 조립으로 실력을 쌓아요!');
+  else toast('🔒 음성 실전은 Lv.5에서 열려요 — 계속 훈련하면 게임처럼 하나씩 열립니다!');
+}
 function sparkSVG(vals){
   var W=300,H=58,pad=10;
   var mn=Math.min.apply(null,vals.concat([40]))-5, mx=Math.max.apply(null,vals.concat([90]))+5;
@@ -1671,14 +1700,16 @@ function pickAsmFrame(txt){
 }
 function hideAssembleAssist(){ var w=gq('asmAssist'); if(w) w.remove(); }
 function renderAssembleAssist(){
-  if(!state || state.guest || (state.persona&&state.persona.guest) || (state.turns||0)>0) return;
+  if(!state || state.guest || (state.persona&&state.persona.guest) || state.closed) return;
+  if(userLevelNum()>=3) return;   // 직접 입력 해제(Lv.3+) 후엔 자유 입력으로 진행
   var bar=gq('inbar'); if(!bar) return;
   hideAssembleAssist();
-  var opener=(state.messages&&state.messages[0]&&state.messages[0].text)||'';
+  var opener='';
+  for(var _i=(state.messages||[]).length-1;_i>=0;_i--){ if(state.messages[_i].role==='cust'){ opener=state.messages[_i].text; break; } }  // 최신 고객 대사 기준으로 조립
   var fr=pickAsmFrame(opener); var sel=[null,null];
   function frameHtml(){ return '"'+esc(fr.pre)+' <u data-b="0">'+(sel[0]?esc(sel[0].t):'____')+'</u>'+esc(fr.mid)+' <u data-b="1">'+(sel[1]?esc(sel[1].t):'____')+'</u> '+esc(fr.post)+'"'; }
   var wrap=document.createElement('div'); wrap.id='asmAssist'; wrap.className='asm';
-  wrap.innerHTML='<div class="asm-h">🧩 화법 조립 <span>· 조각을 눌러 첫 화법을 완성해요 (또는 아래에 직접 입력)</span></div>'+
+  wrap.innerHTML='<div class="asm-h">🧩 화법 조립 <span>· 조각을 눌러 화법을 완성해요 (Lv.3부터 직접 입력 열림)</span></div>'+
     '<div class="asm-frame" id="asmFrame">'+frameHtml()+'</div>'+
     '<div class="asm-chips" id="asmChips">'+fr.opts.map(function(o,i){return '<button type="button" class="asm-chip" data-i="'+i+'">'+esc(o.t)+'</button>';}).join('')+'</div>'+
     '<button type="button" class="asm-go" id="asmGo" disabled>고객에게 말하기 →</button>';
@@ -1738,6 +1769,7 @@ function startChat(p){
   updateVoiceBtn(); setMood("cold"); log.innerHTML="";
   var op=pickOpener(p); addBubble("cust",p.emoji,op); state.messages.push({role:"cust",text:op}); speak(op);
   inp.disabled=false;$("#send").disabled=false;inp.focus();
+  renderLockRow();          // [프로토타입 이식] 상단 입력방식 잠금 표시
   renderAssembleAssist();   // [개선 이식] 첫 턴 화법 조립
 }
 function reset(){
@@ -1878,6 +1910,7 @@ ${state.guest?'[추천 답변] 방금 만든 고객의 대사에 자연스럽게
   }
   if(data.closed || (nm==='convinced' && (state.turns||0)>=2)){finish(true);return;}
   inp.disabled=false;$("#send").disabled=false;inp.focus();
+  renderAssembleAssist();   // [프로토타입 이식] 매 턴 화법 조립(Lv.3 전까지)
 }
 
 /* ---------- report ---------- */
