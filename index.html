@@ -2511,7 +2511,11 @@ async function requestChallengeReminder(){
 })();
 function openRanking(){ listHideAll(); var rv=gq('rankView'); if(rv)rv.style.display='block'; renderRanking(); if(typeof trackStage==='function') trackStage('ranking'); }
 function closeRanking(){ showHome(); }
-function gotoPersona(){ listHideAll(); var w=gq('wizard'); if(w)w.style.display='block'; var s1=gq('step1'),s2=gq('step2'); if(s1)s1.style.display='none'; if(s2)s2.style.display='none'; renderOnboard(); if(typeof trackStage==='function') trackStage('onboarding'); }
+// 온보딩은 처음 1회만. 이미 완료(로컬 플래그) 했거나 훈련 기록(서버·계정)이 있으면 건너뛴다 → 기기가 바뀌어도 재노출 안 함
+function onbDone(){ try{ if(localStorage.getItem('onb_done')==='1') return true; }catch(e){} try{ var db=loadStore(); if(db&&db.global&&(db.global.sessions||0)>0) return true; }catch(e){} return false; }
+function gotoPersona(){ listHideAll(); var w=gq('wizard'); if(w)w.style.display='block'; var s1=gq('step1'),s2=gq('step2'); if(s1)s1.style.display='none'; if(s2)s2.style.display='none';
+  if(onbDone()){ onbManual(); return; }   // 재방문자: 온보딩 생략, 바로 고객 선택
+  renderOnboard(); if(typeof trackStage==='function') trackStage('onboarding'); }
 
 /* ===== [프로토타입 이식] 온보딩 6단계 → 페르소나·거절강도 매핑 ===== */
 var ONB_DATA={
@@ -2592,8 +2596,8 @@ function drawOnb(){
 function onbLocked(){ if(typeof toast==='function') toast('🔒 거절강도 '+((typeof allowedMaxCold==='function')?allowedMaxCold():2)+'까지 먼저 이겨보세요 — 쉬운 상대부터 클리어하면 열려요!'); }
 function onbNext(){ if(onbStep>=1&&onbStep<=6&&!onbAns[ONB_DATA[onbStep].key]) return; onbStep++; drawOnb(); }
 function onbBack(){ if(onbStep>0){ onbStep--; drawOnb(); } }
-function onbManual(){ var h=gq('onbHost'); if(h)h.innerHTML=''; var s1=gq('step1'); if(s1)s1.style.display=''; wizReset(); renderPicker(); }
-function onbStart(){ coldness=onbCold(onbAns); var p=onbPersona(onbAns); wizPersona=p; tryStart(p); }
+function onbManual(){ try{localStorage.setItem('onb_done','1');}catch(e){} var h=gq('onbHost'); if(h)h.innerHTML=''; var s1=gq('step1'); if(s1)s1.style.display=''; wizReset(); renderPicker(); }
+function onbStart(){ try{localStorage.setItem('onb_done','1');}catch(e){} coldness=onbCold(onbAns); var p=onbPersona(onbAns); wizPersona=p; tryStart(p); }
 function startFresh(){ clearSnapshot(); gotoPersona(); }
 function startFlow(){
   var snap=loadSnapshot();
