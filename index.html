@@ -1641,7 +1641,22 @@ function nextLevelInfo(){
   return null;
 }
 // [게임화] 계약 성사 시 점수·거절강도로 월납 보험료(만원) 산정 — 세션 데이터로 계산해 서버 기록에서 바로 누적 가능(새 컬럼 불필요)
-function sessionPremium(avg,cold,passed){ if(!passed) return 0; avg=+avg||0; cold=+cold||1; return Math.max(1, Math.round((avg/100)*(1+cold*1.5))); }
+// 티어 가중: 최고 등급일수록 계약 규모가 커진다 (보험왕·보험신)
+function tierMult(){
+  var s=0,mp=0; try{ var db=loadStore(); s=(db.global&&db.global.sessions)||0; mp=db.maxPassedCold||0; }catch(e){}
+  if(s>=150&&mp>=5) return 1.6;   // 보험신
+  if(s>=80&&mp>=5)  return 1.35;  // 보험왕
+  if(s>=45&&mp>=4)  return 1.15;  // Lv.5 세일즈 마스터
+  return 1.0;
+}
+// 월납 보험료(만원): 거절강도에 '가중치'(비선형)를 줘 고강도일수록 크게 뛰고, 티어(보험왕/보험신)까지 반영. 점수는 품질 계수.
+function sessionPremium(avg,cold,passed){
+  if(!passed) return 0;
+  avg=Math.max(0,Math.min(100,+avg||0)); cold=Math.max(1,Math.min(5,Math.round(+cold||1)));
+  var base=[0,2,4,6,10,15][cold];         // 강도1~5 가중 기본 월납 (2·4·6·10·15 — 간격이 벌어짐)
+  var scoreFactor=0.55+0.45*(avg/100);    // 합격 시 55~100% 반영
+  return Math.max(1, Math.round(base*scoreFactor*tierMult()));
+}
 function closingRewardHTML(avg,cold){ var p=sessionPremium(avg,cold,true); return '<div class="closing"><div class="cl-k">계약 성사</div><div class="cl-amt">월납 <b>'+p+'</b>만원 클로징!</div><div class="cl-sub">이번 계약이 이번 달 실적에 더해졌어요</div></div>'; }
 function heroLevelBadge(){ var lv=userLevel(); return '<span class="ms-lv">'+lv.ic+' <b>'+esc(lv.n)+'</b></span>'; }
 function heroLevelProgress(){
