@@ -303,7 +303,7 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .gsug-b{text-align:left;border:1px solid #C0DD97;background:#f6faf0;color:#2c3a1c;border-radius:10px;padding:9px 11px;font:inherit;font-size:12.5px;line-height:1.45;cursor:pointer}
 .gsug-b:hover{background:#EAF3DE}
 /* 게스트 체험: 미니 결과 모달 */
-#guestResult,#chalClosed{position:fixed;inset:0;z-index:9550;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px}
+#guestResult,#chalClosed{position:fixed;inset:0;z-index:9550;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
 #guestResult.on,#chalClosed.on{display:flex}
 .cc-consent{background:#f6faf0;border:1px solid #e2ecd5;border-radius:12px;padding:11px 13px;margin:14px 0 4px;text-align:left}
 .cc-consent label{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:#4b5563;line-height:1.5;cursor:pointer}
@@ -321,7 +321,16 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .gr-prem span{display:block;font-size:11.5px;font-weight:600;opacity:.85;margin-top:3px}
 .gr-btn{width:100%;border:none;background:#3B6D11;color:#fff;border-radius:12px;padding:15px;font:inherit;font-size:15.5px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(47,90,14,.3)}
 .gr-btn:active{transform:translateY(1px)}
-.gr-note{font-size:12px;color:#94a3b8;margin-top:12px}
+/* 잠긴 AI 리포트 티저 — 호기심 갭 */
+.gr-lock{background:#f8fafc;border:1px solid #e6ebf1;border-radius:14px;padding:13px 14px 14px;margin-bottom:16px;text-align:left}
+.gr-lock-h{font-size:12.5px;font-weight:800;color:#475569;margin-bottom:10px}
+.gr-lock-rows{display:flex;flex-direction:column;gap:8px}
+.gr-lr{display:flex;align-items:center;gap:10px}
+.gr-lr span{font-size:12px;color:#64748b;font-weight:600;white-space:nowrap;min-width:96px}
+.gr-lr i{flex:1;height:9px;border-radius:99px;background:linear-gradient(90deg,#d3dde8,#eef2f7);filter:blur(1.5px)}
+/* 손실회피 라인 */
+.gr-loss{font-size:12.5px;color:#d1660b;font-weight:700;margin-top:11px}
+.gr-note{font-size:12px;color:#94a3b8;margin-top:8px}
 /* 내 계정 대시보드 */
 #acctBtn,#introBtn{background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#2f5a0e;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none;white-space:nowrap}
 #acct{position:fixed;inset:0;z-index:9400;background:rgba(15,23,42,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
@@ -1164,8 +1173,17 @@ textarea:focus{border-color:var(--brand)}
     <div class="gr-score" id="grScore">0점</div>
     <div class="gr-tip" id="grTip"></div>
     <div class="gr-prem" id="grPremium"></div>
+    <div class="gr-lock">
+      <div class="gr-lock-h">🔒 AI 상세 리포트 · 가입하면 바로 열려요</div>
+      <div class="gr-lock-rows">
+        <div class="gr-lr"><span>역량 6종 분석</span><i></i></div>
+        <div class="gr-lr"><span>성장 곡선</span><i></i></div>
+        <div class="gr-lr"><span>종합 코칭 피드백</span><i></i></div>
+      </div>
+    </div>
     <button class="gr-btn" id="grContinue" type="button">결과 저장하고 계속하기 →</button>
-    <div class="gr-note">AI 상세 리포트(역량 분석·성장 곡선·종합 코칭)는 가입 후 열람할 수 있어요.<br>가입하면 실적도 계정에 쌓이고, 하루 5회 무료로 계속 훈련할 수 있어요.</div>
+    <div class="gr-loss" id="grLoss">지금 저장하지 않으면 이 점수·기록은 사라져요</div>
+    <div class="gr-note">가입하면 실적이 계정에 쌓이고, 매일 5회 무료로 계속 훈련할 수 있어요.</div>
   </div>
 </div>
 
