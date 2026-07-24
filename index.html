@@ -2826,7 +2826,7 @@ function startLpDemo(){
     {r:'f',t:'그러셨군요, 이미 챙기셨다니 잘하셨어요. 다만 지금 보장이 그대로 맞는지 딱 한 번만 같이 봐드릴까요?',g:44,f:'😐',
      asm:{lead:'그러셨군요, 이미 챙기셨다니 잘하셨어요. 다만',trail:'딱 한 번만 같이 봐드릴까요?',opts:['가입하셨으니 됐고','지금 보장이 그대로 맞는지','더 싼 것도 많으니'],correct:1}},
     {r:'c',t:'음… 그 정도면 잠깐은 괜찮겠네요.',g:70,f:'🙂'},
-    {r:'f',t:'감사합니다. 5분이면 됩니다. 이번 주 중 언제가 편하실까요?',g:90,f:'😊'}
+    {r:'f',t:'감사합니다. 30초면 됩니다. 이번 주 중 언제가 편하실까요?',g:90,f:'😊'}
   ];
   var fill=gq('dmFill'), pct=gq('dmPct'), face=gq('dmFace'), asm=gq('dmAsm');
   function reset(){ chat.innerHTML=''; if(asm){ asm.classList.remove('on'); asm.innerHTML=''; } if(fill)fill.style.width='18%'; if(pct)pct.textContent='18%'; if(face)face.textContent='😠'; }
@@ -2847,22 +2847,22 @@ function startLpDemo(){
       if(idx===o.correct){
         if(els[idx]) els[idx].classList.add('picked');
         if(slot){ slot.textContent=o.opts[idx]; slot.classList.add('filled'); }
-        _lpDemoTimer=setTimeout(function(){ if(!gq('dmChat'))return; asm.classList.remove('on'); done(); }, 1100);
+        _lpDemoTimer=setTimeout(function(){ if(!gq('dmChat'))return; asm.classList.remove('on'); done(); }, 1900);
       } else {
         if(els[idx]) els[idx].classList.add('hover');
-        _lpDemoTimer=setTimeout(function(){ run(k+1); }, 650);
+        _lpDemoTimer=setTimeout(function(){ run(k+1); }, 1150);
       }
     }
-    _lpDemoTimer=setTimeout(function(){ run(0); }, 750);
+    _lpDemoTimer=setTimeout(function(){ run(0); }, 1200);
   }
   function step(i){
     if(!gq('dmChat')) return;                 // 랜딩이 닫혔으면 중단
-    if(i>=SEQ.length){ _lpDemoTimer=setTimeout(function(){ reset(); _lpDemoTimer=setTimeout(function(){ step(0); }, 700); }, 2600); return; }
+    if(i>=SEQ.length){ _lpDemoTimer=setTimeout(function(){ reset(); _lpDemoTimer=setTimeout(function(){ step(0); }, 900); }, 3600); return; }
     var s=SEQ[i];
-    if(s.r==='f' && s.asm){ showAsm(s, function(){ bubble(s); _lpDemoTimer=setTimeout(function(){ step(i+1); }, 1900); }); }
-    else { bubble(s); _lpDemoTimer=setTimeout(function(){ step(i+1); }, s.r==='f'?2300:1500); }
+    if(s.r==='f' && s.asm){ showAsm(s, function(){ bubble(s); _lpDemoTimer=setTimeout(function(){ step(i+1); }, 2900); }); }
+    else { bubble(s); _lpDemoTimer=setTimeout(function(){ step(i+1); }, s.r==='f'?3400:2400); }
   }
-  reset(); _lpDemoTimer=setTimeout(function(){ step(0); }, 400);
+  reset(); _lpDemoTimer=setTimeout(function(){ step(0); }, 500);
 }
 // FAQ 아코디언
 document.addEventListener('click', function(e){
