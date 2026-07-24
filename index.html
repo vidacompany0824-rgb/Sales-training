@@ -74,25 +74,32 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .lp-hero-proof .hp-q{display:block;color:#fff;font-size:13px;line-height:1.5;margin-top:4px;font-weight:600}
 .lp-hero-proof .hp-by{display:block;color:#d5e8bd;font-size:11.5px;margin-top:4px}
 .lp-login{display:inline-block;margin-top:14px;color:#eaf3de;font-size:13px;text-decoration:underline;cursor:pointer;background:none;border:none;font:inherit}
-/* 히어로 제품 데모 — 움직이는 대화(스픽식 '제품을 보여주기') */
-.lp-demo{margin:24px auto 2px;max-width:344px;background:#fbfcfa;border-radius:20px;box-shadow:0 16px 38px rgba(0,0,0,.26);overflow:hidden;text-align:left}
-.dm-top{display:flex;align-items:center;gap:9px;padding:12px 15px;background:#fff;border-bottom:1px solid #eef1ea}
-.dm-av{font-size:20px}
-.dm-who{font-size:13px;font-weight:800;color:#1f2a16}
-.dm-tag{margin-left:auto;font-size:10.5px;font-weight:700;color:#8a9384}
-.dm-gauge{padding:10px 15px 6px;background:#fff}
-.dm-grow{display:flex;align-items:center;gap:7px}
-.dm-face{font-size:16px}
-.dm-glabel{font-size:11px;font-weight:800;color:#3a4b3a}
-.dm-gpct{margin-left:auto;font-size:11px;font-weight:800;color:#3B6D11}
-.dm-gtrack{height:6px;border-radius:99px;background:#e6ece0;overflow:hidden;margin-top:6px}
+/* 히어로 제품 데모 — 움직이는 대화 + 화법 조립(스픽식 '제품을 보여주기') */
+.lp-demo{margin:26px 0 2px;background:#fbfcfa;border-radius:22px;box-shadow:0 18px 44px rgba(0,0,0,.30);overflow:hidden;text-align:left}
+.dm-top{display:flex;align-items:center;gap:10px;padding:14px 17px;background:#fff;border-bottom:1px solid #eef1ea}
+.dm-av{font-size:23px}
+.dm-who{font-size:14.5px;font-weight:800;color:#1f2a16}
+.dm-tag{margin-left:auto;font-size:11.5px;font-weight:700;color:#8a9384}
+.dm-gauge{padding:12px 17px 8px;background:#fff}
+.dm-grow{display:flex;align-items:center;gap:8px}
+.dm-face{font-size:19px}
+.dm-glabel{font-size:12.5px;font-weight:800;color:#3a4b3a}
+.dm-gpct{margin-left:auto;font-size:12.5px;font-weight:800;color:#3B6D11}
+.dm-gtrack{height:8px;border-radius:99px;background:#e6ece0;overflow:hidden;margin-top:7px}
 .dm-gfill{height:100%;width:18%;border-radius:99px;background:linear-gradient(90deg,#f5a524,#37a15e);transition:width .8s cubic-bezier(.3,1,.4,1)}
-.dm-chat{padding:13px 15px;height:158px;overflow:hidden;display:flex;flex-direction:column;gap:8px;justify-content:flex-end}
-.dm-msg{max-width:84%;font-size:12.5px;line-height:1.5;padding:8px 11px;border-radius:13px;color:#1f2a16;animation:dmPop .34s ease both;word-break:keep-all}
+.dm-chat{padding:15px 17px;height:210px;overflow:hidden;display:flex;flex-direction:column;gap:9px;justify-content:flex-end}
+.dm-msg{max-width:86%;font-size:14px;line-height:1.5;padding:10px 13px;border-radius:15px;color:#1f2a16;animation:dmPop .34s ease both;word-break:keep-all}
 .dm-msg.c{align-self:flex-start;background:#eef1ea;border-bottom-left-radius:5px}
 .dm-msg.f{align-self:flex-end;background:#2f7d32;color:#fff;border-bottom-right-radius:5px}
 @keyframes dmPop{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-.dm-note{text-align:center;font-size:11.5px;color:#d5e8bd;margin-top:11px}
+/* 화법 조립(문장 선택) 미니 */
+.dm-asm{display:none;padding:12px 17px 15px;background:#f4f8ef;border-top:1px solid #e3ecd7;animation:dmPop .3s ease both}
+.dm-asm.on{display:block}
+.dm-asm .da-h{font-size:12px;font-weight:800;color:#3a4b3a;margin-bottom:9px}
+.dm-asm .da-chips{display:flex;flex-wrap:wrap;gap:7px}
+.dm-asm .da-chip{font-size:12.5px;font-weight:600;color:#2a3428;background:#fff;border:1.5px solid #e2e6de;border-radius:10px;padding:7px 11px;transition:.22s}
+.dm-asm .da-chip.picked{background:#2f7d32;border-color:#2f7d32;color:#fff;transform:translateY(-1px)}
+.dm-note{text-align:center;font-size:12px;color:#d5e8bd;margin-top:12px}
 /* 3단계 미니 화면 비주얼 */
 .lp-step{gap:13px}
 .lp-step .sc{flex:1;min-width:0}
@@ -914,13 +921,14 @@ textarea:focus{border-color:var(--brand)}
       <div class="lp-h1">고객을 잃으며 배우지 마세요.<br><b>AI에게 먼저 연습하세요.</b></div>
       <div class="lp-sub">까다로운 고객을 AI가 그대로 연기합니다.<br>무한히 깨지고 다듬어, 진짜 상담은 <b>계약</b>으로 끝내세요.</div>
       <button class="lp-cta" id="lpStart" type="button">무료로 지금 연습 시작 →</button>
-      <div class="lp-microtrust">가입 30초 · 카드 없이 · 하루 5회 무료</div>
+      <div class="lp-microtrust">가입 30초 · 카드 없이 · 매일 5회 무료로 계속</div>
       <div class="lp-demo" aria-hidden="true">
         <div class="dm-top"><span class="dm-av">🙂</span><span class="dm-who">김대리 · 첫 상담 고객</span><span class="dm-tag">거절 강도 2</span></div>
         <div class="dm-gauge"><div class="dm-grow"><span class="dm-face" id="dmFace">😠</span><span class="dm-glabel">고객 호감도</span><span class="dm-gpct" id="dmPct">18%</span></div><div class="dm-gtrack"><div class="dm-gfill" id="dmFill"></div></div></div>
         <div class="dm-chat" id="dmChat"></div>
+        <div class="dm-asm" id="dmAsm"></div>
       </div>
-      <div class="dm-note">실제 훈련 화면 — 잘 설득할수록 고객 호감도가 올라가요</div>
+      <div class="dm-note">실제 훈련 화면 — 화법 조각을 골라 문장을 완성하고, 잘 설득할수록 호감도가 올라가요</div>
       <div class="lp-hero-proof">
         <span class="hp-stars">★★★★★</span>
         <span class="hp-q">“꾸준히 연습했더니 이제는 영업에 자신감이 생겼어요.”</span>
@@ -989,7 +997,7 @@ textarea:focus{border-color:var(--brand)}
       <h2>자주 묻는 질문</h2>
       <div class="lp-lead">시작 전에 궁금한 것들</div>
       <div class="lp-faq">
-        <div class="faq-item"><button class="faq-q" type="button">정말 무료인가요?<span class="fq-mk">+</span></button><div class="faq-a"><div>네. 가입하면 하루 5회까지 무료로 훈련할 수 있어요. 카드 등록도 필요 없습니다.</div></div></div>
+        <div class="faq-item"><button class="faq-q" type="button">정말 무료인가요?<span class="fq-mk">+</span></button><div class="faq-a"><div>네. 가입하면 <b>매일 5회까지</b> 무료로, 계속 훈련할 수 있어요. 딱 한 달만 주는 무료가 아니라 매일 채워집니다. 카드 등록도 필요 없습니다.</div></div></div>
         <div class="faq-item"><button class="faq-q" type="button">가입 없이 바로 해볼 수 있나요?<span class="fq-mk">+</span></button><div class="faq-a"><div>네. ‘무료로 지금 연습 시작’을 누르면 가입 없이 30초 만에 바로 체험이 시작됩니다.</div></div></div>
         <div class="faq-item"><button class="faq-q" type="button">AI가 진짜 고객처럼 반응하나요?<span class="fq-mk">+</span></button><div class="faq-a"><div>네. 무관심·가격 민감·의심 등 실제로 만나는 고객 유형을 고르고 거절 강도까지 정하면, 그 고객이 되어 실전처럼 대꾸합니다.</div></div></div>
         <div class="faq-item"><button class="faq-q" type="button">실제 영업에 도움이 되나요?<span class="fq-mk">+</span></button><div class="faq-a"><div>매 답변마다 6가지 역량 점수와 ‘다음엔 이렇게 말하라’는 코칭을 받습니다. 현직 설계사들이 거절 화법을 반복 훈련해 만남·계약 타율과 자신감이 올랐다고 후기를 남겼어요.</div></div></div>
@@ -1001,9 +1009,9 @@ textarea:focus{border-color:var(--brand)}
     <div class="lp-sec">
       <h2>부담 없는 시작</h2>
       <div class="lp-price">
-        <div class="pf">무료로 체험</div>
-        <div class="pp">1일 5회 무료</div>
-        <div class="pd">더 쓰고 싶으면 그때 구독하세요.<br><b>월 9,900원</b> <small>(부가세 포함) · 무제한</small></div>
+        <div class="pf">매일 무료</div>
+        <div class="pp">매일 5회 무료</div>
+        <div class="pd">하루 5회까지 <b>매일 계속</b> 무료로 훈련하세요.<br>더 쓰고 싶으면 <b>월 9,900원</b> <small>(부가세 포함) · 무제한</small></div>
       </div>
     </div>
 
@@ -2811,20 +2819,32 @@ function startLpDemo(){
   if(_lpDemoTimer){ clearTimeout(_lpDemoTimer); _lpDemoTimer=null; }
   var SEQ=[
     {r:'c',t:'아, 보험이요? 이미 하나 있어서 더 필요할까 싶어요.',g:18,f:'😠'},
-    {r:'f',t:'그러셨군요, 이미 챙기셨다니 잘하셨어요. 다만 지금 보장이 그대로 맞는지 딱 한 번만 같이 봐드릴까요?',g:44,f:'😐'},
+    {r:'f',t:'그러셨군요, 이미 챙기셨다니 잘하셨어요. 다만 지금 보장이 그대로 맞는지 딱 한 번만 같이 봐드릴까요?',g:44,f:'😐',
+     asm:{chips:['더 좋은 상품이 많으니','지금 보장이 그대로 맞는지','부담 드리려는 게 아니라','딱 한 번만 같이'],pick:[1,3]}},
     {r:'c',t:'음… 그 정도면 잠깐은 괜찮겠네요.',g:70,f:'🙂'},
     {r:'f',t:'감사합니다. 5분이면 됩니다. 이번 주 중 언제가 편하실까요?',g:90,f:'😊'}
   ];
-  var fill=gq('dmFill'), pct=gq('dmPct'), face=gq('dmFace');
-  function reset(){ chat.innerHTML=''; if(fill)fill.style.width='18%'; if(pct)pct.textContent='18%'; if(face)face.textContent='😠'; }
+  var fill=gq('dmFill'), pct=gq('dmPct'), face=gq('dmFace'), asm=gq('dmAsm');
+  function reset(){ chat.innerHTML=''; if(asm){ asm.classList.remove('on'); asm.innerHTML=''; } if(fill)fill.style.width='18%'; if(pct)pct.textContent='18%'; if(face)face.textContent='😠'; }
+  function bubble(s){ var b=document.createElement('div'); b.className='dm-msg '+(s.r==='f'?'f':'c'); b.textContent=s.t; chat.appendChild(b); chat.scrollTop=chat.scrollHeight; if(fill)fill.style.width=s.g+'%'; if(pct)pct.textContent=s.g+'%'; if(face)face.textContent=s.f; }
+  function showAsm(s, done){
+    if(!asm){ done(); return; }
+    var chips=s.asm.chips, pick=s.asm.pick;
+    asm.innerHTML='<div class="da-h">🧩 화법 조각을 골라 문장을 완성해요</div><div class="da-chips">'+chips.map(function(c,i){return '<span class="da-chip" data-i="'+i+'">'+c+'</span>';}).join('')+'</div>';
+    asm.classList.add('on');
+    var els=asm.querySelectorAll('.da-chip');
+    _lpDemoTimer=setTimeout(function(){ if(!gq('dmChat'))return; if(els[pick[0]])els[pick[0]].classList.add('picked');
+      _lpDemoTimer=setTimeout(function(){ if(!gq('dmChat'))return; if(els[pick[1]])els[pick[1]].classList.add('picked');
+        _lpDemoTimer=setTimeout(function(){ if(!gq('dmChat'))return; asm.classList.remove('on'); done(); }, 950);
+      }, 850);
+    }, 700);
+  }
   function step(i){
     if(!gq('dmChat')) return;                 // 랜딩이 닫혔으면 중단
     if(i>=SEQ.length){ _lpDemoTimer=setTimeout(function(){ reset(); _lpDemoTimer=setTimeout(function(){ step(0); }, 700); }, 2600); return; }
     var s=SEQ[i];
-    var b=document.createElement('div'); b.className='dm-msg '+(s.r==='f'?'f':'c'); b.textContent=s.t;
-    chat.appendChild(b); chat.scrollTop=chat.scrollHeight;
-    if(fill)fill.style.width=s.g+'%'; if(pct)pct.textContent=s.g+'%'; if(face)face.textContent=s.f;
-    _lpDemoTimer=setTimeout(function(){ step(i+1); }, s.r==='f'?2300:1500);
+    if(s.r==='f' && s.asm){ showAsm(s, function(){ bubble(s); _lpDemoTimer=setTimeout(function(){ step(i+1); }, 1900); }); }
+    else { bubble(s); _lpDemoTimer=setTimeout(function(){ step(i+1); }, s.r==='f'?2300:1500); }
   }
   reset(); _lpDemoTimer=setTimeout(function(){ step(0); }, 400);
 }
@@ -2864,7 +2884,7 @@ function adaptLandingForUser(){
     if(s1){ s1.textContent="무료로 지금 연습 시작 →"; s1.onclick=startGuestTrial; }
     if(s2){ s2.textContent="무료로 지금 연습 시작 →"; s2.onclick=startGuestTrial; }
     if(lg) lg.style.display="";
-    if(mt){ mt.textContent="로그인·카드 등록 없이 바로 · 30초면 끝"; mt.style.display=""; }
+    if(mt){ mt.textContent="가입·카드 없이 바로 · 매일 5회 무료로 계속"; mt.style.display=""; }
   }
 }
 function openIntro(){ adaptLandingForUser(); showLanding(); var l=gq("landing"); if(l){ try{ l.scrollTop=0; }catch(e){} } }
