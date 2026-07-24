@@ -2715,7 +2715,7 @@ function drawOnb(){
   var topbar='<div class="onb-top">'+((onbStep>0&&onbStep<7)?'<button class="onb-back" onclick="onbBack()">‹</button>':'<span style="width:32px;flex:none"></span>')+'<div class="onb-bar"><div class="onb-fill" style="width:'+pct+'%"></div></div><span class="onb-stepn">'+stepTxt+'</span></div>';
   var body='';
   if(onbStep===0){
-    body='<div class="onb-welcome"><div class="lg">🌱</div><h2>3분이면,<br>당신에게 딱 맞는<br>훈련이 세팅돼요</h2><p>몇 가지만 알려주시면 실제 당신의 영업 상황 그대로 AI 고객을 만들어 드릴게요.</p><p style="color:#e0630a;font-weight:700">당신의 성공 확률을 높여보세요 👇</p></div><div class="onb-foot"><button class="onb-cta" onclick="onbNext()">시작하기 →</button><button class="onb-alt" onclick="onbManual()">고객을 직접 고를래요</button></div>';
+    body='<div class="onb-welcome"><div class="lg">🌱</div><h2>30초면,<br>당신에게 딱 맞는<br>훈련이 세팅돼요</h2><p>몇 가지만 알려주시면 실제 당신의 영업 상황 그대로 AI 고객을 만들어 드릴게요.</p><p style="color:#e0630a;font-weight:700">당신의 성공 확률을 높여보세요 👇</p></div><div class="onb-foot"><button class="onb-cta" onclick="onbNext()">시작하기 →</button><button class="onb-alt" onclick="onbManual()">고객을 직접 고를래요</button></div>';
   } else if(onbStep>=1&&onbStep<=6){
     var q=ONB_DATA[onbStep], cur=onbAns[q.key];
     var mx=(typeof allowedMaxCold==='function')?allowedMaxCold():5;
@@ -2826,7 +2826,7 @@ function startLpDemo(){
     {r:'f',t:'그러셨군요, 이미 챙기셨다니 잘하셨어요. 다만 지금 보장이 그대로 맞는지 딱 한 번만 같이 봐드릴까요?',g:44,f:'😐',
      asm:{lead:'그러셨군요, 이미 챙기셨다니 잘하셨어요. 다만',trail:'딱 한 번만 같이 봐드릴까요?',opts:['가입하셨으니 됐고','지금 보장이 그대로 맞는지','더 싼 것도 많으니'],correct:1}},
     {r:'c',t:'음… 그 정도면 잠깐은 괜찮겠네요.',g:70,f:'🙂'},
-    {r:'f',t:'감사합니다. 30초면 됩니다. 이번 주 중 언제가 편하실까요?',g:90,f:'😊'}
+    {r:'f',t:'감사합니다. 5분이면 됩니다. 이번 주 중 언제가 편하실까요?',g:90,f:'😊'}
   ];
   var fill=gq('dmFill'), pct=gq('dmPct'), face=gq('dmFace'), asm=gq('dmAsm');
   function reset(){ chat.innerHTML=''; if(asm){ asm.classList.remove('on'); asm.innerHTML=''; } if(fill)fill.style.width='18%'; if(pct)pct.textContent='18%'; if(face)face.textContent='😠'; }
