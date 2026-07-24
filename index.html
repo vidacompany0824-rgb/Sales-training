@@ -103,6 +103,16 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .dm-asm .da-chip{font-size:12.5px;font-weight:600;color:#2a3428;background:#fff;border:1.5px solid #e2e6de;border-radius:10px;padding:8px 11px;transition:.2s}
 .dm-asm .da-chip.hover{border-color:#c3d2b6;background:#eef4e6}
 .dm-asm .da-chip.picked{background:#2f7d32;border-color:#2f7d32;color:#fff}
+/* 결과 카드 — 합격 점수 + 월납보험료 */
+.dm-result{display:none;padding:18px 17px 20px;text-align:center;background:linear-gradient(180deg,#f4f8ef,#e8f3df);animation:dmPop .4s ease both}
+.dm-result.on{display:block}
+.dm-result .dr-badge{display:inline-block;font-size:11.5px;font-weight:800;color:#fff;background:#2f7d32;border-radius:99px;padding:5px 13px;margin-bottom:11px}
+.dm-result .dr-slabel{font-size:11px;font-weight:800;color:#6b7280;margin-bottom:1px}
+.dm-result .dr-score{display:flex;align-items:baseline;justify-content:center;gap:3px;margin-bottom:9px}
+.dm-result .dr-num{font-size:42px;font-weight:900;color:#1f3d0a;line-height:1}
+.dm-result .dr-unit{font-size:17px;font-weight:800;color:#3B6D11}
+.dm-result .dr-prem{font-size:13.5px;color:#3a4634;font-weight:600;background:#fff;border:1px solid #e3ecd7;border-radius:11px;padding:9px 12px;display:inline-block}
+.dm-result .dr-prem b{color:#b45309;font-weight:800}
 .dm-note{text-align:center;font-size:12px;color:#d5e8bd;margin-top:12px}
 /* 3단계 미니 화면 비주얼 */
 .lp-step{gap:13px}
@@ -931,6 +941,12 @@ textarea:focus{border-color:var(--brand)}
         <div class="dm-gauge"><div class="dm-grow"><span class="dm-face" id="dmFace">😠</span><span class="dm-glabel">고객 호감도</span><span class="dm-gpct" id="dmPct">18%</span></div><div class="dm-gtrack"><div class="dm-gfill" id="dmFill"></div></div></div>
         <div class="dm-chat" id="dmChat"></div>
         <div class="dm-asm" id="dmAsm"></div>
+        <div class="dm-result" id="dmResult">
+          <div class="dr-badge">🎉 상담 성공 · 합격</div>
+          <div class="dr-slabel">AI 코칭 점수</div>
+          <div class="dr-score"><span class="dr-num">83</span><span class="dr-unit">점</span></div>
+          <div class="dr-prem">이번 상담 <b>월납보험료 8만원</b> 클로징</div>
+        </div>
       </div>
       <div class="dm-note">실제 훈련 화면 — 상황에 맞는 한마디를 골라 문장을 완성하고, 잘 설득할수록 호감도가 올라가요</div>
       <div class="lp-hero-proof">
@@ -2828,8 +2844,8 @@ function startLpDemo(){
     {r:'c',t:'음… 그 정도면 잠깐은 괜찮겠네요.',g:70,f:'🙂'},
     {r:'f',t:'감사합니다. 5분이면 됩니다. 이번 주 중 언제가 편하실까요?',g:90,f:'😊'}
   ];
-  var fill=gq('dmFill'), pct=gq('dmPct'), face=gq('dmFace'), asm=gq('dmAsm');
-  function reset(){ chat.innerHTML=''; if(asm){ asm.classList.remove('on'); asm.innerHTML=''; } if(fill)fill.style.width='18%'; if(pct)pct.textContent='18%'; if(face)face.textContent='😠'; }
+  var fill=gq('dmFill'), pct=gq('dmPct'), face=gq('dmFace'), asm=gq('dmAsm'), res=gq('dmResult');
+  function reset(){ chat.innerHTML=''; chat.style.display=''; if(asm){ asm.classList.remove('on'); asm.innerHTML=''; } if(res){ res.classList.remove('on'); } if(fill)fill.style.width='18%'; if(pct)pct.textContent='18%'; if(face)face.textContent='😠'; }
   function bubble(s){ var b=document.createElement('div'); b.className='dm-msg '+(s.r==='f'?'f':'c'); b.textContent=s.t; chat.appendChild(b); chat.scrollTop=chat.scrollHeight; if(fill)fill.style.width=s.g+'%'; if(pct)pct.textContent=s.g+'%'; if(face)face.textContent=s.f; }
   function showAsm(s, done){
     if(!asm){ done(); return; }
@@ -2857,7 +2873,10 @@ function startLpDemo(){
   }
   function step(i){
     if(!gq('dmChat')) return;                 // 랜딩이 닫혔으면 중단
-    if(i>=SEQ.length){ _lpDemoTimer=setTimeout(function(){ reset(); _lpDemoTimer=setTimeout(function(){ step(0); }, 900); }, 3600); return; }
+    if(i>=SEQ.length){ // 마지막 대사 후 → 합격 점수 + 월납 결과 카드 노출 → 리셋 → 반복
+      _lpDemoTimer=setTimeout(function(){ if(!gq('dmChat'))return; chat.style.display='none'; if(res) res.classList.add('on');
+        _lpDemoTimer=setTimeout(function(){ if(!gq('dmChat'))return; reset(); _lpDemoTimer=setTimeout(function(){ step(0); }, 900); }, 3400);
+      }, 1000); return; }
     var s=SEQ[i];
     if(s.r==='f' && s.asm){ showAsm(s, function(){ bubble(s); _lpDemoTimer=setTimeout(function(){ step(i+1); }, 2900); }); }
     else { bubble(s); _lpDemoTimer=setTimeout(function(){ step(i+1); }, s.r==='f'?3400:2400); }
