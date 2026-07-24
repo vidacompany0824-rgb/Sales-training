@@ -314,6 +314,7 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .gr-ic{font-size:42px}
 .gr-card h2{font-size:22px;font-weight:800;color:#161b26;margin:6px 0 2px}
 .gr-score{font-size:44px;font-weight:800;color:#3B6D11;line-height:1.1;margin:6px 0 12px}
+.gr-tiplbl{font-size:11.5px;font-weight:800;color:#3B6D11;text-align:left;margin:2px 0 5px 2px}
 .gr-tip{font-size:13.5px;color:#4b5563;line-height:1.6;background:#f6faf0;border:1px solid #e2ecd5;border-radius:12px;padding:12px 14px;margin-bottom:18px}
 .gr-prem{display:none;background:#2f7d32;color:#fff;border-radius:12px;padding:13px 14px;margin-bottom:18px;font-size:14.5px;font-weight:700}
 .gr-prem.on{display:block}
@@ -326,7 +327,7 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .gr-lock-h{font-size:12.5px;font-weight:800;color:#475569;margin-bottom:10px}
 .gr-lock-rows{display:flex;flex-direction:column;gap:8px}
 .gr-lr{display:flex;align-items:center;gap:10px}
-.gr-lr span{font-size:12px;color:#64748b;font-weight:600;white-space:nowrap;min-width:96px}
+.gr-lr span{font-size:12px;color:#64748b;font-weight:600;white-space:nowrap;min-width:118px}
 .gr-lr i{flex:1;height:9px;border-radius:99px;background:linear-gradient(90deg,#d3dde8,#eef2f7);filter:blur(1.5px)}
 /* 손실회피 라인 */
 .gr-loss{font-size:12.5px;color:#d1660b;font-weight:700;margin-top:11px}
@@ -1171,18 +1172,19 @@ textarea:focus{border-color:var(--brand)}
     <div class="gr-ic" id="grEmoji">🎉</div>
     <h2 id="grTitle">체험 완료!</h2>
     <div class="gr-score" id="grScore">0점</div>
+    <div class="gr-tiplbl">💡 방금 대화, 한 줄 코칭</div>
     <div class="gr-tip" id="grTip"></div>
     <div class="gr-prem" id="grPremium"></div>
     <div class="gr-lock">
-      <div class="gr-lock-h">🔒 AI 상세 리포트 · 가입하면 바로 열려요</div>
+      <div class="gr-lock-h">🔒 가입하면 열리는 AI 상세 리포트</div>
       <div class="gr-lock-rows">
-        <div class="gr-lr"><span>역량 6종 분석</span><i></i></div>
-        <div class="gr-lr"><span>성장 곡선</span><i></i></div>
-        <div class="gr-lr"><span>종합 코칭 피드백</span><i></i></div>
+        <div class="gr-lr"><span>6가지 역량 점수 카드</span><i></i></div>
+        <div class="gr-lr"><span>세션마다 성장 곡선</span><i></i></div>
+        <div class="gr-lr"><span>약점 TOP3 · 맞춤 코칭</span><i></i></div>
       </div>
     </div>
-    <button class="gr-btn" id="grContinue" type="button">결과 저장하고 계속하기 →</button>
-    <div class="gr-loss" id="grLoss">지금 저장하지 않으면 이 점수·기록은 사라져요</div>
+    <button class="gr-btn" id="grContinue" type="button">결과 저장하고 무료로 계속하기 →</button>
+    <div class="gr-loss" id="grLoss">지금 저장하지 않으면 이 점수와 기록은 사라져요</div>
     <div class="gr-note">가입하면 실적이 계정에 쌓이고, 매일 5회 무료로 계속 훈련할 수 있어요.</div>
   </div>
 </div>
@@ -1988,7 +1990,7 @@ function finishGuest(){
   // 계약 성사 시 월납 보험료 클로징 리워드(가입 동기 부여)
   var gp=gq("grPremium");
   if(gp){ var prem=(typeof sessionPremium==='function')?sessionPremium(avg,state.cold,won):0;
-    if(won && prem>0){ gp.innerHTML='계약 성사 · 월납 <b>'+prem+'</b>만원 클로징!<span>가입하면 이 실적이 쌓여요</span>'; gp.classList.add("on"); }
+    if(won && prem>0){ gp.innerHTML='계약 성사 · 월납 <b>'+prem+'</b>만원 클로징!<span>가입하면 이 계약 실적이 기록에 남아요</span>'; gp.classList.add("on"); }
     else { gp.classList.remove("on"); gp.innerHTML=''; } }
   gq("guestResult").classList.add("on");
   if(typeof trackStage==='function') trackStage('guest_trial_done');
