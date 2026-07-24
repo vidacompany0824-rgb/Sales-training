@@ -255,6 +255,10 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .gr-card h2{font-size:22px;font-weight:800;color:#161b26;margin:6px 0 2px}
 .gr-score{font-size:44px;font-weight:800;color:#3B6D11;line-height:1.1;margin:6px 0 12px}
 .gr-tip{font-size:13.5px;color:#4b5563;line-height:1.6;background:#f6faf0;border:1px solid #e2ecd5;border-radius:12px;padding:12px 14px;margin-bottom:18px}
+.gr-prem{display:none;background:#2f7d32;color:#fff;border-radius:12px;padding:13px 14px;margin-bottom:18px;font-size:14.5px;font-weight:700}
+.gr-prem.on{display:block}
+.gr-prem b{font-size:21px;color:#ffdf7e;font-weight:800}
+.gr-prem span{display:block;font-size:11.5px;font-weight:600;opacity:.85;margin-top:3px}
 .gr-btn{width:100%;border:none;background:#3B6D11;color:#fff;border-radius:12px;padding:15px;font:inherit;font-size:15.5px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(47,90,14,.3)}
 .gr-btn:active{transform:translateY(1px)}
 .gr-note{font-size:12px;color:#94a3b8;margin-top:12px}
@@ -1071,6 +1075,7 @@ textarea:focus{border-color:var(--brand)}
     <h2 id="grTitle">체험 완료!</h2>
     <div class="gr-score" id="grScore">0점</div>
     <div class="gr-tip" id="grTip"></div>
+    <div class="gr-prem" id="grPremium"></div>
     <button class="gr-btn" id="grContinue" type="button">결과 저장하고 계속하기 →</button>
     <div class="gr-note">가입하면 하루 5회 무료로 계속 훈련할 수 있어요.</div>
   </div>
@@ -1859,6 +1864,11 @@ function finishGuest(){
   gq("grTitle").textContent=won?"설득 성공!":"체험 완료!";
   gq("grScore").innerHTML=avg+'<span style="font-size:15px;font-weight:600;color:var(--muted)">점</span>';
   gq("grTip").textContent=tip;
+  // 계약 성사 시 월납 보험료 클로징 리워드(가입 동기 부여)
+  var gp=gq("grPremium");
+  if(gp){ var prem=(typeof sessionPremium==='function')?sessionPremium(avg,state.cold,won):0;
+    if(won && prem>0){ gp.innerHTML='계약 성사 · 월납 <b>'+prem+'</b>만원 클로징!<span>가입하면 이 실적이 쌓여요</span>'; gp.classList.add("on"); }
+    else { gp.classList.remove("on"); gp.innerHTML=''; } }
   gq("guestResult").classList.add("on");
   if(typeof trackStage==='function') trackStage('guest_trial_done');
 }
