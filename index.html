@@ -781,6 +781,37 @@ details.pbdetails[open]>summary{margin-bottom:10px}
 .coachline b{color:#1e7a46;font-weight:800}
 .coachline.good{background:#eef6ff;border-color:#cfe0f4;border-left-color:#2563eb;color:#1e3a5f}
 .coachline.good b{color:#2563eb}
+/* [P1] 스트릭 */
+.streakbar{display:flex;align-items:center;gap:11px;background:linear-gradient(100deg,#fff6e6,#ffedcf);border:1px solid #f0d9a8;border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.streakbar.done{background:linear-gradient(100deg,#eef7ea,#e2f0d8);border-color:#cfe3bd}
+.streakbar .sk-ic{font-size:26px;line-height:1}
+.streakbar .sk-tx{display:flex;flex-direction:column;line-height:1.3;flex:1;min-width:0}
+.streakbar .sk-tx b{font-size:15px;font-weight:800;color:#7a4a06}
+.streakbar.done .sk-tx b{color:#2f5a0e}
+.streakbar .sk-tx span{font-size:11.5px;color:#8a6a2e}
+.streakbar.done .sk-tx span{color:#4b6b3a}
+.streakbar .sk-go{border:none;background:#b26f10;color:#fff;border-radius:9px;padding:8px 13px;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap}
+.streakbar .sk-badge{font-size:12px;font-weight:800;color:#2f5a0e;background:#dcedcf;border-radius:9px;padding:7px 11px;white-space:nowrap}
+/* [P1] 거절 유형 코스 */
+.coursecard .cs-track{height:8px;border-radius:99px;background:#e9eee2;overflow:hidden;margin:2px 0 12px}
+.coursecard .cs-fill{display:block;height:100%;background:linear-gradient(90deg,#3B6D11,#5a9a24);border-radius:99px}
+.cs-steps{display:flex;flex-wrap:wrap;gap:8px}
+.cs-step{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #e2e6de;background:#fff;border-radius:11px;padding:7px 11px;font:inherit;font-size:12.5px;font-weight:600;color:#3a4634;cursor:pointer;transition:.15s}
+.cs-step:hover{border-color:#7fb45a}
+.cs-step .cs-emoji{font-size:15px}
+.cs-step.done{background:#eef6ea;border-color:#cfe3bd;color:#2f5a0e}
+.cs-step.done .cs-nm{text-decoration:line-through;opacity:.75}
+.cs-step.cur{border-color:#3B6D11;background:#f3f8ee;box-shadow:0 0 0 2px rgba(59,109,17,.14)}
+.cs-step .cs-ic{font-weight:900;color:#3B6D11}
+.cs-note{font-size:11.5px;color:#8a9384;margin-top:10px}
+/* [P1] 다음 미션 카드(리포트) */
+.nextmission{display:flex;align-items:center;gap:12px;background:linear-gradient(120deg,#f3f8ee,#e7f2dd);border:1.5px solid #cfe3bd;border-radius:14px;padding:13px 15px;margin-bottom:12px}
+.nextmission .nm-l{flex:1;min-width:0}
+.nextmission .nm-h{font-size:12px;font-weight:800;color:#2f5a0e}
+.nextmission .nm-p{font-size:14.5px;font-weight:700;color:#1f2a16;margin-top:3px}
+.nextmission .nm-why{font-size:11.5px;color:#6b7d5a;margin-top:2px}
+.nextmission .nm-go{border:none;background:#2f7d32;color:#fff;border-radius:11px;padding:11px 16px;font:inherit;font-size:14px;font-weight:800;cursor:pointer;white-space:nowrap}
+.nextmission .nm-go:active{transform:translateY(1px)}
 .inbar{display:flex;flex-direction:column;gap:9px;padding:11px 14px;border-top:1px solid var(--line);background:#fff}
 .tools{display:flex;gap:7px}
 .tool{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:38px;border:1px solid var(--line);background:#fff;border-radius:10px;font:inherit;font-size:13px;font-weight:500;color:#374151;cursor:pointer;white-space:nowrap;transition:background .12s}
@@ -1830,6 +1861,55 @@ var DEFAULT_SUGGEST=[
   "이미 잘 챙기고 계실 텐데, 최근 바뀐 부분만 짚어드릴게요. 확인만 해도 남는 거니까요."
 ];
 function assistMode(){ return !!(state && (state.guest || userLevelNum()<3)); }
+/* ===== [P1] 거절 유형 코스 · 다음 미션 · 스트릭 (기존 로컬 데이터 기반, 새 백엔드 불필요) ===== */
+var COURSE_ORDER=['busy','apathy','parent','price','spouse','probe','tenure','hold','referral','doubt','friend','complete'];
+function personaById(id){ for(var i=0;i<PERSONAS.length;i++){ if(PERSONAS[i].id===id) return PERSONAS[i]; } return PERSONAS[0]; }
+function recCold(p){ var mx=(typeof allowedMaxCold==='function')?allowedMaxCold():2; return Math.max(1,Math.min((p&&p.diff||1)+1, mx)); }
+function personaWins(id){ try{ var db=loadStore(); return (db.personas&&db.personas[id]&&db.personas[id].wins)||0; }catch(e){ return 0; } }
+function personaBest(id){ try{ var db=loadStore(); return (db.personas&&db.personas[id]&&db.personas[id].best)||0; }catch(e){ return 0; } }
+// 다음 미션: 코스 순서상 아직 못 이긴 첫 유형(적정 강도). 전부 이겼으면 약점 유형을 한 단계 높은 강도로.
+function nextMission(excludeId){
+  for(var i=0;i<COURSE_ORDER.length;i++){ var id=COURSE_ORDER[i]; if(id===excludeId) continue; if(personaWins(id)<=0){ var p=personaById(id); return {p:p, cold:recCold(p), fresh:true}; } }
+  var weak=null, low=1e9; COURSE_ORDER.forEach(function(id){ if(id===excludeId) return; var b=personaBest(id); if(b<low){ low=b; weak=id; } });
+  var wp=personaById(weak||COURSE_ORDER[0]); return {p:wp, cold:Math.min(5,(typeof allowedMaxCold==='function'?allowedMaxCold():2)), fresh:false};
+}
+function startMission(id,cold){ var p=personaById(id); coldness=Math.max(1,Math.min(cold||recCold(p),(typeof allowedMaxCold==='function'?allowedMaxCold():5))); var r=$("#report"); if(r) r.classList.remove("on"); tryStart(p); }
+// 스트릭: db.history 날짜(로컬)로 연속 훈련일 계산. 로그인(.t ISO)·게스트(.ts ms) 모두 지원.
+function streakInfo(){
+  var db=loadStore(); var h=(db&&db.history)||[]; var days={};
+  h.forEach(function(x){ if(!x) return; var ms=x.ts||(x.t?new Date(x.t).getTime():0); if(!ms) return; var d=new Date(ms); days[d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()]=1; });
+  if(!Object.keys(days).length) return {streak:0, today:false};
+  function key(dt){ return dt.getFullYear()+'-'+(dt.getMonth()+1)+'-'+dt.getDate(); }
+  var today=new Date(), hasToday=!!days[key(today)];
+  var streak=0, cur=new Date(today); if(!hasToday) cur.setDate(cur.getDate()-1);
+  while(days[key(cur)]){ streak++; cur.setDate(cur.getDate()-1); }
+  return {streak:streak, today:hasToday};
+}
+function streakHTML(){
+  var s=streakInfo();
+  var flame=s.streak>0?'🔥':'✨', big=s.streak>0?(s.streak+'일 연속'):'오늘 시작';
+  var sub=s.today?'오늘 훈련 완료 — 내일도 이어가요!':(s.streak>0?'오늘 한 판이면 연속이 유지돼요':'오늘 첫 훈련으로 스트릭을 시작하세요');
+  return '<div class="streakbar'+(s.today?' done':'')+'"><span class="sk-ic">'+flame+'</span><span class="sk-tx"><b>'+big+'</b><span>'+sub+'</span></span>'+
+    (s.today?'<span class="sk-badge">✓ 오늘 완료</span>':'<button class="sk-go" type="button" onclick="var m=nextMission();startMission(m.p.id,m.cold);">오늘 훈련 →</button>')+'</div>';
+}
+function courseCardHTML(){
+  var items=COURSE_ORDER.map(function(id){ var p=personaById(id); return {id:id,p:p,done:personaWins(id)>0}; });
+  var doneN=items.filter(function(x){return x.done;}).length;
+  var nm=nextMission(), curId=(nm&&nm.fresh)?nm.p.id:null;
+  var chips=items.map(function(x){
+    var cls=x.done?'done':(x.id===curId?'cur':'todo'), ic=x.done?'✓':(x.id===curId?'▶':'');
+    return '<button class="cs-step '+cls+'" type="button" onclick="startMission(\''+x.id+'\','+recCold(x.p)+')" title="'+esc(x.p.name)+'"><span class="cs-emoji">'+x.p.emoji+'</span><span class="cs-nm">'+esc(x.p.tag||x.p.name)+'</span>'+(ic?'<span class="cs-ic">'+ic+'</span>':'')+'</button>';
+  }).join('');
+  return '<div class="ms-card coursecard"><h3>거절 유형 코스 <span style="font-size:11.5px;font-weight:600;color:#6b7280">'+doneN+' / '+items.length+' 클리어</span></h3>'+
+    '<div class="cs-track"><span class="cs-fill" style="width:'+Math.round(doneN/items.length*100)+'%"></span></div>'+
+    '<div class="cs-steps">'+chips+'</div><div class="cs-note">각 유형을 한 번씩 이겨보세요. 눌러 바로 시작할 수 있어요.</div></div>';
+}
+function nextMissionHTML(excludeId){
+  var m=nextMission(excludeId); if(!m) return '';
+  var head=m.fresh?'다음 미션':'다음 도전', why=m.fresh?'아직 안 이긴 유형이에요':'약점을 한 단계 높은 강도로';
+  return '<div class="nextmission"><div class="nm-l"><div class="nm-h">🎯 '+head+'</div><div class="nm-p">'+m.p.emoji+' <b>'+esc(m.p.name)+'</b> · 거절 강도 '+m.cold+'</div><div class="nm-why">'+why+'</div></div>'+
+    '<button class="nm-go" type="button" onclick="startMission(\''+m.p.id+'\','+m.cold+')">시작 →</button></div>';
+}
 function hideAssistSuggest(){ var w=gq('assistSuggest'); if(w) w.remove(); }
 function renderAssistSuggest(){
   if(!state || state.guest || state.closed) return;   // 게스트는 renderGuestSuggest가 담당
@@ -2286,6 +2366,7 @@ function finish(won){
       <div class="li"><b>${won?'거절 극복 성공 — 고객이 마음을 열었습니다.':'세션 종료 — 아래 보완점을 참고해 다시 도전해 보세요.'}</b></div>
       ${impHtml}
     </div>
+    ${nextMissionHTML(state.persona.id)}
     <div class="rbtns">
       <button class="send" onclick="tryStart(state.persona)">같은 고객 재도전</button>
       <button class="scriptbtn" onclick="printReport()">🖨 인쇄 / PDF 저장</button>
@@ -2679,7 +2760,7 @@ async function renderMySpace(){
   if(_g!==MS_GEN) return;   // 그 사이 더 최근 렌더가 시작됐으면 이 결과는 버림
   el.innerHTML=
     '<div class="ms-hero"><div class="ms-htop"><h2>'+esc(name)+'님의 훈련 공간</h2>'+heroLevelBadge()+'</div><div class="ms-sub">'+subline+'</div>'+heroLevelProgress()+metrics+'</div>'+
-    premCard+growthCard+goalCard+profCard+emptyHint;
+    streakHTML()+courseCardHTML()+premCard+growthCard+goalCard+profCard+emptyHint;
 
   var eb=gq('msEditBtn'); if(eb) eb.onclick=msToggleEdit;
   var sv=gq('msSaveBtn'); if(sv) sv.onclick=msSave;
