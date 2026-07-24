@@ -1276,7 +1276,7 @@ textarea:focus{border-color:var(--brand)}
         <button class="tool" id="hintBtn">💡 힌트</button>
         <button class="tool" id="scriptBtn">📋 모범답안</button>
         <button class="tool mic" id="micBtn">🎤 말하기</button>
-        <button class="tool" id="voiceBtn" onclick="toggleVoice()">🔊 듣기 켜짐</button>
+        <button class="tool off" id="voiceBtn" onclick="toggleVoice()">🔇 듣기 꺼짐</button>
       </div>
       <div class="typerow">
         <textarea id="inp" rows="1" placeholder="답변을 입력하세요 (Enter 전송)"></textarea>
@@ -2395,7 +2395,7 @@ $("#scriptBtn").onclick=openScripts;
 /* ---------- 음성 (TTS 고객 낭독 / STT 답변 받아쓰기) ---------- */
 const TTS=('speechSynthesis' in window);
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-let voicePref=true, recog=null, recWatchdog=null, recHeard=false, toastT=null;
+let voicePref=false, recog=null, recWatchdog=null, recHeard=false, toastT=null;  // 기본: 듣기(TTS) 꺼짐
 function toast(msg){ const el=$("#toast"); if(!el){alert(msg);return;} el.textContent=msg; el.classList.add('on'); if(toastT)clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('on'),3600); }
 function clearWatch(){ if(recWatchdog){clearTimeout(recWatchdog);recWatchdog=null;} }
 if(TTS){ try{ speechSynthesis.onvoiceschanged=function(){}; speechSynthesis.getVoices(); }catch(e){} }
