@@ -267,6 +267,14 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .gkakao{width:100%;border:none;background:#FEE500;color:#191600;border-radius:10px;padding:12px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
 .gkakao .gk-ic{font-size:16px}
 .ggoogle{width:100%;border:1px solid #dadce0;background:#fff;color:#3c4043;border-radius:10px;padding:12px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:9px}
+/* 회원가입 모드: 가장 빠른 경로(카카오/구글)를 위로, 이메일 가입은 대체 수단으로 */
+#gate .gate-card.signup-order{display:flex;flex-direction:column}
+#gate .gate-card.signup-order>h2{order:-10}
+#gate .gate-card.signup-order>.gsub{order:-9}
+#gate .gate-card.signup-order>.gtabs{order:-8;margin-bottom:14px}
+#gate .gate-card.signup-order>#gKakao{order:-3;font-size:15.5px;padding:14px}
+#gate .gate-card.signup-order>#gGoogle{order:-2}
+#gate .gate-card.signup-order>#gDivider{order:-1;margin:18px 0 12px}
 .ggoogle .gg-ic{font-weight:800;color:#4285F4;font-size:16px}
 #topctl{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:60;display:flex;gap:8px;align-items:center}
 #logoutBtn{background:#fff;border:1px solid #e6e9ef;border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;color:#5b6472;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
@@ -2004,7 +2012,7 @@ function guestToSignup(){
   var g=gq("gate"); if(g) g.classList.remove("hide");
   setGateMode("signup");
   var gs=gq("gsubText"); if(gs) gs.textContent="방금 실력을 저장하고 매일 무료로 훈련하세요";
-  var n=gq("gNote"); if(n) n.innerHTML="🌱 카카오로 3초 만에 가입하고 <b>하루 5회 무료</b>로 훈련할 수 있어요. (휴대폰 인증은 나중에)";
+  var n=gq("gNote"); if(n) n.innerHTML="🌱 카카오로 3초 만에 가입하고 <b>매일 5회 무료</b>로 훈련할 수 있어요. (휴대폰 인증은 나중에)";
   try{ var e=gq("gEmail"); if(e) e.focus(); }catch(_){}
   if(typeof trackStage==='function') trackStage('signup_prompt');
 }
@@ -2840,6 +2848,11 @@ function setGateMode(m){
   disp("gDivider", !isRecovery);
   disp("gKakao", !isRecovery);
   disp("gGoogle", !isRecovery);
+  // 회원가입: 카카오/구글을 상단으로 올려 마찰 최소화, 이메일 가입은 대체 수단
+  var card=gq("gate")?gq("gate").querySelector(".gate-card"):null;
+  if(card) card.classList.toggle("signup-order", isSignup);
+  var dv=gq("gDivider"); if(dv) dv.textContent = isSignup?"또는 이메일로 가입":"또는";
+  var kk=gq("gKakao"); if(kk) kk.innerHTML='<span class="gk-ic">💬</span> '+(isSignup?"카카오로 3초 만에 시작하기":"카카오로 시작하기");
   gq("gSubmit").textContent = isLogin?"로그인":(isSignup?"회원가입":"비밀번호 변경");
   gq("gsubText") && (gq("gsubText").textContent = isRecovery?"새 비밀번호를 설정하세요":"조직이 쑥쑥, 실적이 쑥쑥");
   gq("gPw").setAttribute("autocomplete", isLogin?"current-password":"new-password");
