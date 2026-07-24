@@ -1077,7 +1077,7 @@ textarea:focus{border-color:var(--brand)}
     <div class="gr-tip" id="grTip"></div>
     <div class="gr-prem" id="grPremium"></div>
     <button class="gr-btn" id="grContinue" type="button">결과 저장하고 계속하기 →</button>
-    <div class="gr-note">가입하면 하루 5회 무료로 계속 훈련할 수 있어요.</div>
+    <div class="gr-note">AI 상세 리포트(역량 분석·성장 곡선·종합 코칭)는 가입 후 열람할 수 있어요.<br>가입하면 실적도 계정에 쌓이고, 하루 5회 무료로 계속 훈련할 수 있어요.</div>
   </div>
 </div>
 
@@ -1641,7 +1641,7 @@ function nextLevelInfo(){
   return null;
 }
 // [게임화] 계약 성사 시 점수·거절강도로 월납 보험료(만원) 산정 — 세션 데이터로 계산해 서버 기록에서 바로 누적 가능(새 컬럼 불필요)
-function sessionPremium(avg,cold,passed){ if(!passed) return 0; avg=+avg||0; cold=+cold||1; return Math.max(1, Math.round((avg/100)*(2+cold*2))); }
+function sessionPremium(avg,cold,passed){ if(!passed) return 0; avg=+avg||0; cold=+cold||1; return Math.max(1, Math.round((avg/100)*(1+cold*1.5))); }
 function closingRewardHTML(avg,cold){ var p=sessionPremium(avg,cold,true); return '<div class="closing"><div class="cl-k">계약 성사</div><div class="cl-amt">월납 <b>'+p+'</b>만원 클로징!</div><div class="cl-sub">이번 계약이 이번 달 실적에 더해졌어요</div></div>'; }
 function heroLevelBadge(){ var lv=userLevel(); return '<span class="ms-lv">'+lv.ic+' <b>'+esc(lv.n)+'</b></span>'; }
 function heroLevelProgress(){
