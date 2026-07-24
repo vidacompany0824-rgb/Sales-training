@@ -776,6 +776,11 @@ details.pbdetails[open]>summary{margin-bottom:10px}
 .typing .tdots i:nth-child(2){animation-delay:.16s}
 .typing .tdots i:nth-child(3){animation-delay:.32s}
 @keyframes tbounce{0%,62%,100%{transform:translateY(0);opacity:.4}28%{transform:translateY(-5px);opacity:1}}
+/* [P0] 펼치지 않아도 보이는 핵심 코칭 1줄(aha를 숨기지 않기) */
+.coachline{align-self:flex-start;max-width:92%;margin:1px 0 2px;padding:9px 12px;background:#f4f8ef;border:1px solid #dce8d0;border-left:3px solid #3B6D11;border-radius:9px;font-size:12.8px;line-height:1.55;color:#26331d;word-break:keep-all;animation:dmPop .3s ease both}
+.coachline b{color:#1e7a46;font-weight:800}
+.coachline.good{background:#eef6ff;border-color:#cfe0f4;border-left-color:#2563eb;color:#1e3a5f}
+.coachline.good b{color:#2563eb}
 .inbar{display:flex;flex-direction:column;gap:9px;padding:11px 14px;border-top:1px solid var(--line);background:#fff}
 .tools{display:flex;gap:7px}
 .tool{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:38px;border:1px solid var(--line);background:#fff;border-radius:10px;font:inherit;font-size:13px;font-weight:500;color:#374151;cursor:pointer;white-space:nowrap;transition:background .12s}
@@ -1735,7 +1740,7 @@ function resumeSession(){
   (state.messages||[]).forEach(function(m,idx){
     if(idx===0){ addBubble("cust",p.emoji,m.text); return; }
     if(m.role==='fc'){ addBubble("fc","🧑‍💼",m.text); }
-    else { addBubble("cust",p.emoji,m.text); var row=document.createElement("div"); row.className="peekrow"; row.innerHTML='<button class="peek" onclick="togglePeek('+turnIdx+',this)">코칭 보기</button>'; log.appendChild(row); turnIdx++; }
+    else { addBubble("cust",p.emoji,m.text); var row=document.createElement("div"); row.className="peekrow"; row.innerHTML='<button class="peek" onclick="togglePeek('+turnIdx+',this)">자세히</button>'; log.appendChild(row); turnIdx++; }
   });
   log.scrollTop=log.scrollHeight;
   inp.disabled=false;$("#send").disabled=false;inp.focus();
@@ -2096,13 +2101,25 @@ function persuasionChip(prevW,newW){
 }
 function addTurnFooter(prevW,newW,i){
   const row=document.createElement("div"); row.className="peekrow";
-  row.innerHTML=`${persuasionChip(prevW,newW)}<button class="peek" onclick="togglePeek(${i},this)">코칭 보기</button>`;
-  log.appendChild(row); log.scrollTop=log.scrollHeight;
+  row.innerHTML=`${persuasionChip(prevW,newW)}<button class="peek" onclick="togglePeek(${i},this)">자세히</button>`;
+  log.appendChild(row);
+  // [P0] 펼치지 않아도 핵심 코칭 1줄을 자동 노출 — 잘한 턴은 👍, 약한 턴은 💡(고칠 점/더 나은 화법)
+  const ev=state&&state.turnEvals?state.turnEvals[i]:null;
+  if(ev){
+    const strong=((ev.score||0)>=75)&&(newW>=prevW);
+    const line=strong?(ev.good||ev.tip||ev.improve||''):(ev.tip||ev.improve||ev.good||'');
+    if(line){
+      const cl=document.createElement("div"); cl.className="coachline"+(strong?" good":"");
+      cl.innerHTML=(strong?'<b>👍 좋아요 · </b>':'<b>💡 이렇게 · </b>')+esc(line);
+      log.appendChild(cl);
+    }
+  }
+  log.scrollTop=log.scrollHeight;
 }
 function togglePeek(i,btn){
-  if(btn._el){ btn._el.remove(); btn._el=null; btn.textContent='코칭 보기'; return; }
+  if(btn._el){ btn._el.remove(); btn._el=null; btn.textContent='자세히'; return; }
   const ev=state&&state.turnEvals?state.turnEvals[i]:null; if(!ev) return;
-  const el=buildEvalEl(ev); log.insertBefore(el, btn.parentNode.nextSibling); btn._el=el; btn.textContent='코칭 접기'; log.scrollTop=log.scrollHeight;
+  const el=buildEvalEl(ev); log.insertBefore(el, btn.parentNode.nextSibling); btn._el=el; btn.textContent='접기'; log.scrollTop=log.scrollHeight;
 }
 function esc(s){return (s||"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function typing(on){let t=$("#typing");
@@ -2149,13 +2166,14 @@ ${c.d}
 - rebuttal 반론 대응: 고객의 우려·반론을 정면으로 해소했는가
 - closing 클로징: 부담을 낮추고 다음 행동을 유도했는가
 score(총점)는 이 역량들을 종합한 설득력이며, good/improve/tip은 이번 답변에 대한 구체적 코칭입니다.
+[코칭 규칙 · 매우 중요] good·improve·tip에 '라포가 부족합니다', '공감이 필요합니다' 같은 추상적 총평은 금지합니다. 반드시 영업사원이 방금 한 실제 문장(또는 그 일부)을 큰따옴표로 인용해 근거를 대고, tip에는 영업사원이 다음에 곧바로 따라 말할 수 있는 자연스러운 한국어 대사를 큰따옴표로 제시하세요. 인용할 영업사원 대사가 없으면(첫 인사 등) 그 상황에 맞는 모범 대사를 tip으로 주세요.
 
 [대화 기록]
 ${convo}
 
 ${asmRule?asmRule+'\n':''}
 [출력] 반드시 아래 JSON 하나만. 다른 말 금지.
-{"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장","improve":"개선점 한 문장","tip":"더 나은 화법 제안 한 문장","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false${asmOn?',"asm":{"pre":"고정 앞부분","mid":",","post":"고정 뒷부분","b0":["조각후보1","조각후보2"],"b1":["조각후보1","조각후보2"]}':''}}`;
+{"score":0~100 정수,"axes":{"empathy":0~100,"needs":0~100,"evidence":0~100,"delivery":0~100,"rebuttal":0~100,"closing":0~100},"good":"잘한 점 한 문장(영업사원이 실제로 한 말의 일부를 큰따옴표로 인용해 무엇이 좋았는지)","improve":"개선점 한 문장 — 영업사원이 방금 한 말의 문제된 부분을 큰따옴표로 인용하고 왜 약한지 지적(추상적 총평 금지)","tip":"영업사원이 다음에 그대로 따라 말하면 되는 더 나은 실제 대사 한 문장을 큰따옴표로 제시","customer":"고객의 다음 대사(구어체 1~3문장)","mood":"cold|neutral|warming|convinced","closed":true 또는 false${asmOn?',"asm":{"pre":"고정 앞부분","mid":",","post":"고정 뒷부분","b0":["조각후보1","조각후보2"],"b1":["조각후보1","조각후보2"]}':''}}`;
   // 실제 AI만 사용 — 데모 모드/가짜 응답 없음. 실패 시 재시도, 그래도 안 되면 정직하게 안내하고 방금 답변을 되돌려 재시도 유도.
   let data=null;
   for(var attempt=0; attempt<3 && !data; attempt++){
