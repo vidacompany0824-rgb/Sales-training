@@ -519,18 +519,21 @@ body{word-break:keep-all;overflow-wrap:break-word;text-wrap:balance;-webkit-text
 .growthbox-m b{color:#1e7a46}
 /* ===== [개선 이식] 화법 조립(첫 턴 training wheels) ===== */
 .asm{background:#fbfcfa;border:1px solid #e6e9e2;border-radius:14px;padding:15px 15px 13px;margin-bottom:8px}
-.asm-h{font-size:12px;font-weight:700;color:#3a4b3a;margin-bottom:12px;letter-spacing:-.2px}
-.asm-h span{font-weight:500;color:#9aa0a6}
-.asm-frame{font-size:15px;line-height:2.15;color:#1f2a24;margin-bottom:14px;word-break:keep-all}
-.asm-slot{display:inline-flex;align-items:center;padding:4px 12px;border-radius:9px;font-size:14px;cursor:pointer;transition:.15s;vertical-align:middle;margin:0 1px}
-.asm-slot.empty{background:#fff;border:1.5px dashed #c7cfc4;color:#9aa0a6;font-weight:500}
-.asm-slot.empty:hover{border-color:#5a9a24;color:#5a9a24}
-.asm-slot.filled{background:#eaf4e2;border:1.5px solid #7fb45a;color:#2c5210;font-weight:600}
-.asm-slot.filled:hover{background:#e0efd3}
+.asm-h{font-size:12.5px;font-weight:800;color:#2f5a0e;margin-bottom:12px;letter-spacing:-.2px}
+.asm-h span{font-weight:600;color:#7c8a72}
+.asm-frame{font-size:15px;line-height:2.3;color:#1f2a24;margin-bottom:14px;word-break:keep-all}
+.asm-slot{display:inline-flex;align-items:center;padding:5px 12px;border-radius:9px;font-size:14px;cursor:pointer;transition:.15s;vertical-align:middle;margin:0 1px}
+.asm-slot.empty{background:#fff6e6;border:1.6px dashed #e0a13a;color:#b26f10;font-weight:700;animation:asmPulse 1.7s ease-in-out infinite}
+.asm-slot.empty:hover{border-color:#d1660b;color:#a8560a}
+.asm-slot.filled{background:#e5f2dc;border:1.6px solid #4f9b3a;color:#255012;font-weight:700;animation:none}
+.asm-slot.filled:hover{background:#d8ecca}
+@keyframes asmPulse{0%,100%{border-color:#e6b45a;background:#fff6e6}50%{border-color:#d1660b;background:#ffedcf}}
+.asm-bank-h{font-size:11.5px;font-weight:700;color:#8a9384;margin-bottom:7px}
 .asm-bank{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-.asm-chip{padding:9px 13px;border:1.5px solid #e2e6de;border-radius:11px;background:#fff;font-size:13.5px;font-weight:600;color:#2a3428;cursor:pointer;font-family:inherit;transition:.15s}
-.asm-chip:hover{border-color:#7fb45a;background:#f6faf1}
-.asm-chip.used{opacity:.38;border-style:dashed;pointer-events:none}
+.asm-chip{padding:10px 14px;border:1.5px solid #cfe0bd;border-radius:11px;background:#f4f9ee;font-size:13.5px;font-weight:600;color:#2c5210;cursor:pointer;font-family:inherit;transition:.15s;box-shadow:0 1px 2px rgba(30,122,70,.10)}
+.asm-chip:hover{border-color:#5a9a24;background:#eaf4e0}
+.asm-chip:active{transform:translateY(1px)}
+.asm-chip.used{opacity:.34;border-style:dashed;box-shadow:none;pointer-events:none}
 .asm-go{width:100%;padding:13px;border:none;border-radius:12px;background:#2f7d32;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
 .asm-go:hover:not(:disabled){background:#286a2b}
 .asm-go:disabled{background:#dfe4dc;color:#a7b0a4;cursor:not-allowed}
@@ -739,7 +742,17 @@ details.pbdetails[open]>summary{margin-bottom:10px}
 .rax.low .l{color:#dc2626;font-weight:700}
 .coach{background:linear-gradient(180deg,#fff,#f7faff);border:1px solid #C0DD97;border-radius:10px;padding:13px 15px;margin-bottom:12px}
 .coach h4{margin:0 0 8px;font-size:13.5px;display:flex;align-items:center;gap:6px}
-.coach-load{color:var(--muted);font-size:12.5px}
+.coach-load{color:#3a4b3a;font-size:13px}
+.coach-load .cl-row{display:flex;align-items:center;gap:3px;font-weight:600}
+.coach-load .ai-dots{display:inline-flex;gap:4px;align-items:center;margin-left:4px}
+.coach-load .ai-dots i{width:6px;height:6px;border-radius:50%;background:#1e7a46;animation:tbounce 1.25s infinite ease-in-out}
+.coach-load .ai-dots i:nth-child(2){animation-delay:.16s}
+.coach-load .ai-dots i:nth-child(3){animation-delay:.32s}
+.coach-load .cl-skel{display:block;height:10px;border-radius:6px;margin-top:10px;background:linear-gradient(90deg,#eef3ea 25%,#dbe7d3 37%,#eef3ea 63%);background-size:300px 100%;animation:clShine 1.35s linear infinite}
+.coach-load .cl-skel.s2{width:72%;margin-top:7px}
+@keyframes clShine{0%{background-position:-160px 0}100%{background-position:260px 0}}
+.coach-retry{margin-top:11px;border:1.5px solid #cfe0bd;background:#f4f9ee;color:#2c5210;border-radius:10px;padding:9px 16px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.coach-retry:active{transform:translateY(1px)}
 .coach .cst{font-size:13px;margin:5px 0;line-height:1.5}
 .coach .cfocus{background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-top:9px}
 .coach .cfocus .ca{font-weight:700;color:var(--brand);font-size:13px;margin-bottom:3px}
@@ -800,7 +813,7 @@ textarea:focus{border-color:var(--brand)}
 .passline{font-size:11.5px;color:var(--muted)}
 
 /* model script modal */
-.modal{position:fixed;inset:0;background:rgba(20,25,35,.42);display:none;align-items:flex-start;justify-content:center;z-index:50;padding:26px 14px;overflow-y:auto}
+.modal{position:fixed;inset:0;background:rgba(20,25,35,.42);display:none;align-items:flex-start;justify-content:center;z-index:80;padding:26px 14px;overflow-y:auto}
 .modal.on{display:flex}
 .sheet{background:#fff;border-radius:16px;max-width:640px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.25);overflow:hidden}
 .sheet .sh{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fff,#fbfcfe)}
@@ -862,7 +875,7 @@ textarea:focus{border-color:var(--brand)}
   .moodbar{width:54px}
   .endbtn{padding:7px 10px;font-size:12px}
   /* 채팅 영역: 화면 높이 최대 활용 */
-  .log{height:56vh;height:56dvh;padding:13px;gap:10px}
+  .log{height:40vh;height:40dvh;min-height:200px;padding:13px;gap:10px}
   .row{max-width:88%}
   .bub{font-size:15px;padding:10px 13px}
   .mini{font-size:24px}
@@ -1961,16 +1974,18 @@ function renderAssembleAssist(){
   function slotHtml(b){ var s=sel[b]; return '<span class="asm-slot '+(s?'filled':'empty')+'" data-slot="'+b+'">'+(s?esc(s.t):'＋ 조각 넣기')+'</span>'; }
   function frameHtml(){ return esc(fr.pre)+' '+slotHtml(0)+esc(fr.mid)+' '+slotHtml(1)+' '+esc(fr.post); }
   var wrap=document.createElement('div'); wrap.id='asmAssist'; wrap.className='asm';
-  wrap.innerHTML='<div class="asm-h">화법 조립 <span>· 조각을 눌러 문장을 완성하세요</span></div>'+
+  wrap.innerHTML='<div class="asm-h">🧩 화법 조립 <span>· 아래 조각을 눌러 <b style="color:#b26f10">주황 빈칸</b>을 채우세요</span></div>'+
     '<div class="asm-frame" id="asmFrame">'+frameHtml()+'</div>'+
+    '<div class="asm-bank-h">👇 조각 고르기</div>'+
     '<div class="asm-bank" id="asmChips">'+fr.opts.map(function(o,i){return '<button type="button" class="asm-chip" data-i="'+i+'">'+esc(o.t)+'</button>';}).join('')+'</div>'+
-    '<button type="button" class="asm-go" id="asmGo" disabled>이대로 말하기 →</button>';
+    '<button type="button" class="asm-go" id="asmGo" disabled>빈칸을 모두 채우면 말할 수 있어요</button>';
   bar.insertBefore(wrap, bar.firstChild);
+  try{ setTimeout(function(){ wrap.scrollIntoView({behavior:'smooth',block:'center'}); },60); }catch(e){}
   function refresh(){
     var f=gq('asmFrame'); if(f) f.innerHTML=frameHtml();
     Array.prototype.forEach.call(wrap.querySelectorAll('.asm-chip'),function(b){ var i=+b.getAttribute('data-i'); var o=fr.opts[i]; b.classList.toggle('used', !!(sel[o.b]&&sel[o.b].i===i)); });
     Array.prototype.forEach.call(wrap.querySelectorAll('.asm-slot'),function(sl){ sl.onclick=function(){ sel[+sl.getAttribute('data-slot')]=null; refresh(); }; });  // 채운 조각 다시 누르면 비움
-    var go=gq('asmGo'); if(go) go.disabled=!(sel[0]&&sel[1]);
+    var go=gq('asmGo'); if(go){ var ready=!!(sel[0]&&sel[1]); go.disabled=!ready; go.textContent=ready?'이대로 말하기 →':'빈칸을 모두 채우면 말할 수 있어요'; }
   }
   Array.prototype.forEach.call(wrap.querySelectorAll('.asm-chip'),function(b){ b.onclick=function(){ var i=+b.getAttribute('data-i'); var o=fr.opts[i]; sel[o.b]={i:i,t:o.t}; refresh(); }; });
   refresh();
@@ -2225,7 +2240,7 @@ function finish(won){
     const minV=Math.min(...avgAx.map(x=>x.v));
     raxHtml=`<div class="raxes"><div class="rax-h">역량별 평균</div>${avgAx.map(x=>`<div class="rax${x.v===minV?' low':''}"><span class="l">${x.label}</span><span class="t"><span class="f" style="width:${x.v}%;background:${axColor(x.v)}"></span></span><span class="v">${x.v}</span></div>`).join("")}</div>`;
   }
-  const coachHtml=sc.length?`<div class="coach" id="coachBox"><div class="coach-load">🤖 AI 코치가 종합 분석 중…</div></div>`:'';
+  const coachHtml=sc.length?`<div class="coach" id="coachBox">${aiLoadingHTML()}</div>`:'';
   const r=$("#report");
   r.innerHTML=`
     ${won?closingRewardHTML(avg,state.cold):''}
@@ -2287,12 +2302,28 @@ ${convo}
 [출력] 반드시 아래 JSON 하나만. 다른 말 금지. 한국어.
 {"headline":"한 줄 총평","strengths":["잘한 점 1","잘한 점 2"],"focus":{"area":"가장 개선이 필요한 역량 이름","why":"왜 약한지 한 문장","how":["다음에 이렇게 해보라는 구체적 화법·행동 1","구체적 화법·행동 2"]},"nextStep":"다음에 어떤 훈련(고객 유형/거절 강도)을 하면 좋을지 한 문장"}`;
 }
+// 애니메이션 로딩 마크업(로봇 + 점 + 스켈레톤) — '실제 작업 중'을 시각적으로 표현
+function aiLoadingHTML(txt){
+  return '<div class="coach-load"><span class="cl-row">🤖 '+(txt||'AI 코치가 종합 분석 중')+
+    '<span class="ai-dots"><i></i><i></i><i></i></span></span><span class="cl-skel"></span><span class="cl-skel s2"></span></div>';
+}
+// 코칭 실패 시: 리포트를 다시 열 필요 없이 그 자리에서 재시도
+var _coachCtx=null;
+function coachFailHTML(msg){
+  return '<h4>AI 종합 코칭</h4><div class="coach-load">'+(msg||'코칭을 생성하지 못했어요.')+
+    '</div><button type="button" class="coach-retry" onclick="retryCoaching()">🔄 다시 시도</button>';
+}
+function retryCoaching(){
+  var b=document.getElementById("coachBox"); if(b) b.innerHTML='<h4>AI 종합 코칭</h4>'+aiLoadingHTML();
+  if(_coachCtx) generateCoaching(_coachCtx);
+}
 function generateCoaching(ctx){
+  _coachCtx=ctx;
   const prompt=buildCoachPrompt(ctx.persona, ctx.goal, ctx.convo, ctx.axisText);
   askAI(prompt).then(function(raw){
     const b=document.getElementById("coachBox"); if(!b) return;
     const d=extractJson(raw);
-    if(!d){ b.innerHTML='<h4>AI 종합 코칭</h4><div class="coach-load">코칭을 생성하지 못했어요. 리포트를 다시 열어보시면 재시도됩니다.</div>'; return; }
+    if(!d){ b.innerHTML=coachFailHTML('코칭을 생성하지 못했어요. 다시 시도해 주세요.'); return; }
     const st=(d.strengths||[]).map(function(s){return `<div class="cst">· ${esc(s)}</div>`;}).join("");
     const how=((d.focus&&d.focus.how)||[]).map(function(h){return `<li>${esc(h)}</li>`;}).join("");
     b.innerHTML=`<h4>AI 종합 코칭</h4>
@@ -2301,7 +2332,7 @@ function generateCoaching(ctx){
       ${d.focus?`<div class="cfocus"><div class="ca">가장 개선할 점 · ${esc(d.focus.area||'')}</div>${d.focus.why?`<div class="cst">${esc(d.focus.why)}</div>`:''}${how?`<ul>${how}</ul>`:''}</div>`:''}
       ${d.nextStep?`<div class="cnext">다음 훈련: ${esc(d.nextStep)}</div>`:''}`;
     try{ if(sb && state && state.recId){ sb.from('training_sessions').update({coaching:d}).eq('id',state.recId).then(function(){},function(){}); } }catch(e){}  // 지난 리포트에서도 볼 수 있게 저장
-  }).catch(function(){ const b=document.getElementById("coachBox"); if(b) b.innerHTML='<h4>AI 종합 코칭</h4><div class="coach-load">코칭 생성 중 오류가 발생했어요.</div>'; });
+  }).catch(function(){ const b=document.getElementById("coachBox"); if(b) b.innerHTML=coachFailHTML('코칭 생성 중 오류가 발생했어요.'); });
 }
 function buildPrintArea(d){
   const bc=d.passed?'#15803d':'#b91c1c', bb=d.passed?'#e8f7ee':'#fdeaea', bt=d.passed?'✔ 합격':'✕ 불합격';
@@ -3564,7 +3595,7 @@ async function ensurePastCoaching(s, elId){
   var el=document.getElementById(elId); if(!el) return;
   if(s && s.coaching){ el.innerHTML='<div class="acct-sec coach">'+coachingHtml(s.coaching)+'</div>'; return; }
   if(!s || !Array.isArray(s.messages) || !s.messages.length){ el.innerHTML=''; return; }
-  el.innerHTML='<div class="acct-sec coach"><div class="coach-load">🤖 AI 코치가 종합 분석 중…</div></div>';
+  el.innerHTML='<div class="acct-sec coach">'+aiLoadingHTML()+'</div>';
   var d=await fetchPastCoaching(s);
   el.innerHTML=d?('<div class="acct-sec coach">'+coachingHtml(d)+'</div>'):'';
 }
