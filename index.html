@@ -92,13 +92,17 @@ src="https://www.facebook.com/tr?id=2598756787224685&ev=PageView&noscript=1"
 .dm-msg.c{align-self:flex-start;background:#eef1ea;border-bottom-left-radius:5px}
 .dm-msg.f{align-self:flex-end;background:#2f7d32;color:#fff;border-bottom-right-radius:5px}
 @keyframes dmPop{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-/* 화법 조립(문장 선택) 미니 */
+/* 화법 고르기(빈칸에 들어갈 한마디 선택) 미니 */
 .dm-asm{display:none;padding:12px 17px 15px;background:#f4f8ef;border-top:1px solid #e3ecd7;animation:dmPop .3s ease both}
 .dm-asm.on{display:block}
 .dm-asm .da-h{font-size:12px;font-weight:800;color:#3a4b3a;margin-bottom:9px}
-.dm-asm .da-chips{display:flex;flex-wrap:wrap;gap:7px}
-.dm-asm .da-chip{font-size:12.5px;font-weight:600;color:#2a3428;background:#fff;border:1.5px solid #e2e6de;border-radius:10px;padding:7px 11px;transition:.22s}
-.dm-asm .da-chip.picked{background:#2f7d32;border-color:#2f7d32;color:#fff;transform:translateY(-1px)}
+.dm-asm .da-frame{font-size:13px;line-height:1.7;color:#3a4634;margin-bottom:11px}
+.dm-asm .da-slot{display:inline-block;min-width:78px;text-align:center;border-bottom:2px dashed #bcc9b2;color:#9aa0a6;font-weight:800;padding:1px 8px;border-radius:5px;transition:.25s}
+.dm-asm .da-slot.filled{border-bottom-color:#2f7d32;color:#2c5210;background:#e5f2dc}
+.dm-asm .da-opts{display:flex;flex-direction:column;gap:6px}
+.dm-asm .da-chip{font-size:12.5px;font-weight:600;color:#2a3428;background:#fff;border:1.5px solid #e2e6de;border-radius:10px;padding:8px 11px;transition:.2s}
+.dm-asm .da-chip.hover{border-color:#c3d2b6;background:#eef4e6}
+.dm-asm .da-chip.picked{background:#2f7d32;border-color:#2f7d32;color:#fff}
 .dm-note{text-align:center;font-size:12px;color:#d5e8bd;margin-top:12px}
 /* 3단계 미니 화면 비주얼 */
 .lp-step{gap:13px}
@@ -928,7 +932,7 @@ textarea:focus{border-color:var(--brand)}
         <div class="dm-chat" id="dmChat"></div>
         <div class="dm-asm" id="dmAsm"></div>
       </div>
-      <div class="dm-note">실제 훈련 화면 — 화법 조각을 골라 문장을 완성하고, 잘 설득할수록 호감도가 올라가요</div>
+      <div class="dm-note">실제 훈련 화면 — 상황에 맞는 한마디를 골라 문장을 완성하고, 잘 설득할수록 호감도가 올라가요</div>
       <div class="lp-hero-proof">
         <span class="hp-stars">★★★★★</span>
         <span class="hp-q">“꾸준히 연습했더니 이제는 영업에 자신감이 생겼어요.”</span>
@@ -2820,7 +2824,7 @@ function startLpDemo(){
   var SEQ=[
     {r:'c',t:'아, 보험이요? 이미 하나 있어서 더 필요할까 싶어요.',g:18,f:'😠'},
     {r:'f',t:'그러셨군요, 이미 챙기셨다니 잘하셨어요. 다만 지금 보장이 그대로 맞는지 딱 한 번만 같이 봐드릴까요?',g:44,f:'😐',
-     asm:{chips:['더 좋은 상품이 많으니','지금 보장이 그대로 맞는지','부담 드리려는 게 아니라','딱 한 번만 같이'],pick:[1,3]}},
+     asm:{lead:'그러셨군요, 이미 챙기셨다니 잘하셨어요. 다만',trail:'딱 한 번만 같이 봐드릴까요?',opts:['가입하셨으니 됐고','지금 보장이 그대로 맞는지','더 싼 것도 많으니'],correct:1}},
     {r:'c',t:'음… 그 정도면 잠깐은 괜찮겠네요.',g:70,f:'🙂'},
     {r:'f',t:'감사합니다. 5분이면 됩니다. 이번 주 중 언제가 편하실까요?',g:90,f:'😊'}
   ];
@@ -2829,15 +2833,27 @@ function startLpDemo(){
   function bubble(s){ var b=document.createElement('div'); b.className='dm-msg '+(s.r==='f'?'f':'c'); b.textContent=s.t; chat.appendChild(b); chat.scrollTop=chat.scrollHeight; if(fill)fill.style.width=s.g+'%'; if(pct)pct.textContent=s.g+'%'; if(face)face.textContent=s.f; }
   function showAsm(s, done){
     if(!asm){ done(); return; }
-    var chips=s.asm.chips, pick=s.asm.pick;
-    asm.innerHTML='<div class="da-h">🧩 화법 조각을 골라 문장을 완성해요</div><div class="da-chips">'+chips.map(function(c,i){return '<span class="da-chip" data-i="'+i+'">'+c+'</span>';}).join('')+'</div>';
+    var o=s.asm;
+    asm.innerHTML='<div class="da-h">💬 이 상황, 빈칸에 어떤 한마디가 맞을까요?</div>'+
+      '<div class="da-frame">'+o.lead+' <span class="da-slot" id="daSlot">？</span> '+o.trail+'</div>'+
+      '<div class="da-opts">'+o.opts.map(function(c,i){return '<span class="da-chip" data-i="'+i+'">'+c+'</span>';}).join('')+'</div>';
     asm.classList.add('on');
-    var els=asm.querySelectorAll('.da-chip');
-    _lpDemoTimer=setTimeout(function(){ if(!gq('dmChat'))return; if(els[pick[0]])els[pick[0]].classList.add('picked');
-      _lpDemoTimer=setTimeout(function(){ if(!gq('dmChat'))return; if(els[pick[1]])els[pick[1]].classList.add('picked');
-        _lpDemoTimer=setTimeout(function(){ if(!gq('dmChat'))return; asm.classList.remove('on'); done(); }, 950);
-      }, 850);
-    }, 700);
+    var els=asm.querySelectorAll('.da-chip'), slot=gq('daSlot');
+    var seq=[]; for(var i=0;i<o.opts.length;i++){ if(i!==o.correct) seq.push(i); } seq.push(o.correct); // 오답들을 훑어보다 정답 선택(고민 표현)
+    function run(k){
+      if(!gq('dmChat')) return;
+      if(k>0 && seq[k-1]!==o.correct && els[seq[k-1]]) els[seq[k-1]].classList.remove('hover');
+      var idx=seq[k];
+      if(idx===o.correct){
+        if(els[idx]) els[idx].classList.add('picked');
+        if(slot){ slot.textContent=o.opts[idx]; slot.classList.add('filled'); }
+        _lpDemoTimer=setTimeout(function(){ if(!gq('dmChat'))return; asm.classList.remove('on'); done(); }, 1100);
+      } else {
+        if(els[idx]) els[idx].classList.add('hover');
+        _lpDemoTimer=setTimeout(function(){ run(k+1); }, 650);
+      }
+    }
+    _lpDemoTimer=setTimeout(function(){ run(0); }, 750);
   }
   function step(i){
     if(!gq('dmChat')) return;                 // 랜딩이 닫혔으면 중단
